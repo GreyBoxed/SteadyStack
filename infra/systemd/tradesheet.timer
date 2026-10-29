@@ -1,0 +1,12 @@
+[Unit]
+Description=steadystack: the 09:45 decision
+
+[Timer]
+# A day generated without a Kite session parks, and resumes on login (M7).
+OnCalendar=Mon..Fri *-*-* 09:45 Asia/Kolkata
+Persistent=false
+RandomizedDelaySec=10
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,65 @@
+{% extends "app.html" %}
+{% block title %}Rebalance sell — steadystack{% endblock %}
+{% block page_title %}Rebalance sell{% endblock %}
+{% block content %}
+
+  <p class="text-ink-2 max-w-[48rem]">
+    The deliberate way shares leave the portfolio. Upload a CSV of symbol and
+    quantity; it is parsed and checked against what the lots actually hold.
+    <strong>Uploading never places an order</strong> — executing is a separate,
+    explicit confirmation against a one-shot token.
+  </p>
+
+  {% if live %}
+    <div class="card card-bad my-4">
+      <div class="font-mono text-[9.5px] tracking-[0.12em] text-bad">A BATCH IS RUNNING</div>
+      <p class="mt-2">
+        {{ live.source_filename|default:"a batch" }} is executing.
+        <a href="{% url 'rebalance:detail' live.pk %}">Watch or cancel it</a>.
+      </p>
+    </div>
+  {% endif %}
+
+  <h2>Upload a file</h2>
+  <div class="card">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <label for="file">CSV — symbol, quantity · <a class="normal-case tracking-normal" href="{% url 'rebalance:template' %}" download>download the template</a></label>
+      <input type="file" id="file" name="file" accept=".csv,text/csv" required
+             class="font-sans h-auto py-2">
+      <div class="text-[11.5px] text-ink-4 mt-2">
+        A row asking for more than the lots hold is refused outright rather than
+        clamped: selling some of what was asked for is a decision for a person.
+      </div>
+      <label><input type="checkbox" name="reinvest" checked> Reinvest the proceeds</label>
+      <button type="submit">Validate</button>
+    </form>
+  </div>
+
+  <h2>Batches</h2>
+  {% if batches %}
+    <table>
+      <thead>
+        <tr><th>Uploaded</th><th>File</th><th>By</th><th>Rows</th><th>State</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for batch in batches %}
+          <tr>
+            <td class="font-mono text-[12px]">{{ batch.uploaded_at|date:"j M Y, H:i" }}</td>
+            <td>{{ batch.source_filename|default:"—" }}</td>
+            <td class="text-ink-3">{{ batch.uploaded_by }}</td>
+            <td>{{ batch.row_count }}</td>
+            <td>
+              <span class="tag {% if batch.state == 'running' %}tag-accent{% elif batch.state == 'done' %}tag-good{% endif %}">
+                {{ batch.get_state_display }}
+              </span>
+            </td>
+            <td><a href="{% url 'rebalance:detail' batch.pk %}">Open</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No batch has been uploaded. Nothing has ever been sold this way.</p>
+  {% endif %}
+{% endblock %}

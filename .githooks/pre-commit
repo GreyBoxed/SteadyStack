@@ -1,0 +1,142 @@
+#!/bin/sh
+# Pre-commit: block credential leaks, then lint staged Python.
+#
+# This project handles a Kite API key/secret, a TOTP seed and a daily
+# broker access token. A leaked commit is not recoverable by deletion —
+# rotate the credential instead. Hence the scan.
+#
+# Escape hatches:
+#   SKIP_SECRET_SCAN=1 git commit ...
+#   SKIP_LINT=1 git commit ...
+#   git commit --no-verify        (skips every hook)
+
+status=0
+
+red()  { printf '\033[31m%s\033[0m\n' "$1" >&2; }
+warn() { printf '\033[33m%s\033[0m\n' "$1" >&2; }
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+[ -n "$staged" ] || exit 0
+
+# ---------------------------------------------------------------- filenames
+if [ "$SKIP_SECRET_SCAN" != "1" ]; then
+    for f in $staged; do
+        case "$f" in
+            *.example|*.sample|*.template) continue ;;
+        esac
+        case "$f" in
+            .env|.env.*|*/.env|*/.env.*|*.pem|*.key|*.p12|*.pfx|\
+            id_rsa|id_dsa|id_ecdsa|id_ed25519|*/id_rsa|\
+            credentials.json|*/credentials.json|\
+            *.tfvars|*/*.tfvars|secrets.y*ml|*/secrets.y*ml)
+                red "Secret file staged: $f"
+                warn "  Move it to AWS Secrets Manager and add it to .gitignore."
+                status=1
+                ;;
+        esac
+    done
+fi
+
+# ------------------------------------------------------------------ content
+if [ "$SKIP_SECRET_SCAN" != "1" ]; then
+    findings=$(git diff --cached -U0 --diff-filter=ACM | awk '
+        /^\+\+\+ b\// { file = substr($0, 7); next }
+        /^@@/ {
+            # Recover the new-file starting line number from the hunk header.
+            split($3, a, ",")
+            line = a[1] + 0
+            if (line < 0) line = -line
+            next
+        }
+        /^\+/ && !/^\+\+\+/ {
+            body = substr($0, 2)
+            low  = tolower(body)
+            hit  = ""
+
+            # Unambiguous markers: checked first, never suppressed by the
+            # placeholder allowlist. The canonical AWS documentation access
+            # key is correctly shaped and ends in the word "EXAMPLE", so the
+            # allowlist below would otherwise excuse a genuine leak.
+            if (body ~ /-----BEGIN [A-Z ]*PRIVATE KEY-----/)
+                hit = "private key block"
+            else if (body ~ /AKIA[0-9A-Z]{16}/)
+                hit = "AWS access key id"
+            else if (body ~ /ASIA[0-9A-Z]{16}/)
+                hit = "AWS temporary access key id"
+            else if (body ~ /otpauth:\/\/[^ ]*[?&]secret=[A-Za-z2-7]{16,}/)
+                # An authenticator enrolment URI carries the TOTP seed itself:
+                # whoever reads it can mint the operator codes forever.
+                # (No apostrophes in here: this program is single-quoted.)
+                hit = "TOTP provisioning URI"
+            else {
+                # Values that are obviously indirection, not the secret itself.
+                safe = (low ~ /os\.environ|getenv|env\(|environ\.get|secrets_manager|secretsmanager|\$\{|<[a-z_]+>|changeme|xxxxx|your[-_]|placeholder|example|dummy|fake|redacted|\.\.\.|noqa: *s10/)
+
+                # In Python a credential literal is a quoted *value*. Anything
+                # else on the right of the separator is a name or a call --
+                # self.api_secret, settings.KITE_API_SECRET, payload.get("x"),
+                # a keyword argument forwarding one along. Flagging those flags
+                # ordinary code, which teaches people to reach for
+                # SKIP_SECRET_SCAN and defeats the scan entirely. Config and
+                # env files keep the strict rule: there an unquoted value IS
+                # the secret.
+                if (!safe && file ~ /\.py$/ && body !~ /[:=][ \t]*["'"'"']/)
+                    safe = 1
+
+                if (!safe) {
+                    if (low ~ /(api[-_]?key|api[-_]?secret|secret[-_]?key|access[-_]?token|auth[-_]?token|token[-_]?key|enctoken|password|passwd|totp[-_]?seed|private[-_]?key)[\"'"'"' ]*[:=][ \"'"'"']*[a-z0-9\/+_.-]{8,}/)
+                        hit = "hardcoded credential"
+                    else if (low ~ /aws_secret_access_key[ \"'"'"']*[:=]/)
+                        hit = "AWS secret access key"
+                }
+            }
+
+            if (hit != "") printf "  %s:%d  %s\n    %.100s\n", file, line, hit, body
+            line++
+            next
+        }
+        /^[ -]/ { next }
+    ')
+
+    if [ -n "$findings" ]; then
+        red "Possible credentials in staged changes:"
+        printf '%s\n' "$findings" >&2
+        warn "If these are false positives:  SKIP_SECRET_SCAN=1 git commit ..."
+        status=1
+    fi
+fi
+
+# --------------------------------------------------------------------- ruff
+if [ "$SKIP_LINT" != "1" ]; then
+    py=$(printf '%s\n' "$staged" | grep -E '\.py$')
+    if [ -n "$py" ]; then
+        RUFF=""
+        if [ -x .venv/bin/ruff ]; then
+            RUFF=".venv/bin/ruff"
+        elif command -v ruff >/dev/null 2>&1; then
+            RUFF="ruff"
+        fi
+
+        # Probe before trusting it. A resolver that cannot actually run ruff
+        # must skip linting, not fail the commit.
+        if [ -n "$RUFF" ] && ! $RUFF --version >/dev/null 2>&1; then
+            RUFF=""
+        fi
+
+        if [ -n "$RUFF" ]; then
+            if ! printf '%s\n' "$py" | xargs "$RUFF" check --force-exclude --quiet; then
+                red "ruff check failed on staged files."
+                warn "  Fix, or auto-fix with: ruff check --fix <files>"
+                status=1
+            fi
+            if ! printf '%s\n' "$py" | xargs "$RUFF" format --force-exclude --check --quiet; then
+                red "ruff format would reformat staged files."
+                warn "  Run: ruff format <files>"
+                status=1
+            fi
+        fi
+    fi
+fi
+
+[ "$status" -eq 0 ] || red "Commit aborted."
+exit "$status"

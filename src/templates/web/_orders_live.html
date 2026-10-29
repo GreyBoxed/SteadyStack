@@ -1,0 +1,150 @@
+{% comment %}
+The trading board's moving parts. Rendered inside the page, and on its own at
+web:orders_live for the page to swap in while the market is open -- priced
+then from the book the latest round stored, not from a quote.
+{% endcomment %}
+  {% if priced.unavailable %}
+    <p class="tag tag-accent">Last traded prices could not be read — the columns that need them are blank.</p>
+  {% endif %}
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-3 my-5">
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">INSTRUMENTS</div>
+      <div class="text-[19px] mt-1.5">{{ kpis.instruments }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{{ kpis.buys }} buy · {{ kpis.sells }} sell</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">ORDERS PLACED</div>
+      <div class="text-[19px] mt-1.5">{{ kpis.orders }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{{ kpis.open }} still open</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">BUY DEPLOYED</div>
+      <div class="text-[19px] mt-1.5 text-good">₹{{ kpis.deployed|floatformat:2 }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{% if kpis.available is not None %}of ₹{{ kpis.available|floatformat:2 }} available{% else %}no tradesheet{% endif %}</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">SELL PROCEEDS</div>
+      <div class="text-[19px] mt-1.5">₹{{ kpis.proceeds|floatformat:2 }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{{ kpis.sold }} of {{ kpis.to_sell }} shares sold</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">NEXT ROUND</div>
+      <div class="text-[19px] mt-1.5 text-accent">{% if kpis.next_tick %}{{ kpis.next_tick.at|time:"H:i:s" }}{% else %}—{% endif %}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{% if kpis.next_tick %}round {{ kpis.next_tick.tick_no }}{% else %}no round left on this day{% endif %}</div>
+    </div>
+  </div>
+
+  <h2>Instruments with orders</h2>
+  <div class="overflow-x-auto">
+  <table>
+    <thead>
+      <tr><th>Symbol</th><th>Side</th><th>Source</th><th>Target</th><th>Filled</th><th>Open</th>
+          <th>Progress</th><th>Avg price</th><th>VWAP</th><th>Last</th><th>vs last</th><th>Value</th><th>State</th></tr>
+    </thead>
+    <tbody>
+      {% for row in instruments %}
+        <tr class="{% if row.state == 'WORKING' %}shadow-[inset_2px_0_0_var(--color-accent)]{% else %}shadow-[inset_2px_0_0_var(--color-good-edge)]{% endif %}">
+          <td><a href="{% url 'web:instrument_day' day|date:'Y-m-d' row.symbol %}">{{ row.symbol }}</a></td>
+          <td class="font-mono text-[12px] {% if row.side == 'BUY' %}text-good{% else %}text-bad{% endif %}">{{ row.side }}</td>
+          <td class="text-[13px] text-ink-3">{{ row.source }}</td>
+          <td>{{ row.target }}</td>
+          <td>{{ row.filled }}</td>
+          <td class="{% if row.open %}text-accent{% else %}text-ink-4{% endif %}">{{ row.open }}</td>
+          <td>
+            <div class="flex h-1.5 w-28 rounded bg-line overflow-hidden" role="img" aria-label="{{ row.filled }} filled and {{ row.open }} open of {{ row.target }}">
+              <div class="bg-good" style="width: {{ row.filled_pct }}%"></div>
+              <div class="bg-accent" style="width: {{ row.open_pct }}%"></div>
+            </div>
+          </td>
+          <td>{% if row.avg_price is not None %}{{ row.avg_price|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td class="text-ink-3">{% if row.vwap is not None %}{{ row.vwap|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td>{% if row.last_price is not None %}{{ row.last_price|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td class="{% if row.slip_good is True %}text-good{% elif row.slip_good is False %}text-bad{% else %}text-ink-4{% endif %}">
+            {% if row.slip is not None %}{% if row.slip >= 0 %}+{% endif %}{{ row.slip|floatformat:2 }}{% else %}—{% endif %}
+          </td>
+          <td>{% if row.value %}₹{{ row.value|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td><span class="tag {% if row.state == 'WORKING' %}tag-accent{% elif row.state == 'COMPLETE' %}tag-good{% endif %}">{{ row.state }}</span></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="13" class="muted">No instrument had an order on this day.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="muted text-[12px]">Avg price is what this day's fills averaged, a buy's or a sell's by its side; VWAP is the whole market's volume-weighted average for the day, as the latest round that quoted the name read it.</p>
+  {% if price_source == "round" %}
+    <p class="muted text-[12px]">Last is the mid of the book the latest round read, not a quote — the page refreshes from what is stored and never calls the broker. Reload for a quoted price.</p>
+  {% endif %}
+  <p class="muted text-[12px]">Open a symbol for its depth ladder, its orders, every tick and the broker calls. Holdings reflect these fills after the close reconciles them.</p>
+
+  <div class="flex items-center gap-1 flex-wrap mt-6" data-keep-scroll>
+    <h2 class="m-0 mr-3">Every order</h2>
+    {% for key, label, count in filters %}
+      <a href="?date={{ day|date:'Y-m-d' }}&show={{ key }}"
+         class="px-3 h-7 flex items-center rounded no-underline text-[12.5px] {% if show == key %}bg-[#22262C] text-ink{% else %}text-ink-3 hover:text-ink-2{% endif %}"
+         {% if show == key %}aria-current="true"{% endif %}>{{ label }} · {{ count }}</a>
+    {% endfor %}
+  </div>
+  <div class="overflow-x-auto">
+  <table>
+    <thead>
+      <tr><th>Placed</th><th>Instrument</th><th>Side</th><th>Tick</th><th>Broker order id</th><th>Limit</th>
+          <th>Qty</th><th>Filled</th><th>State</th><th>At</th><th>Value</th><th>Batch</th></tr>
+    </thead>
+    <tbody>
+      {% for row in blotter %}
+        <tr>
+          <td class="font-mono text-[12px]">{{ row.order.placed_at|time:"H:i:s" }}</td>
+          <td><a href="{% url 'web:instrument_day' day|date:'Y-m-d' row.order.instrument_id %}">{{ row.order.instrument_id }}</a></td>
+          <td class="font-mono text-[12px] {% if row.order.side == 'BUY' %}text-good{% else %}text-bad{% endif %}">{{ row.order.side }}</td>
+          <td>{{ row.order.tick_no }}</td>
+          <td class="font-mono text-[12px]">{{ row.order.kite_order_id|default:row.order.tag }}{% if row.order.is_paper %} <span class="text-ink-4">paper</span>{% endif %}</td>
+          <td>{% if row.order.limit_price %}{{ row.order.limit_price|floatformat:2 }}{% else %}market{% endif %}</td>
+          <td>{{ row.order.quantity }}</td>
+          <td>{{ row.order.filled_quantity }}</td>
+          <td><span class="tag {% if row.order.state == 'COMPLETE' %}tag-good{% elif row.order.state == 'REJECTED' %}tag-bad{% elif not row.order.is_terminal %}tag-accent{% endif %}">{{ row.order.get_state_display }}</span></td>
+          <td class="font-mono text-[12px]">{{ row.filled_at|time:"H:i:s"|default:"—" }}</td>
+          <td>{% if row.value %}₹{{ row.value|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td class="font-mono text-[11px] text-ink-3">{{ row.batch }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="12" class="muted">{% if show == "all" %}Nothing was placed.{% else %}No order matches this filter.{% endif %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="muted text-[12px]">{{ blotter|length }} shown · none is ever modified — a new price is a new order.</p>
+
+  <h2>Ticks</h2>
+  <table>
+    <thead><tr><th>#</th><th>Name</th><th>Stream</th><th>Bid</th><th>Ask</th><th>Slice</th><th>Outcome</th></tr></thead>
+    <tbody>
+      {% for tick in ticks %}
+        <tr>
+          <td>{{ tick.tick_no }}</td>
+          <td>{% if tick.instrument_id %}<a href="{% url 'web:instrument_day' day|date:'Y-m-d' tick.instrument_id %}">{{ tick.instrument_id }}</a>{% else %}<span class="muted">the day</span>{% endif %}</td>
+          <td class="font-mono text-[11px] text-ink-3">{{ tick.stream }}</td>
+          <td>{% if tick.best_bid %}₹{{ tick.best_bid|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td>{% if tick.best_ask %}₹{{ tick.best_ask|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td>{{ tick.slice_qty }}</td>
+          <td>
+            {% if tick.order_id %}
+              placed
+            {% else %}
+              <span class="muted">
+                placed nothing — {{ tick.get_no_place_reason_display }}{% if tick.detail %}
+                  ({{ tick.detail }}){% endif %}
+              </span>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="muted">No tick has fired.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="muted">
+    Every tick writes a row, including the ones that placed nothing — the day
+    reads as it happened, reasons included.
+  </p>

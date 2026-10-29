@@ -1,0 +1,35 @@
+[Unit]
+# The environment lives in tmpfs; this unit puts it back after a reboot.
+Requires=steadystack-env.service
+After=steadystack-env.service
+Description=steadystack: plan the trading day
+After=postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=oneshot
+User=steadystack
+Group=steadystack
+WorkingDirectory=/opt/steadystack
+# The order lock lives here (ORDER_LOCK_PATH): one file every unit sees,
+# writable by the service user, kept across restarts.
+StateDirectory=steadystack
+EnvironmentFile=/run/steadystack/env
+
+# The instrument master first (tick sizes, new listings, delistings), so the
+# plan sizes against today's. "-": a stale master is better than no plan.
+ExecStart=-/opt/steadystack/.venv/bin/python manage.py refresh_instruments
+# It places nothing, but it reads what the day has committed, so it waits up
+# to twenty seconds behind the 09:45 round rather than racing it -- or losing
+# the day's plan to it, since this timer is not persistent (M24).
+ExecStart=/usr/bin/flock -w 20 /var/lib/steadystack/orders.lock \
+    /opt/steadystack/.venv/bin/python manage.py generate_tradesheet
+
+StandardOutput=append:/var/log/steadystack/tradesheet.log
+StandardError=append:/var/log/steadystack/tradesheet.log
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/steadystack /run/steadystack

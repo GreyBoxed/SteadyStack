@@ -1,0 +1,34 @@
+[Unit]
+# The environment lives in tmpfs; this unit puts it back after a reboot.
+Requires=steadystack-env.service
+After=steadystack-env.service
+Description=steadystack: one round of the close -- cancel, then market for the remainder
+After=postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=oneshot
+User=steadystack
+Group=steadystack
+WorkingDirectory=/opt/steadystack
+# The order lock lives here (ORDER_LOCK_PATH): one file every unit sees,
+# writable by the service user, kept across restarts.
+StateDirectory=steadystack
+EnvironmentFile=/run/steadystack/env
+
+# Shares the order lock with every other order-touching task (M24), taken
+# inside the command; a flock wrapper on the same file would deadlock it.
+# A rebalance sale's round first: it takes at most one order, and the buy's
+# own count of the rate window then leaves it the rest. The leading "-" keeps
+# a failed sell round from stopping the buy round after it.
+ExecStart=-/opt/steadystack/.venv/bin/python manage.py rebalance_tick
+ExecStart=/opt/steadystack/.venv/bin/python manage.py market_fallback
+
+StandardOutput=append:/var/log/steadystack/fallback.log
+StandardError=append:/var/log/steadystack/fallback.log
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/steadystack /run/steadystack

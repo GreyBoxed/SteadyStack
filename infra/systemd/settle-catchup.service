@@ -1,0 +1,41 @@
+[Unit]
+# The environment lives in tmpfs; this unit puts it back after a reboot.
+Requires=steadystack-env.service
+After=steadystack-env.service
+Description=steadystack: at boot, settle the latest closed trading day if it never settled
+After=postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=oneshot
+User=steadystack
+Group=steadystack
+WorkingDirectory=/opt/steadystack
+# The order lock lives here (ORDER_LOCK_PATH): one file every unit sees,
+# writable by the service user, kept across restarts.
+StateDirectory=steadystack
+EnvironmentFile=/run/steadystack/env
+
+# eod.timer is not persistent (NI3): a box that was down at 15:45 settles the
+# day it missed here, once it is back -- the latest trading day whose close
+# has passed: today after its close, else the trading day before (m-1). A
+# no-op once that day has its row; a day with no tradesheet is reported and
+# left unclaimed. It waits for the order lock rather than giving up (Nm4). A live day's fills need
+# Kite's trade book, which is gone after midnight: with any of its live
+# orders still open here that settle refuses and says so, and the day is
+# recovered with import_tradebook (OPERATIONS.md §7). Never --level-unseen:
+# only a person who has read Console's tradebook may pass it (I-1).
+# No valuation: snapshot_valuation reads today's prices, not that day's.
+ExecStart=/opt/steadystack/.venv/bin/python manage.py settle_day --previous --if-unsettled
+
+StandardOutput=append:/var/log/steadystack/eod.log
+StandardError=append:/var/log/steadystack/eod.log
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/steadystack /run/steadystack
+
+[Install]
+WantedBy=multi-user.target

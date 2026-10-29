@@ -1,0 +1,14 @@
+[Unit]
+Description=steadystack: the 09:05 balance check
+
+[Timer]
+# Five minutes after the session check (M6), so a missing session has
+# already raised its own alarm by the time this looks for one to check
+# a balance against (spec §7.1).
+OnCalendar=Mon..Fri *-*-* 09:05 Asia/Kolkata
+Persistent=false
+RandomizedDelaySec=30
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

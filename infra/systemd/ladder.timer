@@ -1,0 +1,24 @@
+[Unit]
+Description=steadystack: a placing round every thirty seconds through the window
+
+[Timer]
+# Every thirty seconds from the tradesheet time to the placement window's
+# close, IST stated explicitly rather than inherited from the box's clock. The
+# command itself refuses to claim a round before the tradesheet time and
+# outside the day's session hours, and places nothing once the window has
+# closed, so the window here is a convenience and not the guard.
+OnCalendar=Mon..Fri *-*-* 09:45..59:00,30 Asia/Kolkata
+OnCalendar=Mon..Fri *-*-* 10..13:*:00,30 Asia/Kolkata
+
+# Not persistent. A round missed while the box was down is one the clock has
+# moved past, and the next is thirty seconds away -- firing the stale one on
+# boot would claim a round number the time of day has already left behind.
+Persistent=false
+
+# No jitter: at thirty seconds apart, a delay of any size risks two rounds
+# landing in one window or none in another. flock keeps the close apart.
+RandomizedDelaySec=0
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

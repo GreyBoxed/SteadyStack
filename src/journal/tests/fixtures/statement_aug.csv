@@ -1,0 +1,7 @@
+particulars,posting_date,cost_center,voucher_type,debit,credit,net_balance
+Opening Balance,,,,,,-150.140000
+Delayed payment charges for July - 2026,2026-08-05,NSE-EQ - Z,Journal Entry,1.570000,0.000000,-151.710000
+AMC for Demat Account for 01-04-2026 to 30-06-2026,2026-08-14,NSE-EQ - Z,Journal Entry,88.500000,0.000000,-240.210000
+Funds added using UPI from ABC123 with reference number 111111111111,2026-08-14,NSE-EQ - Z,Bank Receipts,0.000000,500.000000,259.790000
+Net settlement for Equity with settlement number: 2026153,2026-08-14,NSE-EQ - Z,Book Voucher,248.221084,0.000000,11.568916
+Closing Balance,,,,,,11.568916

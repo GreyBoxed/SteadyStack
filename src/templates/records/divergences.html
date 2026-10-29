@@ -1,0 +1,83 @@
+{% extends "app.html" %}
+{% block title %}Divergences — steadystack{% endblock %}
+{% block page_title %}Divergences{% endblock %}
+{% block content %}
+
+  {% if open_rows %}
+    <p class="errors">
+      {{ open_rows|length }} instrument{{ open_rows|length|pluralize }} in doubt. Their
+      realised and unrealised figures are withheld until somebody says what the
+      difference was — the system will not guess.
+    </p>
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-3 my-4">
+      {% for row in open_rows %}
+        <div class="card card-bad">
+          <div class="flex items-baseline justify-between">
+            <span class="text-[18px] font-semibold">{{ row.instrument_id }}</span>
+            <span class="font-mono text-[10.5px] text-ink-4">seen {{ row.detected_on|date:"j M Y" }}</span>
+          </div>
+          <div class="flex gap-6 mt-3">
+            <div>
+              <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">THE LOTS SAY</div>
+              <div class="font-mono text-[17px] mt-1">{{ row.expected_quantity }}</div>
+            </div>
+            <div>
+              <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">THE BROKER SAYS</div>
+              <div class="font-mono text-[17px] mt-1">{{ row.actual_quantity }}</div>
+            </div>
+            <div>
+              <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">DIFFERENCE</div>
+              <div class="font-mono text-[17px] mt-1 text-bad">{{ row.difference }}</div>
+            </div>
+          </div>
+          <a href="{% url 'records:classify' row.pk %}"
+             class="tag tag-accent no-underline inline-block mt-4">Classify this</a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>Every instrument's lots agree with the broker. Nothing is withheld.</p>
+  {% endif %}
+
+  {% if not_ours %}
+    <h2>Held, but not the portfolio's</h2>
+    <p class="muted text-[13px]">
+      In the account, with no lot and not in the model portfolio: the account
+      holder's own shares, so they are not compared. If one is the portfolio's,
+      import it as an opening position or add it to the model portfolio.
+    </p>
+    <table>
+      <thead><tr><th>Symbol</th><th>Broker</th></tr></thead>
+      <tbody>
+        {% for holding in not_ours %}
+          <tr><td>{{ holding.instrument_id }}</td><td>{{ holding.quantity }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  <h2>Already settled</h2>
+  {% if settled %}
+    <table>
+      <thead>
+        <tr><th>Detected</th><th>Symbol</th><th>Lots</th><th>Broker</th>
+            <th>Classified as</th><th>By</th><th>Note</th></tr>
+      </thead>
+      <tbody>
+        {% for row in settled %}
+          <tr>
+            <td class="font-mono text-[12px]">{{ row.detected_on|date:"j M Y" }}</td>
+            <td>{{ row.instrument_id }}</td>
+            <td>{{ row.expected_quantity }}</td>
+            <td>{{ row.actual_quantity }}</td>
+            <td>{{ row.get_classification_display }}</td>
+            <td class="text-ink-3">{{ row.resolved_by }}</td>
+            <td class="muted text-[12px]">{{ row.note }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">None yet.</p>
+  {% endif %}
+{% endblock %}

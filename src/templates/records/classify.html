@@ -1,0 +1,55 @@
+{% extends "app.html" %}
+{% block title %}Classify {{ row.instrument_id }} — steadystack{% endblock %}
+{% block page_title %}Classify {{ row.instrument_id }}{% endblock %}
+{% block content %}
+
+  <div class="card card-bad mb-5">
+    <div class="flex gap-8 flex-wrap">
+      <div>
+        <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">THE LOTS SAY</div>
+        <div class="font-mono text-[20px] mt-1">{{ row.expected_quantity }}</div>
+      </div>
+      <div>
+        <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">THE BROKER SAYS</div>
+        <div class="font-mono text-[20px] mt-1">{{ row.actual_quantity }}</div>
+      </div>
+      <div>
+        <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">DIFFERENCE</div>
+        <div class="font-mono text-[20px] mt-1 text-bad">{{ row.difference }}</div>
+      </div>
+      <div>
+        <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">DETECTED</div>
+        <div class="font-mono text-[20px] mt-1">{{ row.detected_on|date:"j M Y" }}</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="text-ink-2 max-w-[46rem]">
+    Choosing "bought outside" or "sold outside" also records the movement, so the
+    lots stop disagreeing with the broker. The other classifications explain the
+    difference without moving any shares.
+  </p>
+
+  <form method="post" class="mt-4">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="errors mb-3">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>
+    {% endif %}
+    <div class="card">
+      {% for field in form %}
+        <div class="py-2.5 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+          <label for="{{ field.id_for_label }}" class="mt-0">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}
+            <div class="text-[11.5px] text-ink-4 mt-1">{{ field.help_text }}</div>
+          {% endif %}
+          {% for error in field.errors %}
+            <div class="errors text-[12px] mt-1">{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      <button type="submit">Classify and record</button>
+      <a href="{% url 'records:divergences' %}" class="ml-4 text-[13px]">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

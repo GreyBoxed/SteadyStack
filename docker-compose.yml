@@ -1,0 +1,23 @@
+name: steadystack
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: steadystack-postgres
+    environment:
+      POSTGRES_DB: steadystack
+      POSTGRES_USER: steadystack_owner
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-steadystack_owner_dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      - steadystack_pgdata:/var/lib/postgresql/data
+      - ./ops/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U steadystack_owner -d steadystack"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  steadystack_pgdata:

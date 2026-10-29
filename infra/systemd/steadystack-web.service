@@ -1,0 +1,50 @@
+[Unit]
+# The environment lives in tmpfs; this unit puts it back after a reboot.
+Requires=steadystack-env.service
+After=steadystack-env.service
+Description=steadystack web (gunicorn behind nginx)
+After=network-online.target postgresql.service
+Wants=network-online.target
+Requires=postgresql.service
+
+[Service]
+Type=notify
+User=steadystack
+Group=steadystack
+WorkingDirectory=/opt/steadystack
+# The order lock lives here (ORDER_LOCK_PATH): one file every unit sees,
+# writable by the service user, kept across restarts.
+StateDirectory=steadystack
+EnvironmentFile=/run/steadystack/env
+
+# Three workers on two vCPU: one operator, and the postback endpoint must not
+# queue behind a dashboard rendering a year of the ledger.
+# The project is not an installed package: `config` lives under src/, which
+# manage.py puts on the path for itself and gunicorn has to be told.
+ExecStart=/opt/steadystack/.venv/bin/gunicorn config.wsgi:application \
+    --pythonpath /opt/steadystack/src \
+    --bind 127.0.0.1:8000 \
+    --workers 3 \
+    --timeout 60 \
+    --access-logfile - \
+    --error-logfile -
+
+Restart=always
+RestartSec=5
+
+# JSON to stdout, captured by journald and shipped to CloudWatch (M42). The
+# file is what the agent tails; journald keeps the same lines for a shell.
+StandardOutput=append:/var/log/steadystack/web.log
+StandardError=append:/var/log/steadystack/web.log
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/steadystack /run/steadystack
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

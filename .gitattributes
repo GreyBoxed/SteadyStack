@@ -1,0 +1,32 @@
+# Auto-detect text files and normalize line endings
+* text=auto
+
+# Shell scripts and systemd units must stay LF regardless of platform
+*.sh text eol=lf
+*.service text eol=lf
+*.timer text eol=lf
+.githooks/* text eol=lf
+
+# Language-aware diff drivers
+*.py diff=python
+*.html diff=html
+*.css diff=css
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+
+# Keep lockfiles out of diffs but still versioned
+uv.lock linguist-generated=true -diff
+poetry.lock linguist-generated=true -diff

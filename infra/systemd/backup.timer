@@ -1,0 +1,15 @@
+[Unit]
+Description=steadystack: the nightly dump
+
+[Timer]
+# 01:00 IST, every day including weekends: the ledger does not change at the
+# weekend, and a backup that skips two days in seven is a backup with a
+# two-day hole somebody discovers on a Monday. Persistent, because a dump
+# missed while the box was down is the one most worth taking.
+OnCalendar=*-*-* 01:00 Asia/Kolkata
+Persistent=true
+RandomizedDelaySec=300
+AccuracySec=1m
+
+[Install]
+WantedBy=timers.target

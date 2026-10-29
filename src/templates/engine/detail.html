@@ -1,0 +1,412 @@
+{% extends "app.html" %}
+{% block title %}{{ sheet.trading_date|date:"j M Y" }} — steadystack{% endblock %}
+{% block page_title %}Trading day — {{ sheet.trading_date|date:"j M Y" }} <span class="muted">v{{ sheet.version }}</span>{% endblock %}
+{% block content %}
+
+  <nav class="flex items-center gap-2 flex-wrap mb-4 font-mono text-[11.5px]" aria-label="Trading days">
+    {% if neighbours.previous %}
+      <a class="px-2.5 h-7 flex items-center rounded border border-line no-underline" href="{% url 'engine:detail' neighbours.previous.trading_date|date:'Y-m-d' neighbours.previous.version %}" aria-label="Previous trading day">‹ {{ neighbours.previous.trading_date|date:"j M" }}</a>
+    {% endif %}
+    {% if neighbours.next %}
+      <a class="px-2.5 h-7 flex items-center rounded border border-line no-underline" href="{% url 'engine:detail' neighbours.next.trading_date|date:'Y-m-d' neighbours.next.version %}" aria-label="Next trading day">{{ neighbours.next.trading_date|date:"j M" }} ›</a>
+    {% endif %}
+    <span class="text-ink-2 text-[13px] font-sans">{{ sheet.trading_date|date:"D j M Y" }}</span>
+    <span class="text-ink-3">{{ sheet.trace_id }}{% if sheet.model_portfolio %} · weights v{{ sheet.model_portfolio.version }}{% endif %} · generated {{ sheet.generated_at|date:"H:i:s" }} by {{ sheet.generated_by }}</span>
+    {% for other in other_versions %}
+      <a class="tag no-underline" href="{% url 'engine:detail' other.trading_date|date:'Y-m-d' other.version %}">v{{ other.version }}</a>
+    {% endfor %}
+    <span class="ml-auto text-ink-3">{{ neighbours.on_record }} day{{ neighbours.on_record|pluralize }} on record</span>
+    {% if today_sheet %}<a href="{% url 'engine:detail' today_sheet.trading_date|date:'Y-m-d' today_sheet.version %}">Jump to today</a>{% endif %}
+  </nav>
+
+  <p>
+    {% if lines %}
+      Buy <strong>{{ lines|length }} name{{ lines|length|pluralize }}, {{ sheet.quantity }} share{{ sheet.quantity|pluralize }}</strong>
+      — ₹{{ sheet.planned_cost|floatformat:2 }} of ₹{{ sheet.spendable_cash|floatformat:2 }}.
+    {% else %}
+      Nothing today: {{ sheet.get_skip_reason_display }}.
+    {% endif %}
+  </p>
+
+  {% if sheet.reserve_symbol %}
+    <p class="muted">
+      Waiting {{ sheet.reserve_days }} day{{ sheet.reserve_days|pluralize }} for
+      {{ sheet.reserve_symbol }}{% if sheet.reserve_engaged %} — reserving, so nothing is bought until it is affordable{% endif %}.
+    </p>
+  {% endif %}
+
+  <p class="muted">
+    Carry in ₹{{ sheet.carry_in|floatformat:2 }}{% if portfolio_value %} · portfolio valued at ₹{{ portfolio_value|floatformat:2 }}{% endif %}
+  </p>
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3 mb-5">
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">STATE</div>
+      <div class="text-[19px] mt-1.5">{{ sheet.get_state_display }}</div>
+      {% if sheet.skip_reason %}
+        <div class="font-mono text-[10.5px] text-bad mt-1">{{ sheet.get_skip_reason_display }}</div>
+      {% endif %}
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">DECIDED</div>
+      <div class="text-[19px] mt-1.5">
+        {% if lines %}{{ lines|length }} name{{ lines|length|pluralize }}{% else %}nothing{% endif %}
+      </div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">
+        {% if lines %}{{ sheet.quantity }} shares · ₹{{ sheet.planned_cost|floatformat:2 }}{% endif %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">CASH IT MAY SPEND</div>
+      <div class="text-[19px] mt-1.5">₹{{ sheet.spendable_cash|floatformat:2 }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">carry in ₹{{ sheet.carry_in|floatformat:2 }} · <a href="{% url 'web:cash_ledger' %}#lumpsum">add lumpsum</a></div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">WHAT IT COST</div>
+      <div class="text-[19px] mt-1.5">₹{{ net|floatformat:2 }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">
+        ₹{{ gross|floatformat:2 }} gross + ₹{{ charges|floatformat:2 }} charges
+      </div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">AVERAGE FILL</div>
+      <div class="text-[19px] mt-1.5">{% if average %}₹{{ average|floatformat:2 }}{% else %}—{% endif %}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{{ filled }} share{{ filled|pluralize }} · {{ lots_created }} lot{{ lots_created|pluralize }} created</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">CARRY OUT</div>
+      <div class="text-[19px] mt-1.5">₹{% if cash_row %}{{ cash_row.closing_carry|floatformat:2 }}{% else %}{{ projected_carry|floatformat:2 }}{% endif %}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{% if cash_row %}settled{% else %}projected from fills so far{% endif %}</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">TICKS</div>
+      <div class="text-[19px] mt-1.5">{{ ticks_placed }} <span class="text-ink-3 text-[14px]">/ {{ ticks|length }}</span></div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">placed / fired · {{ broker_calls }} broker call{{ broker_calls|pluralize }}</div>
+    </div>
+  </div>
+
+  {% if lumpsums.in_sheet or lumpsums.after %}
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3 mb-5">
+      {% for credit in lumpsums.in_sheet %}
+        <div class="card card-good">
+          <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">{{ credit.label|upper }} IN THIS DAY'S CASH</div>
+          <div class="text-[19px] mt-1.5 text-good">+₹{{ credit.amount|floatformat:2 }}</div>
+          <div class="font-mono text-[10.5px] text-ink-4 mt-1">{{ credit.received_on|date:"j M" }} · recorded {{ credit.recorded_at|date:"j M H:i" }} · {{ credit.recorded_by }}{% if credit.reference %} · {{ credit.reference }}{% endif %}</div>
+        </div>
+      {% endfor %}
+      {% for credit in lumpsums.after %}
+        <div class="card">
+          <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">{{ credit.label|upper }} · AFTER THIS SHEET WAS PLANNED</div>
+          <div class="text-[19px] mt-1.5">+₹{{ credit.amount|floatformat:2 }}</div>
+          <div class="font-mono text-[10.5px] text-ink-4 mt-1">{{ credit.recorded_at|date:"H:i" }} · {{ credit.recorded_by }}{% if credit.reference %} · {{ credit.reference }}{% endif %}</div>
+          <div class="text-[12px] text-ink-3 mt-1.5">This sheet's ranking is frozen; regenerate the day to spend it, or it joins carry.</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if lines %}
+    <h2>What the day buys</h2>
+    <div class="overflow-x-auto">
+    <table class="text-[13.5px]">
+      <thead><tr><th>#</th><th>Symbol</th><th>Quantity</th><th>Sized at</th><th>Planned</th>
+                 <th>Committed</th><th>Filled</th><th>Spent</th>{% if can_adjust %}<th>Change it</th>{% endif %}</tr></thead>
+      <tbody>
+        {% for row in lines %}
+          <tr>
+            <td class="text-ink-3">{{ row.line.rank }}</td>
+            <td><a href="{% url 'web:instrument_day' sheet.trading_date|date:'Y-m-d' row.line.instrument_id %}">{{ row.line.instrument_id }}</a></td>
+            <td>{{ row.line.quantity }}</td>
+            <td class="whitespace-nowrap">₹{{ row.line.reference_price|floatformat:2 }}
+              <span class="font-mono text-[10px] {% if row.line.price_source == 'close' %}text-accent{% else %}text-ink-4{% endif %}">{% if row.line.price_source == 'close' %}PREV CLOSE{% else %}ASK{% endif %}</span></td>
+            <td>₹{{ row.line.planned_cost|floatformat:2 }}</td>
+            <td>{{ row.committed }}</td>
+            <td class="{% if row.filled %}text-good{% endif %}">{{ row.filled }}</td>
+            <td>{% if row.spent %}₹{{ row.spent|floatformat:2 }}{% else %}—{% endif %}</td>
+            {% if can_adjust %}
+              <td>
+                {% if row.line.pk %}
+                <form method="post" action="{% url 'engine:override' sheet.trading_date|date:'Y-m-d' sheet.version %}" class="flex items-center gap-1.5 flex-wrap">
+                  {% csrf_token %}
+                  <input type="hidden" name="symbol" value="{{ row.line.instrument_id }}">
+                  <input type="number" name="quantity" min="{{ row.filled }}" value="{{ row.line.quantity }}" aria-label="New quantity for {{ row.line.instrument_id }}" class="w-20 h-8 text-[13px]">
+                  <input type="text" name="reason" maxlength="255" required placeholder="reason" aria-label="Reason" class="w-36 h-8 text-[13px]">
+                  <button type="submit" name="action" value="adjust_line" class="quiet h-8 mt-0 px-3 text-[12.5px]">Set</button>
+                  <button type="submit" name="action" value="skip_line" class="quiet h-8 mt-0 px-3 text-[12.5px]" {% if row.line.quantity == row.filled %}disabled{% endif %}>Skip for today</button>
+                </form>
+                {% endif %}
+              </td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr><th></th><th>Total</th><td>{{ sheet.quantity }}</td><td></td><td>₹{{ sheet.planned_cost|floatformat:2 }}</td><td colspan="{% if can_adjust %}4{% else %}3{% endif %}"></td></tr>
+      </tfoot>
+    </table>
+    </div>
+    <p class="muted text-[12px]">
+      Every name the day's cash reaches, most underweight first, each up to its target (M15).
+      A name sized at its previous close had nobody offering when the sheet was built.
+      Lowering a quantity cancels that name's newest open orders; raising it is allowed while the
+      day's cash covers every line. Skipping keeps what has filled.
+    </p>
+  {% endif %}
+
+  {% if regeneration.sheet.trading_date == chrome.today %}
+    <div class="mb-5">{% include "engine/_authorize.html" %}</div>
+    <div class="mb-5">{% include "engine/_regenerate.html" %}</div>
+  {% endif %}
+
+  <h2>Ranking · frozen at {{ sheet.generated_at|date:"H:i:s" }}</h2>
+  <div class="overflow-x-auto">
+  <table class="text-[13.5px]">
+    <thead><tr><th>#</th><th>Symbol</th><th>Weight</th><th>Target</th><th>Gap</th><th>Under · over</th>
+               <th>Held</th><th>Last</th><th>Ask</th><th>Max qty</th><th>Decision</th></tr></thead>
+    <tbody>
+      {% for row in ranked %}
+        <tr class="{% if row.chosen %}shadow-[inset_2px_0_0_var(--color-accent)] bg-accent-bg{% endif %}">
+          <td>{{ row.rank }}</td>
+          <td>{% if row.chosen %}<strong>{{ row.symbol }}</strong>{% else %}{{ row.symbol }}{% endif %}</td>
+          <td>{{ row.current_pct|floatformat:2 }}%</td>
+          <td>{{ row.target_pct|floatformat:2 }}%</td>
+          <td class="{% if row.gap_value < 0 %}text-bad{% else %}text-good{% endif %}">{{ row.gap_value|floatformat:2 }}</td>
+          <td>
+            <span class="relative block h-2 w-28" role="img" aria-label="gap {{ row.gap_value|floatformat:2 }}">
+              <span class="absolute inset-y-0 left-1/2 w-px bg-edge"></span>
+              {% if row.gap_value < 0 %}
+                <span class="absolute inset-y-0 right-1/2 rounded-l bg-bad" style="width: {{ row.gap_pct }}%"></span>
+              {% else %}
+                <span class="absolute inset-y-0 left-1/2 rounded-r bg-good" style="width: {{ row.gap_pct }}%"></span>
+              {% endif %}
+            </span>
+          </td>
+          <td>{{ row.quantity_held }}</td>
+          <td>{{ row.last_price|floatformat:2 }}</td>
+          <td>{{ row.ask|floatformat:2 }}</td>
+          <td class="{% if row.max_qty == 0 %}text-bad{% endif %}">{% if row.max_qty is None %}—{% else %}{{ row.max_qty }}{% endif %}</td>
+          <td class="font-mono text-[11.5px] {% if row.tone == 'good' %}text-good{% elif row.tone == 'bad' %}text-bad{% elif row.tone == 'warn' %}text-accent{% else %}text-ink-4{% endif %}">{{ row.decision }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="11" class="muted">No ranking was stored for this day.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="muted text-[12px]">Stored on the tradesheet when it was generated — never recomputed. Max qty is this day's ₹{{ sheet.spendable_cash|floatformat:2 }} over the ask on the row.</p>
+
+  {% if excluded %}
+    <h2>Excluded</h2>
+    <ul>
+      {% for row in excluded %}<li>{{ row.symbol }} — {{ row.reason }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+
+  <p><a href="{% url 'engine:index' %}">All tradesheets</a></p>
+
+  <h2>Orders and fills</h2>
+  <div class="overflow-x-auto">
+  <table class="text-[13.5px] whitespace-nowrap">
+    <thead><tr><th>Tick</th><th>Symbol</th><th>Side</th><th>Broker order id</th><th>Placed</th><th>Limit</th>
+               <th>Qty</th><th>State</th><th>Filled at</th><th>Price</th><th>Depth bid / ask</th><th>Trade</th></tr></thead>
+    <tbody>
+      {% for row in order_rows %}
+        <tr>
+          <td>{{ row.order.tick_no }}</td>
+          <td><a href="{% url 'web:instrument_day' sheet.trading_date|date:'Y-m-d' row.order.instrument_id %}">{{ row.order.instrument_id }}</a></td>
+          <td>{{ row.order.get_side_display }}</td>
+          <td class="font-mono text-[12px]">{{ row.order.kite_order_id|default:row.order.tag }}{% if row.order.is_paper %} <span class="text-ink-4 text-[10px]">PAPER</span>{% endif %}</td>
+          <td class="font-mono text-[12px]">{{ row.order.placed_at|time:"H:i:s" }}</td>
+          <td>{% if row.order.limit_price %}₹{{ row.order.limit_price|floatformat:2 }}{% else %}market{% endif %}</td>
+          <td>{{ row.order.filled_quantity }} / {{ row.order.quantity }}</td>
+          <td>{{ row.order.get_state_display }}</td>
+          <td class="font-mono text-[12px]">{{ row.filled_at|time:"H:i:s"|default:"—" }}</td>
+          <td>{% if row.price %}₹{{ row.price|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td class="font-mono text-[12px]">{% if row.tick.best_bid %}{{ row.tick.best_bid|floatformat:2 }} / {{ row.tick.best_ask|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td class="font-mono text-[11px] text-ink-4">{{ row.trades|join:", "|default:"—" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="12" class="muted">Nothing was placed.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% if filled %}
+    <p class="font-mono text-[12px] text-ink-3">
+      {{ filled }} share{{ filled|pluralize }} · weighted average ₹{{ average|floatformat:2 }} · gross ₹{{ gross|floatformat:2 }}
+      · {{ lots_created }} lot{{ lots_created|pluralize }} created, acquired {{ sheet.trading_date|date:"j M Y" }}
+      {% with last=order_rows|last %}· last order at tick {{ last.order.tick_no }}{% endwith %}
+      · {% if fallback_used %}the {{ fallback_used.placed_at|time:"H:i" }} market fallback bought the rest{% else %}no fallback needed{% endif %}
+    </p>
+  {% endif %}
+
+  <h2>Ticks</h2>
+  <table>
+    <thead><tr><th>#</th><th>Bid</th><th>Ask</th><th>Slice</th><th>Outcome</th></tr></thead>
+    <tbody>
+      {% for tick in ticks %}
+        <tr>
+          <td>{{ tick.tick_no }}{% if tick.tick_no in excluded_ticks %}
+                <span class="tag tag-accent">excluded</span>{% endif %}</td>
+          <td>{% if tick.best_bid %}₹{{ tick.best_bid|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td>{% if tick.best_ask %}₹{{ tick.best_ask|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td>{{ tick.slice_qty }}</td>
+          <td>
+            {% if tick.order_id %}placed
+            {% else %}<span class="muted">placed nothing — {{ tick.get_no_place_reason_display }}</span>{% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="muted">No tick has fired.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Operator override</h2>
+  <div class="card card-bad">
+    <p class="text-ink-2">
+      These change what the day does. Every one is audited, and the rules are the
+      engine's: a reduction cancels the newest open orders, a skip is refused once
+      anything has filled, and excluding a tick leaves the day's quantity alone —
+      the fallback buys what the tick would have.
+    </p>
+
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4 mt-4">
+      <form method="post" action="{% url 'engine:override' sheet.trading_date|date:'Y-m-d' sheet.version %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reduce">
+        <label for="q">Reduce quantity to</label>
+        <input type="number" id="q" name="quantity" min="0" value="{{ sheet.quantity }}" required>
+        <label for="r1">Reason</label>
+        <input type="text" id="r1" name="reason" maxlength="255" required>
+        <button type="submit">Reduce</button>
+      </form>
+
+      <form method="post" action="{% url 'engine:override' sheet.trading_date|date:'Y-m-d' sheet.version %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="exclude">
+        <label for="t">Exclude tick</label>
+        <input type="number" id="t" name="tick_no" min="0" required>
+        <label for="r2">Reason</label>
+        <input type="text" id="r2" name="reason" maxlength="255" required>
+        <button type="submit" class="quiet">Exclude</button>
+      </form>
+
+      <form method="post" action="{% url 'engine:override' sheet.trading_date|date:'Y-m-d' sheet.version %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="skip">
+        <label for="r3">Skip the day — reason</label>
+        <input type="text" id="r3" name="reason" maxlength="255" required>
+        <button type="submit" class="quiet">Skip the day</button>
+      </form>
+    </div>
+  </div>
+
+  <h2>Overrides applied</h2>
+  {% if history %}
+    <table>
+      <thead><tr><th>When</th><th>Actor</th><th>Kind</th><th>Before</th><th>After</th><th>Reason</th></tr></thead>
+      <tbody>
+        {% for row in history %}
+          <tr>
+            <td class="font-mono text-[12px]">{{ row.decided_at|date:"j M, H:i" }}</td>
+            <td class="text-ink-3">{{ row.actor }}</td>
+            <td>{{ row.get_kind_display }}</td>
+            <td class="text-ink-3">{{ row.before }}</td>
+            <td class="text-accent">{{ row.after }}</td>
+            <td class="muted text-[12px]">{{ row.reason }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">Nobody has overridden this day.</p>
+  {% endif %}
+
+  <h2>The ledger row this day wrote</h2>
+  {% if cash_row %}
+    <table>
+      <thead><tr><th>Opening</th><th>Daily</th><th>Extra</th>
+                 <th>Spent</th><th>Charges</th><th>Sale proceeds</th><th>Other</th>
+                 <th>Closing</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>₹{{ cash_row.opening_carry|floatformat:2 }}</td>
+          <td>₹{{ cash_row.daily_allocation|floatformat:2 }}</td>
+          <td>₹{{ cash_row.extra_allocation|floatformat:2 }}</td>
+          <td>₹{{ cash_row.cash_spent|floatformat:2 }}</td>
+          <td>₹{{ cash_row.charges|floatformat:2 }}</td>
+          <td>₹{{ cash_row.proceeds|floatformat:2 }}</td>
+          <td>₹{{ cash_row.other|floatformat:2 }}</td>
+          <td>₹{{ cash_row.closing_carry|floatformat:2 }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="muted text-[12px]">
+      {% if neighbours.next %}Closing carry went into <a href="{% url 'engine:detail' neighbours.next.trading_date|date:'Y-m-d' neighbours.next.version %}">{{ neighbours.next.trading_date|date:"j M" }}</a>. {% endif %}
+      Written once from the journal and never updated. {% if cash_row.closing_carry < 0 %}This
+      day spent more than it held and closed at ₹{{ cash_row.closing_carry|floatformat:2 }};
+      the next day's allocation repays it.{% endif %}
+    </p>
+  {% else %}
+    <p class="muted">This day has not settled.</p>
+  {% endif %}
+
+  {% if charge_lines %}
+    <h2>Charges</h2>
+    <div class="card max-w-md">
+      <dl class="grid grid-cols-[1fr_auto] gap-y-1.5 text-[13px]">
+        {% for line in charge_lines %}
+          <dt class="text-ink-3">{{ line.label }}</dt><dd class="text-right font-mono">₹{{ line.amount|floatformat:2 }}</dd>
+        {% endfor %}
+        <dt class="pt-1.5 border-t border-line">recorded on the fills</dt><dd class="pt-1.5 border-t border-line text-right font-mono">₹{{ charges|floatformat:2 }}</dd>
+      </dl>
+      <p class="muted text-[12px] mt-2">Components re-estimated from the rate card so the day reads against a contract note line by line. The recorded total is what was booked.</p>
+    </div>
+  {% endif %}
+
+  <h2>Fills</h2>
+  <table>
+    <thead><tr><th>Executed</th><th>Symbol</th><th>Qty</th><th>Price</th>
+               <th>Charges</th><th>Kite trade</th></tr></thead>
+    <tbody>
+      {% for fill in fills %}
+        <tr>
+          <td class="font-mono text-[12px]">{{ fill.executed_at|date:"H:i:s" }}</td>
+          <td>{{ fill.order.instrument_id }}</td>
+          <td>{{ fill.quantity }}</td>
+          <td>₹{{ fill.price|floatformat:2 }}</td>
+          <td>₹{{ fill.charges|floatformat:2 }}</td>
+          <td class="font-mono text-[11px] text-ink-4">{{ fill.kite_trade_id }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="muted">Nothing filled.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Everything this day wrote · {{ sheet.trace_id }}</h2>
+  <div class="overflow-x-auto">
+  <table class="text-[12.5px]">
+    <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Entity</th><th>Before</th><th>After</th></tr></thead>
+    <tbody>
+      {% for event in audit %}
+        <tr>
+          <td class="font-mono text-[11px] text-ink-4 whitespace-nowrap">{{ event.occurred_at|date:"H:i:s" }}</td>
+          <td class="font-mono text-[11px] text-ink-3">{{ event.actor }}</td>
+          <td class="font-mono text-[11px] text-accent whitespace-nowrap">{{ event.action }}</td>
+          <td class="text-ink-3">{{ event.entity_type }}</td>
+          <td class="font-mono text-[10.5px] text-ink-4 max-w-64 break-words">{% if event.before %}{% for k, v in event.before.items %}{{ k }}={{ v }}{% if not forloop.last %} · {% endif %}{% endfor %}{% else %}—{% endif %}</td>
+          <td class="font-mono text-[10.5px] text-ink-2 max-w-64 break-words">{% if event.after %}{% for k, v in event.after.items %}{{ k }}={{ v }}{% if not forloop.last %} · {% endif %}{% endfor %}{% else %}—{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="muted">Nothing was recorded under this trace id.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="muted text-[12px] mt-2">
+    One trace id on every log line, audit event and broker call this day made —
+    which is what makes a past day reconstructable years later.
+  </p>
+{% endblock %}

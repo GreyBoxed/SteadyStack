@@ -1,0 +1,226 @@
+{% extends "app.html" %}
+{% block title %}Performance — steadystack{% endblock %}
+{% block page_title %}Performance{% endblock %}
+{% block content %}
+
+  {% if priced.unavailable %}
+    {% if priced.as_of %}
+      <p class="tag tag-accent">Prices as of {{ priced.as_of|date:"j M" }} — the last stored close. The live feed is unavailable.</p>
+    {% else %}
+      <p class="errors">Prices could not be read — {{ priced.unavailable }}. Values below are incomplete.</p>
+    {% endif %}
+  {% endif %}
+  {% for caveat in result.caveats %}
+    <p class="errors">
+      Portfolio figures below include {{ caveat.instrument }}, whose quantity is in doubt:
+      the lots say {{ caveat.lots_say }}, the broker says {{ caveat.broker_says }}.
+      <a href="{% url 'records:divergences' %}">Settle it</a>.
+    </p>
+  {% endfor %}
+
+  <div class="grid gap-3 grid-cols-2 lg:grid-cols-6 mb-5">
+    <div class="card col-span-2">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">XIRR · MONEY WEIGHTED</div>
+      {% if result.xirr_pct is not None %}
+        <div class="flex items-baseline gap-3 mt-1.5 flex-wrap">
+          <span class="text-[34px] font-semibold tracking-[-0.02em] {% if result.xirr_pct >= 0 %}text-good{% else %}text-bad{% endif %}">{{ result.xirr_pct }}%</span>
+          {% if result.benchmark_pct is not None %}
+            <span class="font-mono text-[12px] text-ink-3">index · {{ result.benchmark_pct }}%</span>
+            {% if result.beat_the_benchmark %}<span class="tag tag-good">ahead</span>{% else %}<span class="tag tag-bad">behind</span>{% endif %}
+          {% else %}
+            <span class="font-mono text-[11px] text-ink-4">{{ result.benchmark_unavailable }}</span>
+          {% endif %}
+        </div>
+        <div class="font-mono text-[11.5px] text-ink-3 mt-1">
+          {% if net_xirr_pct is not None %}<span class="text-accent">{{ net_xirr_pct }}%</span> net of the data subscription{% else %}{{ net_unavailable }}{% endif %}
+        </div>
+      {% else %}
+        <div class="text-[19px] mt-1.5 muted">—</div>
+        <div class="font-mono text-[11px] text-ink-4 mt-1">XIRR unavailable — {{ result.xirr_unavailable }}</div>
+        <div class="font-mono text-[11px] text-ink-4 mt-1">
+          Index: {% if result.benchmark_pct is not None %}{{ result.benchmark_pct }}%{% else %}{{ result.benchmark_unavailable }}{% endif %}
+        </div>
+      {% endif %}
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">CURRENT VALUE</div>
+      <div class="text-[19px] mt-1.5">₹{{ result.current_value|floatformat:2 }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">invested ₹{{ result.invested|floatformat:2 }}</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">CONTRIBUTED</div>
+      <div class="text-[19px] mt-1.5">₹{{ totals.contributed|floatformat:2 }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">daily amounts and lumpsums</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">ABSOLUTE GAIN</div>
+      <div class="text-[19px] mt-1.5 {% if result.absolute_return > 0 %}text-good{% elif result.absolute_return < 0 %}text-bad{% endif %}">₹{{ result.absolute_return|floatformat:2 }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{{ result.percent_return }}% on what was invested</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">DAYS RUN</div>
+      <div class="text-[19px] mt-1.5">{{ totals.days_run }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">of {{ totals.days_on_record }} on record</div>
+    </div>
+  </div>
+
+  <section class="card">
+    <div class="flex items-center gap-3 flex-wrap mb-2">
+      <span class="font-mono text-[10px] tracking-[0.12em] text-ink-3">VALUE AGAINST WHAT IT COST TO GET THERE</span>
+      <span class="flex items-center gap-1.5 font-mono text-[10px] text-ink-3"><span class="inline-block w-4 h-[2px] bg-accent"></span>value</span>
+      <span class="flex items-center gap-1.5 font-mono text-[10px] text-ink-3"><span class="inline-block w-4 h-[2px] bg-ink-2"></span>invested</span>
+      <span class="flex items-center gap-1.5 font-mono text-[10px] text-ink-3"><span class="inline-block w-4 border-t-2 border-dashed border-bad"></span>+ subscription</span>
+      <nav class="ml-auto flex gap-1" aria-label="Range" data-keep-scroll>
+        {% for key, label, _ in ranges %}
+          <a href="?range={{ key }}" class="px-2.5 h-7 flex items-center rounded no-underline font-mono text-[11px] {% if chosen == key %}bg-[#22262C] text-ink{% else %}text-ink-3 hover:text-ink-2{% endif %}" {% if chosen == key %}aria-current="true"{% endif %}>{{ label }}</a>
+        {% endfor %}
+      </nav>
+    </div>
+    {% if chart.empty %}
+      <p class="muted text-[13px]">Fewer than two evenings are recorded in this range, so there is no line to draw yet.</p>
+    {% else %}
+      <svg viewBox="0 0 {{ chart.width }} {{ chart.height }}" class="w-full h-auto" role="img"
+           aria-label="Portfolio value against the cumulative cash invested in shares, and against that plus the market-data subscription, one point per evening{% if history_end %}, ending {{ history_end.on|date:'j M Y' }}{% endif %}.">
+        {% for g in chart.grid %}
+          <line x1="64" y1="{{ g.y }}" x2="{{ chart.right }}" y2="{{ g.y }}" stroke="#23262B" stroke-width="1"/>
+          <text x="56" y="{{ g.ty }}" text-anchor="end" fill="#8F8C85" font-family="IBM Plex Mono, monospace" font-size="10">{{ g.label }}</text>
+        {% endfor %}
+        {% if chart.area %}<path d="{{ chart.area }}" fill="#F0A640" opacity="0.09"/>{% endif %}
+        {% for line in chart.lines %}
+          {% if line.key == "value" %}
+            <path d="{{ line.d }}" fill="none" stroke="#F0A640" stroke-width="2.2" stroke-linejoin="round"/>
+            <circle cx="{{ line.end_x }}" cy="{{ line.end_y }}" r="4" fill="#F0A640"/>
+            <text x="{{ line.end_x|add:'10' }}" y="{{ line.label_y }}" dy="4" fill="#F0A640" font-family="IBM Plex Mono, monospace" font-size="11">value ₹{{ history_end.value|floatformat:0 }}</text>
+          {% elif line.key == "invested" %}
+            <path d="{{ line.d }}" fill="none" stroke="#B4B0A8" stroke-width="1.6"/>
+            <text x="{{ line.end_x|add:'10' }}" y="{{ line.label_y }}" dy="4" fill="#B4B0A8" font-family="IBM Plex Mono, monospace" font-size="11">invested ₹{{ history_end.invested|floatformat:0 }}</text>
+          {% else %}
+            <path d="{{ line.d }}" fill="none" stroke="#F06A52" stroke-width="1.6" stroke-dasharray="5 4"/>
+            <text x="{{ line.end_x|add:'10' }}" y="{{ line.label_y }}" dy="4" fill="#F06A52" font-family="IBM Plex Mono, monospace" font-size="11">+ sub ₹{{ history_end.with_subscription|floatformat:0 }}</text>
+          {% endif %}
+        {% endfor %}
+        {% for x in chart.x_labels %}
+          <text x="{{ x.x }}" y="{{ chart.height|add:'-6' }}" text-anchor="middle" fill="#8F8C85" font-family="IBM Plex Mono, monospace" font-size="10">{{ x.label }}</text>
+        {% endfor %}
+      </svg>
+      <p class="muted text-[12px] mt-1">
+        Each point is the value written down that evening, never recomputed from today's prices.
+        Invested is cash spent on shares plus charges, the same money XIRR counts.
+      </p>
+    {% endif %}
+  </section>
+
+  <p class="muted text-[12px]">
+    XIRR is the headline because daily irregular contributions make a simple
+    percentage meaningless. The index figure is the same money, on the same days,
+    put into the index.
+  </p>
+
+  <h2>Contribution to return</h2>
+  {% if contribution %}
+    <div class="card">
+      {% for item in contribution %}
+        <div class="grid grid-cols-[110px_1fr_110px_60px] items-center gap-3 py-1.5 text-[13px]">
+          <a href="{% url 'portfolio:detail' item.row.instrument_id %}">{{ item.row.instrument_id }}</a>
+          <span class="relative h-2.5" role="img" aria-label="{{ item.row.gain|floatformat:2 }} rupees">
+            <span class="absolute inset-y-0 left-1/2 w-px bg-edge"></span>
+            {% if item.row.gain >= 0 %}
+              <span class="absolute inset-y-0 left-1/2 rounded-r bg-good" style="width: {{ item.pct }}%"></span>
+            {% else %}
+              <span class="absolute inset-y-0 right-1/2 rounded-l bg-bad" style="width: {{ item.pct }}%"></span>
+            {% endif %}
+          </span>
+          <span class="text-right font-mono text-[12px] {% if item.row.gain >= 0 %}text-good{% else %}text-bad{% endif %}">₹{{ item.row.gain|floatformat:2 }}</span>
+          <span class="text-right font-mono text-[11px] text-ink-3">{{ item.row.share_of_gain }}%</span>
+        </div>
+      {% endfor %}
+    </div>
+    <p class="muted text-[12px]">Unrealised gain on what is held, per name, and its share of the whole.</p>
+  {% else %}
+    <p class="muted">Nothing is held yet.</p>
+  {% endif %}
+
+  <h2>Realised</h2>
+  <p>
+    Proceeds ₹{{ realised.total_proceeds|floatformat:2 }}, cost ₹{{ realised.total_cost|floatformat:2 }},
+    gain ₹{{ realised.total_gain|floatformat:2 }}.
+    {% if realised.any_estimated %}
+      <span class="muted">Some basis is still estimated — a contract note may move these.</span>
+    {% endif %}
+  </p>
+  <p class="muted">
+    Economics only. The broker's report does the rest; this is what those
+    numbers can be checked against.
+  </p>
+
+  <h2>What the data subscription takes</h2>
+  <div class="card">
+    {% if drag.paid %}
+      <p class="text-ink-2">
+        ₹{{ drag.monthly|floatformat:2 }} a month, to hold the feed this runs on.
+      </p>
+      <div class="mt-3">
+        {% for share in drag.shares %}
+          <div class="flex items-baseline gap-3 py-2 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+            <span class="text-[13px] text-ink-3 w-72 shrink-0">{{ share.label }}</span>
+            {% if share.value is not None %}
+              <span class="font-mono text-[15px] text-accent">{{ share.value }}%</span>
+              <span class="grow h-1 bg-[#23262B] rounded ml-3">
+                <span class="block h-1 rounded bg-accent" style="width: {{ share.value }}%; max-width: 100%"></span>
+              </span>
+            {% else %}
+              <span class="muted text-[13px]">there is no gain to take a share of yet</span>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      <dl class="grid grid-cols-[1fr_auto] gap-y-1.5 mt-3 pt-3 border-t border-line text-[13px]">
+        <dt class="text-ink-3">paid to date · {{ drag.months }} month{{ drag.months|pluralize }}</dt>
+        <dd class="text-right font-mono">₹{{ drag.paid|floatformat:2 }}</dd>
+        <dt class="text-ink-3">gain after subscription</dt>
+        <dd class="text-right font-mono {% if totals.gain_after_subscription > 0 %}text-good{% else %}text-bad{% endif %}">₹{{ totals.gain_after_subscription|floatformat:2 }}</dd>
+      </dl>
+      <p class="muted text-[12px] mt-3">
+        Plotted rather than netted: a cost that disappears into a return is a cost
+        nobody ever questions.
+      </p>
+    {% else %}
+      <p class="muted">No cost recorded, or nothing has been invested yet.</p>
+    {% endif %}
+  </div>
+
+  <h2>Did it run{% if calendar.cells %} · {{ calendar.cells|length }} trading day{{ calendar.cells|length|pluralize }} · {{ calendar.first|date:"M Y" }} → {{ calendar.last|date:"M Y" }}{% endif %}</h2>
+  <div class="card">
+    <div class="flex flex-wrap gap-[3px]">
+      {% for cell in calendar.cells %}
+        <span title="{{ cell.title }}"
+              class="w-3 h-3 rounded-[2px] inline-block
+                     {% if cell.tone == 'good' %}bg-good{% elif cell.tone == 'warn' %}bg-accent{% elif cell.tone == 'bad' %}bg-bad{% else %}bg-[#2B2F36]{% endif %}"></span>
+      {% empty %}
+        <span class="muted">No day has run yet.</span>
+      {% endfor %}
+    </div>
+    <div class="flex flex-wrap gap-4 mt-3">
+      {% for state, count in calendar.legend %}
+        <span class="font-mono text-[10.5px] text-ink-3">{{ state }} · {{ count }}</span>
+      {% endfor %}
+    </div>
+    <p class="muted text-[12px] mt-2">
+      One cell per trading day, oldest on the left. Eighteen years is a long time to
+      be told it is fine; the gaps are where it was not.
+    </p>
+  </div>
+
+  <h2>How well it bought</h2>
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(185px,1fr))] gap-3">
+    {% for stat in quality %}
+      <div class="card">
+        <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">{{ stat.label }}</div>
+        <div class="text-[19px] mt-1.5 {% if stat.tone == 'good' %}text-good{% elif stat.tone == 'bad' %}text-bad{% elif stat.tone == 'warn' %}text-accent{% endif %}">{{ stat.value }}</div>
+        {% if stat.sub %}<div class="font-mono text-[10.5px] text-ink-4 mt-1">{{ stat.sub }}</div>{% endif %}
+      </div>
+    {% empty %}
+      <p class="muted">Nothing has been placed yet.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

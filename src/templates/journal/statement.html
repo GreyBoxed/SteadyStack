@@ -1,0 +1,194 @@
+{% extends "app.html" %}
+{% block title %}Statement — steadystack{% endblock %}
+{% block page_title %}Statement{% endblock %}
+{% block content %}
+
+  <p class="text-ink-2 max-w-[48rem]">
+    Every line of Zerodha's statement is either matched to an entry already in the
+    books or waits here. Nothing posts until you confirm it. A settlement that
+    differs from ours by a little is the broker's rounding on the day's charges;
+    correcting it spreads the difference across that day's fills and settles their
+    lots. A difference larger than rounding can explain is refused.
+  </p>
+
+  {% if opening_disagreement %}
+    <div class="errors max-w-[48rem]">
+      <p>
+        Zerodha's statements put the balance at the close of
+        {{ opening_disagreement.on|date:"j M Y" }} at ₹{{ opening_disagreement.theirs|floatformat:2 }},
+        which does not agree with the opening balance's ₹{{ opening_disagreement.ours|floatformat:2 }}.
+        Lines on or before that date are explained by the opening, so a wrong
+        <code>--cash</code> shows here and nowhere else: reverse the opening and run
+        <code>open_books</code> again with the statement's figure.
+      </p>
+    </div>
+  {% endif %}
+
+  <h2>Upload a Console statement</h2>
+  <div class="card">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <label for="file">CSV exported from Console</label>
+      <input type="file" id="file" name="file" accept=".csv,text/csv" required class="font-sans h-auto py-2">
+      <button type="submit">Upload</button>
+    </form>
+  </div>
+
+  <h2>Uploads</h2>
+  {% if summaries %}
+    <p class="text-ink-2 max-w-[48rem] text-[13px]">
+      Each upload's closing balance against ours -- 1100 + 1110 + 1200 + 1210 in the
+      live book through the upload's last date -- and how its lines are explained.
+      <a class="font-mono text-[12px] ml-2" href="?format=csv" download>Export CSV</a>
+      <a class="font-mono text-[12px] ml-2" href="?format=settlements-csv" download>Settlements CSV</a>
+    </p>
+    <table class="text-[13px]">
+      <thead>
+        <tr>
+          <th>Uploaded</th><th>File</th><th>Period</th><th>Closing</th><th>Ours</th><th>Difference</th>
+          <th>Matched</th><th>By hand</th><th>Confirmed</th><th>By the opening</th><th>Waiting</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in summaries %}
+          <tr>
+            <td class="font-mono text-[12px]">
+              {{ row.upload.uploaded_at|date:"j M Y, H:i" }}
+              <div class="text-ink-4">{{ row.upload.uploaded_by }}</div>
+            </td>
+            <td>{{ row.upload.filename }}</td>
+            <td class="font-mono text-[11.5px]">{{ row.upload.period_from|date:"j M" }} – {{ row.upload.period_to|date:"j M Y" }}</td>
+            <td>₹{{ row.closing_balance|floatformat:2 }}</td>
+            {% if row.ours is None %}
+              <td colspan="2" class="text-[12px] text-ink-4">before the opening</td>
+            {% else %}
+              <td>₹{{ row.ours|floatformat:2 }}</td>
+              <td class="{% if row.difference %}text-bad{% else %}text-ink-3{% endif %}">₹{{ row.difference|floatformat:2 }}</td>
+            {% endif %}
+            <td>{{ row.matched }}</td>
+            <td>{{ row.by_hand }}</td>
+            <td>{{ row.confirmed }}</td>
+            <td>{{ row.opening }}</td>
+            <td class="{% if row.queued %}text-bad{% endif %}">{{ row.queued }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No statement has been uploaded yet.</p>
+  {% endif %}
+
+  <h2>Waiting for confirmation</h2>
+  {% if queue %}
+    <table class="text-[13px]">
+      <thead><tr><th>Date</th><th>Particulars</th><th>Amount</th><th>Confirm as</th></tr></thead>
+      <tbody>
+        {% for row in queue %}
+          <tr>
+            <td class="font-mono text-[12px] whitespace-nowrap">{{ row.line.posting_date|date:"j M Y" }}</td>
+            <td class="max-w-[26rem]">
+              {{ row.line.particulars }}
+              {% if row.proposal.note %}<div class="text-[11.5px] text-ink-4 mt-1">{{ row.proposal.note }}</div>{% endif %}
+            </td>
+            <td class="font-mono {% if row.line.amount < 0 %}text-bad{% else %}text-good{% endif %}">
+              {% if row.line.amount < 0 %}−{% endif %}₹{{ row.line.amount|floatformat:2|cut:"-" }}
+            </td>
+            <td>
+              {% if row.form %}
+                <form method="post" action="{% url 'journal:confirm' row.line.pk %}"
+                      class="flex items-end gap-2 flex-wrap">
+                  {% csrf_token %}
+                  {{ row.form.kind }}
+                  {{ row.form.component }}
+                  <button type="submit" class="mt-0 h-9 px-3 text-[13px]">Confirm</button>
+                </form>
+                {% if row.candidates %}
+                  <form method="post" action="{% url 'journal:match' row.line.pk %}"
+                        class="flex items-end gap-2 flex-wrap mt-2">
+                    {% csrf_token %}
+                    <select name="entry" aria-label="Match to an entry already recorded">
+                      {% for candidate in row.candidates %}
+                        <option value="{{ candidate.pk }}">#{{ candidate.number }} · {{ candidate.occurred_on|date:"j M" }} · {{ candidate.description|truncatechars:40 }}</option>
+                      {% endfor %}
+                    </select>
+                    <button type="submit" class="mt-0 h-9 px-3 text-[13px]">Match to …</button>
+                  </form>
+                  <div class="text-[11.5px] text-ink-4 mt-1">
+                    Already recorded? Match it instead: confirming posts the money a second time.
+                  </div>
+                {% endif %}
+              {% else %}
+                <span class="text-[12px] text-ink-4">
+                  Waits for its trade to be recorded; it matches automatically.
+                </span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">Nothing is waiting. Every line either matched or is confirmed.</p>
+  {% endif %}
+
+  <h2>Settlements that disagree</h2>
+  {% if settlement_lines %}
+    <table class="text-[13px]">
+      <thead><tr><th>Date</th><th>Particulars</th><th>Difference</th><th>Charges correct</th><th></th></tr></thead>
+      <tbody>
+        {% for row in settlement_lines %}
+          <tr>
+            <td class="font-mono text-[12px] whitespace-nowrap">{{ row.line.posting_date|date:"j M Y" }}</td>
+            <td>{{ row.line.particulars }}</td>
+            <td class="font-mono {% if row.difference < 0 %}text-bad{% else %}text-good{% endif %}">
+              ₹{{ row.difference|floatformat:2 }}
+            </td>
+            <td class="font-mono text-[12px] text-ink-3 whitespace-nowrap">up to ₹{{ row.bound|floatformat:2 }}</td>
+            <td>
+              {% if row.correctable %}
+                <form method="post" action="{% url 'journal:correct' row.line.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" class="mt-0 h-9 px-3 text-[13px]">Correct charges</button>
+                </form>
+              {% else %}
+                <span class="text-[12px] text-bad">
+                  Too large for charges: look for a missing fill, a sale, or a wrong date.
+                </span>
+                <form method="post" action="{% url 'journal:explain' row.line.pk %}" class="flex gap-2 items-end mt-2">
+                  {% csrf_token %}
+                  <input type="text" name="reason" maxlength="500" required
+                         placeholder="What reconciling it by hand found" class="text-[13px]">
+                  <button type="submit" class="mt-0 h-9 px-3 text-[13px]">Explain it</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">Every matched settlement agrees with ours.</p>
+  {% endif %}
+
+  {% if explained_lines %}
+    <h2>Explained settlements</h2>
+    <p class="muted text-[13px]">
+      Differences no correction could take, reconciled by hand. Each holds for the
+      difference it names; if that moves, the line disagrees again.
+    </p>
+    <table class="text-[13px]">
+      <thead><tr><th>Date</th><th>Difference</th><th>Why</th><th>By</th><th>When</th></tr></thead>
+      <tbody>
+        {% for row in explained_lines %}
+          <tr>
+            <td class="font-mono text-[12px] whitespace-nowrap">{{ row.line.posting_date|date:"j M Y" }}</td>
+            <td class="font-mono">₹{{ row.difference|floatformat:2 }}</td>
+            <td>{{ row.explanation.reason }}</td>
+            <td class="text-ink-3">{{ row.explanation.explained_by }}</td>
+            <td class="font-mono text-[12px] whitespace-nowrap">{{ row.explanation.explained_at|date:"j M Y H:i" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock %}

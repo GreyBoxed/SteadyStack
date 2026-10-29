@@ -1,0 +1,147 @@
+{% extends "app.html" %}
+{% block title %}Trial balance — steadystack{% endblock %}
+{% block page_title %}Trial balance · {{ book|title }} book{% endblock %}
+{% block content %}
+
+  <p class="text-ink-2 max-w-[48rem]">
+    Zerodha's cash is 1100 + 1110 + 1200 + 1210. The engine may spend 1110 + 1200.
+    Every figure here is a sum of journal lines; nothing is typed in.
+  </p>
+
+  <div class="flex items-center gap-2 my-4 flex-wrap">
+    <span class="font-mono text-[10px] tracking-[0.14em] text-ink-3">BOOK</span>
+    <a href="?book=live" class="tag no-underline {% if book == 'live' %}tag-accent{% endif %}">Live</a>
+    <a href="?book=paper" class="tag no-underline {% if book == 'paper' %}tag-accent{% endif %}">Paper</a>
+    <a href="{% url 'journal:entries' %}?book={{ book }}" class="ml-auto font-mono text-[12px]">
+      Open the journal →
+    </a>
+  </div>
+
+  <div class="flex items-center gap-4 my-4">
+    <a href="{% url 'journal:statement' %}" class="font-mono text-[12px]">Upload a statement →</a>
+    <a href="{% url 'journal:dividend' %}" class="font-mono text-[12px]">Record a dividend →</a>
+  </div>
+
+  <div class="flex items-end gap-3 flex-wrap my-4">
+    <form method="get" class="flex items-end gap-3 flex-wrap">
+      <input type="hidden" name="book" value="{{ book }}">
+      <div>
+        <label for="fy" class="mt-0">Financial year</label>
+        <select id="fy" name="fy" class="w-44">
+          {% for year in years %}
+            <option value="{{ year.end|date:'Y-m-d' }}" {% if year.end == selected_fy %}selected{% endif %}>{{ year.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="mt-0">Show year</button>
+    </form>
+    <form method="get" class="flex items-end gap-3 flex-wrap">
+      <input type="hidden" name="book" value="{{ book }}">
+      <div>
+        <label for="to" class="mt-0">As at</label>
+        <input type="date" id="to" name="to" value="{{ through|date:'Y-m-d' }}" class="w-44">
+      </div>
+      <button type="submit" class="mt-0">Show</button>
+    </form>
+    <a class="ml-auto font-mono text-[12px]"
+       href="?book={{ book }}&to={{ through|date:'Y-m-d' }}&format=csv" download>Export CSV</a>
+  </div>
+  <p class="text-[12.5px] text-ink-3">
+    Income and expense from {{ start|date:"j M Y" }} to {{ through|date:"j M Y" }};
+    earlier years' are brought forward on one line. Assets and equity as at
+    {{ through|date:"j M Y" }}.
+  </p>
+
+  <table class="text-[13.5px]">
+    <thead><tr><th>Code</th><th>Account</th><th>Type</th><th>Debit</th><th>Credit</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td class="font-mono text-[12px]">
+            {% if row.code == brought_forward %}{{ row.code }}{% else %}
+              <a href="{% url 'journal:ledger' row.code %}?book={{ book }}">{{ row.code }}</a>
+            {% endif %}
+          </td>
+          <td>{{ row.name }}</td>
+          <td class="text-ink-3">{{ row.type }}</td>
+          <td>{% if row.debit %}₹{{ row.debit|floatformat:2 }}{% else %}<span class="text-ink-4">—</span>{% endif %}</td>
+          <td>{% if row.credit %}₹{{ row.credit|floatformat:2 }}{% else %}<span class="text-ink-4">—</span>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="muted">No account has moved in this book yet.</td></tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <th colspan="3">Total</th>
+        <td>₹{{ debit_total|floatformat:2 }}</td>
+        <td>₹{{ credit_total|floatformat:2 }}</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  {% if debit_total == credit_total %}
+    <p class="muted">The book balances: every debit has a credit, to the rupee.</p>
+  {% else %}
+    <p class="errors">This book does not balance. That should never happen.</p>
+  {% endif %}
+
+  <h2>Zerodha's balance, each morning</h2>
+  <div class="card">
+    <table class="text-[13.5px]">
+      <thead><tr><th>Checked</th><th>Ours</th><th>Theirs</th><th>Difference</th></tr></thead>
+      <tbody>
+        {% for check in balance_checks %}
+          <tr>
+            <td class="font-mono text-[12px]">{{ check.checked_on|date:"j M Y" }}</td>
+            <td>₹{{ check.ours|floatformat:2 }}</td>
+            <td>₹{{ check.theirs|floatformat:2 }}</td>
+            <td class="{% if check.disagrees %}text-bad{% else %}text-ink-3{% endif %}">
+              ₹{{ check.difference|floatformat:2 }}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="muted">No morning check has run yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(330px,1fr))] gap-4 mt-6">
+    <div>
+      <h2>Years closed</h2>
+      <div class="card">
+        {% for close in closed_years %}
+          <div class="flex items-baseline gap-3 py-2 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+            <span class="font-mono text-[13px]">{{ close.fy_end|date:"j M Y" }}</span>
+            <span class="text-[12.5px] text-ink-3">closed by {{ close.closed_by }}</span>
+            <span class="font-mono text-[11px] text-ink-4 ml-auto">{{ close.closed_at|date:"j M Y" }}</span>
+          </div>
+        {% empty %}
+          <p class="muted">No financial year has been closed in this book.</p>
+        {% endfor %}
+      </div>
+    </div>
+    <div>
+      <h2>Close a year</h2>
+      <div class="card">
+        <p class="text-[12.5px] text-ink-3">
+          Once the CA has signed off. A closed year accepts no entry dated inside it,
+          so the live book closes only when Zerodha's statement is held through
+          31 March, every line of the year is explained, and every settlement of the
+          year agrees. A line reopened later posts on the day it is confirmed.
+        </p>
+        <form method="post" action="{% url 'journal:close_year' %}" class="flex items-end gap-3 flex-wrap mt-3">
+          {% csrf_token %}
+          {% for field in close_form %}
+            <div>
+              <label for="{{ field.id_for_label }}" class="mt-0">{{ field.label }}</label>
+              {{ field }}
+            </div>
+          {% endfor %}
+          <button type="submit" class="mt-0">Close</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

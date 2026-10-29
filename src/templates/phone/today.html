@@ -1,0 +1,56 @@
+{% extends "phone/base.html" %}
+{% comment %}
+The whole phone app in one screen: is it waiting for me, is it running, is
+anything wrong. The hero says which, and its button is the one thing to do
+about it. The stop is at the foot -- reachable, never the first thing a
+thumb finds.
+{% endcomment %}
+{% block title %}Today — steadystack{% endblock %}
+{% block header %}
+  <span class="pl-2 text-[17px] font-bold tracking-[-0.02em]">SteadyStack</span>
+  <a href="{% url 'phone:kite' %}" class="ml-2 h-11 flex items-center gap-1.5 no-underline">
+    <span class="dot {% if session.valid %}dot-good{% else %}dot-bad{% endif %}"></span>
+    <span class="font-mono text-[10.5px] text-ink-2">{% if session.valid %}SESSION OK{% else %}NO SESSION{% endif %}</span>
+  </a>
+  <span class="ml-auto mr-2 font-mono text-[12px] text-ink-2 tabular-nums">{% now "H:i" %}</span>
+{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-3" {% include "web/_live_region.html" with src="phone:today_live" %}>
+    {% include "phone/_today_live.html" %}
+  </div>
+
+  <section class="bg-card border border-line rounded-xl overflow-hidden">
+    <div class="h-[38px] border-b border-line flex items-center justify-between px-3.5">
+      <span class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">ALERTS</span>
+      {% if attention %}
+        <span class="font-mono text-[10.5px] text-bad">{{ attention }} need{{ attention|pluralize:"s," }} you</span>
+      {% else %}
+        <span class="font-mono text-[10.5px] text-ink-4">nothing needs you</span>
+      {% endif %}
+    </div>
+    {% for notice in notices %}
+      <div class="flex gap-2.5 px-3.5 py-[11px] border-b border-line-soft last:border-b-0">
+        <span class="w-1.5 h-1.5 rounded-full mt-[5px] shrink-0 {% if notice.level == 'warning' %}bg-bad{% else %}bg-ink-4{% endif %}"></span>
+        <div class="flex flex-col gap-[3px] min-w-0">
+          <span class="font-mono text-[9.5px] tracking-[0.1em] {% if notice.level == 'warning' %}text-bad{% else %}text-ink-4{% endif %}">
+            {% if notice.level == 'warning' %}WARNING{% else %}INFO{% endif %} · {{ notice.at|date:"H:i" }}
+          </span>
+          <span class="text-[12.5px] text-ink-2 leading-[1.45] break-words">
+            {{ notice.action }}{% if notice.detail %} — {{ notice.detail }}{% endif %}
+          </span>
+        </div>
+      </div>
+    {% empty %}
+      <p class="px-3.5 py-3 text-[12.5px] text-ink-4">Nothing recorded yet.</p>
+    {% endfor %}
+  </section>
+
+  {% if can_stop %}
+    <a href="{% url 'phone:stop' %}"
+       class="mt-auto h-[52px] flex items-center justify-center gap-2.5 rounded-lg border border-bad-edge no-underline text-bad text-[14.5px] font-medium hover:text-bad">
+      <span class="w-[13px] h-[13px] border-[1.5px] border-bad rounded-[3px] block"></span>
+      Stop trading today
+    </a>
+  {% endif %}
+{% endblock %}

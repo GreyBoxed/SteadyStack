@@ -1,0 +1,214 @@
+@import "tailwindcss";
+
+/* Templates are the only place classes are written; views never emit them. */
+@source "../../templates";
+
+/* The design's palette, as tokens. Every utility below -- bg-card, text-ink-3,
+   border-line -- comes from these, so a retheme is this block and nothing
+   else. Named for the job, not the colour: `bad` stays `bad` if red changes. */
+@theme {
+  --color-ground: #0b0c0e;
+  --color-panel: #0e1013;
+  --color-card: #131518;
+  --color-field: #0f1114;
+
+  --color-line: #1e2127;
+  --color-line-soft: #191c21;
+  --color-edge: #2b2f36;
+
+  --color-ink: #e9e7e2;
+  --color-ink-2: #b4b0a8;
+  --color-ink-3: #8f8c85;
+  --color-ink-4: #83807a;
+
+  --color-accent: #f0a640;
+  --color-accent-ink: #14100a;
+  --color-accent-bg: #1c1810;
+  --color-accent-edge: #3a2f1a;
+
+  --color-good: #46c88a;
+  --color-good-bg: #16251e;
+  --color-good-edge: #22392f;
+
+  --color-bad: #f06a52;
+  --color-bad-bg: #1c1210;
+  --color-bad-edge: #45211c;
+
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Bare HTML carries the look, so a table is a table without decoration.
+   These pages are dense financial records: the markup should stay readable
+   as markup, and a column of rupees should line up without being asked. */
+@layer base {
+  /* The page is dark, so say so: without this the browser draws native
+     controls for a light page, and a date field's calendar icon comes out
+     dark on dark -- present, clickable, and invisible. */
+  :root { color-scheme: dark; }
+
+  body {
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--color-accent); }
+  a:hover { color: #ffc470; }
+
+  h1 { font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+
+  h2 {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+    margin: 26px 0 10px;
+  }
+
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 18px; }
+
+  thead th {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+    text-align: left;
+    white-space: nowrap;
+    padding: 0 10px 8px;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  tbody td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--color-line-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  tbody tr:hover td { background: #16181c; }
+  tbody th { text-align: left; padding: 9px 10px; font-weight: 400; color: var(--color-ink-3); }
+
+  tfoot th, tfoot td {
+    padding: 10px;
+    border-top: 1px solid var(--color-edge);
+    font-variant-numeric: tabular-nums;
+    text-align: left;
+  }
+
+  label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+    margin: 14px 0 6px;
+  }
+
+  input, select {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    height: 42px;
+    padding: 0 12px;
+    width: 100%;
+    max-width: 22rem;
+    border: 1px solid var(--color-edge);
+    border-radius: 6px;
+    background: var(--color-field);
+    color: var(--color-ink);
+  }
+  input:focus, select:focus { outline: none; border-color: var(--color-accent); }
+
+  /* A tick box is not a text field: its own size, beside its label. */
+  input:is([type="checkbox"], [type="radio"]) {
+    width: 16px;
+    height: 16px;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+    flex: none;
+    accent-color: var(--color-accent);
+  }
+  label:has(> input:is([type="checkbox"], [type="radio"])) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  /* The calendar button on a date field: visible, and plainly a button. */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.85;
+    padding: 4px;
+    border-radius: 4px;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    background: var(--color-line);
+  }
+
+  button {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 600;
+    height: 44px;
+    padding: 0 18px;
+    margin-top: 14px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+    cursor: pointer;
+  }
+}
+
+/* Three idioms the whole app repeats. Everything else is utilities inline. */
+@layer components {
+  .card {
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .card-bad { border-color: var(--color-bad-edge); box-shadow: inset 3px 0 0 var(--color-bad); }
+  .card-good { border-color: var(--color-good-edge); box-shadow: inset 3px 0 0 var(--color-good); }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.08em;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--color-line);
+    color: var(--color-ink-3);
+    white-space: nowrap;
+  }
+  .tag-accent { color: var(--color-accent); background: var(--color-accent-bg); border-color: var(--color-accent-edge); }
+  .tag-good { color: var(--color-good); background: var(--color-good-bg); border-color: var(--color-good-edge); }
+  .tag-bad { color: var(--color-bad); background: var(--color-bad-bg); border-color: var(--color-bad-edge); }
+
+  .dot { width: 7px; height: 7px; border-radius: 9999px; display: inline-block; flex-shrink: 0; }
+  .dot-good { background: var(--color-good); }
+  .dot-bad { background: var(--color-bad); }
+
+  /* A secondary action: present, but not the thing the page is asking for. */
+  button.quiet {
+    background: transparent;
+    color: var(--color-ink-2);
+    border: 1px solid var(--color-edge);
+  }
+  button.quiet:hover { color: var(--color-ink); border-color: var(--color-ink-4); }
+
+  .muted { color: var(--color-ink-3); }
+  .errors { color: var(--color-bad); }
+}

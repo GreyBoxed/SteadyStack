@@ -1,0 +1,23 @@
+{% extends "app.html" %}
+{% block title %}Tradesheets — steadystack{% endblock %}
+{% block page_title %}Tradesheets{% endblock %}
+{% block content %}
+  {% if sheets %}
+    <table>
+      <thead><tr><th>Date</th><th>v</th><th>State</th><th>Buy</th><th>Cash</th></tr></thead>
+      <tbody>
+        {% for sheet in sheets %}
+          <tr>
+            <td><a href="{% url 'engine:detail' sheet.trading_date|date:'Y-m-d' sheet.version %}">{{ sheet.trading_date|date:"j M Y" }}</a></td>
+            <td>{{ sheet.version }}</td>
+            <td>{{ sheet.get_state_display }}{% if sheet.skip_reason %} — {{ sheet.get_skip_reason_display }}{% endif %}</td>
+            <td>{% if sheet.instrument_id %}{{ sheet.quantity }} shares · {{ sheet.names_label }}{% else %}—{% endif %}</td>
+            <td>₹{{ sheet.spendable_cash|floatformat:2 }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">No tradesheet has been generated yet.</p>
+  {% endif %}
+{% endblock %}

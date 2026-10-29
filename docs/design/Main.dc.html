@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Trading — instruments with orders today</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #0B0C0E; font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: #F0A640; } a:hover { color: #FFC470; }
+</style>
+</helmet>
+<div style="width: 1512px; height: 1010px; box-sizing: border-box; display: flex; background: #0B0C0E; color: #E9E7E2; overflow: hidden;">
+
+  <nav style="width: 208px; flex-shrink: 0; background: #0E1013; border-right: 1px solid #1E2127; display: flex; flex-direction: column;">
+    <div style="padding: 18px 16px 16px 16px; border-bottom: 1px solid #1E2127;">
+      <div style="font-size: 19px; font-weight: 700; letter-spacing: -0.02em; color: #E9E7E2;">SteadyStack</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; margin-top: 5px;">DAILY EQUITY ACCUMULATION</div>
+    </div>
+    <div style="padding: 12px 10px 0 10px; display: flex; flex-direction: column; gap: 2px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; padding: 0 8px 8px 8px;">DESIGNED</div>
+      <sc-for list="{{nav}}" as="item" hint-placeholder-count="10">
+        <a href="{{item.href}}" style="display: flex; align-items: center; height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 13.5px; font-weight: 500; background: {{item.bg}}; color: {{item.fg}}; box-shadow: {{item.bar}};">{{item.label}}</a>
+      </sc-for>
+    </div>
+    <div style="padding: 20px 10px 0 10px; display: flex; flex-direction: column; gap: 1px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; padding: 0 8px 8px 8px;">NOT YET DESIGNED</div>
+      <sc-for list="{{pending}}" as="p" hint-placeholder-count="1">
+        <div style="padding: 7px 12px; font-size: 12.5px; color: #83807A;">{{p}}</div>
+      </sc-for>
+    </div>
+    <div style="margin-top: auto; padding: 14px 16px 16px 16px; border-top: 1px solid #1E2127; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: #46C88A; flex-shrink: 0;"></span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8; letter-spacing: 0.04em;">KITE SESSION OK</span>
+      </div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #8F8C85; line-height: 1.6;">issued 08:41:22<br>expires 06:00 Wed</div>
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: #46C88A; flex-shrink: 0;"></span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8; letter-spacing: 0.04em;">TICKER 0.8s</span>
+      </div>
+    </div>
+  </nav>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 56px; flex-shrink: 0; border-bottom: 1px solid #1E2127; background: #0E1013; display: flex; align-items: center; padding: 0 20px; gap: 14px;">
+      <h1 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Trading</h1>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: {{a}}; background: #1C1810; border: 1px solid #3A2F1A; border-radius: 4px; padding: 3px 8px;">ts-2026-09-22</span>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8F8C85;">Tue 22 Sep 2026</span>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 22px;">
+        <div style="display: flex; align-items: center; gap: 7px;">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: #46C88A;"></span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8;">NSE OPEN</span>
+        </div>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #E9E7E2; font-variant-numeric: tabular-nums;">11:32:18 IST</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8F8C85;">TICK 0.8s</span>
+        <button type="button" aria-label="Alerts, 1 unread" style="width: 44px; height: 44px; border-radius: 6px; border: 1px solid #262A30; background: #14171B; color: {{a}}; font-family: 'IBM Plex Mono', monospace; font-size: 12px; cursor: pointer;">1</button>
+      </div>
+    </header>
+
+    <div style="flex-grow: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 0;">
+
+      <section style="height: 112px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; overflow: hidden;">
+        <sc-for list="{{kpis}}" as="k" hint-placeholder-count="5">
+          <div style="flex-grow: 1; box-sizing: border-box; padding: 16px 20px; border-right: 1px solid #1E2127; display: flex; flex-direction: column; justify-content: center; gap: 7px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">{{k.label}}</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 21px; color: {{k.color}}; font-variant-numeric: tabular-nums;">{{k.value}}</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{k.sub}}</div>
+          </div>
+        </sc-for>
+      </section>
+
+      <section style="height: 280px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="height: 52px; flex-shrink: 0; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">INSTRUMENTS WITH ORDERS TODAY</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A;">open a row for its depth, orders and ticks</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 120px 64px 174px 64px 64px 60px 140px 88px 88px 78px 104px 92px 96px; height: 30px; align-items: center; padding: 0 16px; border-bottom: 1px solid #1E2127; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; color: #8F8C85;">
+          <span>SYMBOL</span><span>SIDE</span><span>SOURCE</span><span style="text-align: right;">TARGET</span><span style="text-align: right;">FILLED</span><span style="text-align: right;">OPEN</span><span style="text-align: center;">PROGRESS</span><span style="text-align: right;">VWAP</span><span style="text-align: right;">LTP</span><span style="text-align: right;">VS LTP</span><span style="text-align: right;">VALUE</span><span style="text-align: right;">LAST</span><span style="text-align: center;">STATE</span>
+        </div>
+        <sc-for list="{{instruments}}" as="r" hint-placeholder-count="4">
+          <a href="Instrument.dc.html" style="display: grid; grid-template-columns: 120px 64px 174px 64px 64px 60px 140px 88px 88px 78px 104px 92px 96px; height: 44px; align-items: center; padding: 0 16px; text-decoration: none; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-variant-numeric: tabular-nums; background: {{r.bg}}; box-shadow: {{r.bar}};">
+            <span style="font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 500; color: {{r.symColor}};">{{r.sym}}</span>
+            <span style="color: {{r.sideColor}}; font-size: 10.5px; letter-spacing: 0.08em;">{{r.side}}</span>
+            <span style="color: #83807A; font-size: 11px;">{{r.source}}</span>
+            <span style="text-align: right; color: #B4B0A8;">{{r.target}}</span>
+            <span style="text-align: right; color: #46C88A;">{{r.filled}}</span>
+            <span style="text-align: right; color: {{r.openColor}};">{{r.open}}</span>
+            <span style="display: block; position: relative; height: 44px;">
+              <span style="position: absolute; left: 10px; right: 10px; top: 19px; height: 6px; border-radius: 3px; background: #23262B;"></span>
+              <span style="position: absolute; left: 10px; top: 19px; height: 6px; width: {{r.fillW}}px; border-radius: 3px; background: #46C88A;"></span>
+              <span style="position: absolute; left: {{r.openL}}px; top: 19px; height: 6px; width: {{r.openW}}px; border-radius: 3px; background: {{a}}; opacity: 0.45;"></span>
+            </span>
+            <span style="text-align: right; color: #E9E7E2;">{{r.vwap}}</span>
+            <span style="text-align: right; color: #B4B0A8;">{{r.ltp}}</span>
+            <span style="text-align: right; color: {{r.slipColor}}; font-size: 11px;">{{r.slip}}</span>
+            <span style="text-align: right; color: #E9E7E2;">{{r.value}}</span>
+            <span style="text-align: right; color: #83807A; font-size: 11px;">{{r.last}}</span>
+            <span style="text-align: center; color: {{r.stateColor}}; font-size: 10px; letter-spacing: 0.06em;">{{r.state}}</span>
+          </a>
+        </sc-for>
+        <div style="margin-top: auto; padding: 0 16px; height: 34px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #262A30; background: #16181C; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">
+          <span>holdings reflect these fills only after the 15:45 reconciliation</span>
+          <span>rebalance batch RB-2026-09-22 · 15 of 24 shares sold</span>
+        </div>
+      </section>
+
+      <section style="flex-grow: 1; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; min-height: 0;">
+        <div style="height: 52px; flex-shrink: 0; border-bottom: 1px solid #1E2127; display: flex; align-items: center; padding: 0 16px; gap: 6px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85; margin-right: 8px;">EVERY ORDER TODAY</span>
+          <sc-for list="{{filters}}" as="f" hint-placeholder-count="4">
+            <button type="button" onClick="{{f.pick}}" style="height: 44px; padding: 0 13px; border: 0; border-radius: 6px; cursor: pointer; font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; font-weight: 500; background: {{f.bg}}; color: {{f.fg}};">{{f.label}}</button>
+          </sc-for>
+          <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{blotterNote}}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 74px 110px 54px 46px 150px 76px 46px 54px 92px 78px 88px 1fr; height: 26px; align-items: center; padding: 0 16px; border-bottom: 1px solid #1E2127; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; color: #8F8C85;">
+          <span>PLACED</span><span>INSTRUMENT</span><span>SIDE</span><span style="text-align: right;">TICK</span><span>BROKER ORDER ID</span><span style="text-align: right;">LIMIT</span><span style="text-align: right;">QTY</span><span style="text-align: right;">FILLED</span><span style="text-align: center;">STATE</span><span style="text-align: right;">AT</span><span style="text-align: right;">VALUE</span><span style="text-align: right;">BATCH</span>
+        </div>
+        <div style="flex-grow: 1; overflow-y: auto; min-height: 0;">
+          <sc-for list="{{blotter}}" as="o" hint-placeholder-count="25">
+            <div style="display: grid; grid-template-columns: 74px 110px 54px 46px 150px 76px 46px 54px 92px 78px 88px 1fr; height: 22px; align-items: center; padding: 0 16px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-variant-numeric: tabular-nums; background: {{o.bg}}; box-shadow: {{o.bar}};">
+              <span style="color: #B4B0A8;">{{o.placed}}</span>
+              <span style="font-family: 'Space Grotesk', sans-serif; font-size: 11.5px; color: {{o.symColor}};">{{o.sym}}</span>
+              <span style="color: {{o.sideColor}}; font-size: 10px; letter-spacing: 0.06em;">{{o.side}}</span>
+              <span style="text-align: right; color: #83807A;">{{o.tick}}</span>
+              <span style="color: {{o.idColor}};">{{o.id}}</span>
+              <span style="text-align: right; color: {{o.priceColor}};">{{o.price}}</span>
+              <span style="text-align: right; color: #B4B0A8;">{{o.qty}}</span>
+              <span style="text-align: right; color: {{o.filledColor}};">{{o.filled}}</span>
+              <span style="text-align: center; color: {{o.stateColor}}; font-size: 10px; letter-spacing: 0.06em;">{{o.state}}</span>
+              <span style="text-align: right; color: {{o.filledColor}};">{{o.at}}</span>
+              <span style="text-align: right; color: #B4B0A8;">{{o.value}}</span>
+              <span style="text-align: right; color: #83807A; font-size: 10px;">{{o.batch}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0A640","options":["#F0A640","#46C88A","#6FA8DC","#D97757"]},"$preview":{"width":1512,"height":1010}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { filter: 'all' };
+  }
+
+  renderVals() {
+    var self = this;
+    var a = this.props.accent || '#F0A640';
+    var GR = '#46C88A', RD = '#F06A52', T1 = '#E9E7E2', T2 = '#B4B0A8', T3 = '#8F8C85', T4 = '#83807A';
+    var filter = (this.state && this.state.filter) || 'all';
+
+    var nav = [
+      ['Today.dc.html', 'Today', false],
+      ['Tradesheet.dc.html', 'Tradesheet', false],
+      ['Main.dc.html', 'Trading', true],
+      ['Holdings.dc.html', 'Holdings', false],
+      ['Performance.dc.html', 'Performance', false],
+      ['Ledger.dc.html', 'Cash ledger', false],
+      ['DayDetail.dc.html', 'Day detail', false],
+      ['Rebalance.dc.html', 'Rebalance sell', false],
+      ['Model.dc.html', 'Model portfolio', false],
+      ['Config.dc.html', 'Configuration', false]
+    ].map(function (n) {
+      return { href: n[0], label: n[1], bg: n[2] ? '#1A1D22' : 'transparent', fg: n[2] ? T1 : T3, bar: n[2] ? 'inset 2px 0 0 ' + a : 'none' };
+    });
+    var pending = ['Tax lots and gains'];
+
+    var money = function (v, d) {
+      var s = Math.abs(v).toFixed(d === undefined ? 2 : d).split('.');
+      var x = s[0], l3 = x.length > 3 ? x.slice(-3) : x, rest = x.length > 3 ? x.slice(0, -3) : '';
+      if (rest) { l3 = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + ',' + l3; }
+      return l3 + (s[1] ? '.' + s[1] : '');
+    };
+
+    var INST = [
+      { sym: 'ITC', side: 'BUY', source: 'daily accumulation', target: 7, filled: 5, open: 2, vwap: 429.02, ltp: 428.90, value: 2145.10, last: '10:56', state: 'WORKING' },
+      { sym: 'ASIANPAINT', side: 'SELL', source: 'rebalance RB-260922', target: 12, filled: 12, open: 0, vwap: 2471.35, ltp: 2466.85, value: 29656.20, last: '11:18', state: 'COMPLETE' },
+      { sym: 'TCS', side: 'SELL', source: 'rebalance RB-260922', target: 4, filled: 3, open: 1, vwap: 3601.70, ltp: 3604.15, value: 10805.10, last: '10:24', state: 'WORKING' },
+      { sym: 'RELIANCE', side: 'SELL', source: 'rebalance RB-260922', target: 8, filled: 0, open: 2, vwap: 0, ltp: 1487.60, value: 0, last: '09:50', state: 'WORKING' }
+    ];
+
+    var instruments = INST.map(function (r, i) {
+      var W = 120;
+      var fw = r.filled / r.target * W;
+      var ow = r.open / r.target * W;
+      var slip = r.vwap ? (r.vwap - r.ltp) : 0;
+      var good = r.side === 'BUY' ? slip <= 0 : slip >= 0;
+      return {
+        sym: r.sym, symColor: T1,
+        side: r.side, sideColor: r.side === 'BUY' ? GR : RD,
+        source: r.source,
+        target: String(r.target), filled: String(r.filled),
+        open: String(r.open), openColor: r.open ? a : T4,
+        fillW: fw.toFixed(1), openL: (10 + fw).toFixed(1), openW: ow.toFixed(1),
+        vwap: r.vwap ? money(r.vwap) : '—',
+        ltp: money(r.ltp),
+        slip: r.vwap ? ((slip >= 0 ? '+' : '−') + Math.abs(slip).toFixed(2)) : '—',
+        slipColor: r.vwap ? (good ? GR : RD) : T4,
+        value: r.value ? '₹' + money(r.value) : '—',
+        last: r.last,
+        state: r.state,
+        stateColor: r.state === 'COMPLETE' ? GR : a,
+        bg: i % 2 === 0 ? 'transparent' : '#16181C',
+        bar: r.state === 'WORKING' ? 'inset 2px 0 0 ' + a : 'inset 2px 0 0 #22392F'
+      };
+    });
+
+    var kpis = [
+      { label: 'INSTRUMENTS', value: '4', color: T1, sub: '1 buy · 3 rebalance sells' },
+      { label: 'ORDERS PLACED', value: '25', color: T1, sub: '5 still open' },
+      { label: 'BUY DEPLOYED', value: '₹2,145', color: GR, sub: 'of ₹3,250.90 available' },
+      { label: 'SELL PROCEEDS', value: '₹40,461', color: T2, sub: '15 of 24 shares sold' },
+      { label: 'NEXT TICK', value: '02:42', color: a, sub: 'tick 22 at 11:35:00' }
+    ];
+
+    var rows = [];
+    var itc = [
+      [0, '260922000481931', '09:45:02', 428.85, null],
+      [1, '260922000482044', '09:50:01', 428.85, null],
+      [2, '260922000482310', '09:55:02', 428.90, 428.90],
+      [3, '260922000482687', '10:00:01', 428.95, 428.95],
+      [4, '260922000483051', '10:05:02', 429.05, 429.05],
+      [5, '260922000483402', '10:10:01', 429.05, 429.05],
+      [6, '260922000483779', '10:15:02', 429.15, 429.15]
+    ];
+    itc.forEach(function (o) {
+      rows.push({ sym: 'ITC', side: 'BUY', tick: o[0], id: o[1], placed: o[2], price: o[3], at: o[4], batch: 'daily' });
+    });
+    for (var i = 0; i < 12; i++) {
+      var p = 2473.50 - i * 0.40;
+      var mm = 45 + i * 5, hh = 9 + Math.floor(mm / 60);
+      rows.push({
+        sym: 'ASIANPAINT', side: 'SELL', tick: i,
+        id: '2609220049' + (1120 + i * 37),
+        placed: (hh < 10 ? '0' : '') + hh + ':' + (mm % 60 < 10 ? '0' : '') + (mm % 60) + ':0' + (i % 2 === 0 ? '2' : '1'),
+        price: Math.round(p * 20) / 20, at: Math.round(p * 20) / 20, batch: 'RB-260922'
+      });
+    }
+    [[0, '260922005012044', '09:45:03', 3612.80, null],
+     [1, '260922005012411', '09:50:02', 3602.40, 3602.40],
+     [2, '260922005012788', '09:55:03', 3601.60, 3601.60],
+     [3, '260922005013165', '10:00:02', 3601.10, 3601.10]].forEach(function (o) {
+      rows.push({ sym: 'TCS', side: 'SELL', tick: o[0], id: o[1], placed: o[2], price: o[3], at: o[4], batch: 'RB-260922' });
+    });
+    [[0, '260922006004871', '09:45:04', 1494.20, null],
+     [1, '260922006005248', '09:50:03', 1492.60, null]].forEach(function (o) {
+      rows.push({ sym: 'RELIANCE', side: 'SELL', tick: o[0], id: o[1], placed: o[2], price: o[3], at: o[4], batch: 'RB-260922' });
+    });
+
+    var filters = [
+      { key: 'all', label: 'All · 25' },
+      { key: 'buy', label: 'Buy · 7' },
+      { key: 'sell', label: 'Sell · 18' },
+      { key: 'open', label: 'Open · 5' }
+    ].map(function (f) {
+      return {
+        label: f.label,
+        bg: filter === f.key ? '#22262C' : 'transparent',
+        fg: filter === f.key ? T1 : T3,
+        pick: function () { self.setState({ filter: f.key }); }
+      };
+    });
+
+    var shown = rows.filter(function (o) {
+      if (filter === 'buy') { return o.side === 'BUY'; }
+      if (filter === 'sell') { return o.side === 'SELL'; }
+      if (filter === 'open') { return o.at === null; }
+      return true;
+    }).sort(function (x, y) { return x.placed < y.placed ? -1 : 1; });
+
+    var blotter = shown.map(function (o, i) {
+      var open = o.at === null;
+      return {
+        placed: o.placed,
+        sym: o.sym, symColor: o.sym === 'ITC' ? T1 : T2,
+        side: o.side, sideColor: o.side === 'BUY' ? GR : RD,
+        tick: String(o.tick),
+        id: o.id, idColor: open ? T2 : T4,
+        price: o.price.toFixed(2), priceColor: open ? a : T2,
+        qty: '1',
+        filled: open ? '0' : '1', filledColor: open ? T4 : GR,
+        state: open ? 'OPEN' : 'COMPLETE',
+        stateColor: open ? a : GR,
+        at: open ? '—' : o.at.toFixed(2),
+        value: open ? '—' : '₹' + money(o.at),
+        batch: o.batch,
+        bg: open ? '#1A1812' : (i % 2 === 0 ? 'transparent' : '#16181C'),
+        bar: open ? 'inset 2px 0 0 ' + a : 'none'
+      };
+    });
+
+    var blotterNote = shown.length + ' shown · one order per tick, one share each — none is ever modified';
+
+    return {
+      a: a, nav: nav, pending: pending, kpis: kpis,
+      instruments: instruments, filters: filters, blotter: blotter, blotterNote: blotterNote
+    };
+  }
+}
+</script>
+</body>
+</html>

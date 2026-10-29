@@ -1,0 +1,153 @@
+{% extends "phone/base.html" %}{% load static %}
+{% comment %}
+The screen the approval gate exists for. One stepper a name, the ranking that
+justified the picks, and how stale the plan is -- because authorising at 14:00
+a sheet built at 09:45 is the case worth designing for. A changed quantity is
+an override with a reason, taken in the same step as the authorisation, so
+what is authorised is what the screen showed. Regenerate makes a new version
+and clears overrides: approving a sheet is approving that sheet.
+{% endcomment %}
+{% block title %}Today's trade — steadystack{% endblock %}
+{% block header %}{% include "phone/_back.html" with title="Today's trade" %}{% endblock %}
+
+{% block content %}
+{% if not sheet %}
+  <section class="bg-card border border-line rounded-xl p-[18px]">
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">NO PLAN YET</div>
+    <p class="text-[13px] text-ink-2 leading-[1.6] mt-2">Today has no tradesheet. Today's screen has Generate when the market is open and there is a session.</p>
+    <a href="{% url 'phone:today' %}" class="mt-4 h-[52px] flex items-center justify-center rounded-lg border border-edge text-ink-2 no-underline text-[15px] font-semibold">Back to today</a>
+  </section>
+{% else %}
+  <div class="flex items-baseline justify-between font-mono text-[11px]">
+    <span class="text-ink-3">{{ sheet.trace_id }} · v{{ sheet.version }}</span>
+    {% if sheet.is_authorized %}
+      <span class="text-good">authorised {{ sheet.authorized_at|date:"H:i" }} · {{ sheet.authorized_by }}</span>
+    {% elif can_adjust %}
+      <span class="text-accent">expires {{ clock.cutoff|time:"H:i" }}{% if clock.left %} · {{ clock.left }} left{% endif %}</span>
+    {% else %}
+      <span class="text-ink-3">{{ sheet.get_state_display|lower }}</span>
+    {% endif %}
+  </div>
+
+  <form method="post" action="{% url 'phone:trade' %}" id="trade" class="flex flex-col gap-3"
+        data-spendable="{{ sheet.spendable_cash|stringformat:'s' }}">
+    {% csrf_token %}
+    <input type="hidden" name="version" value="{{ sheet.version }}">
+
+    <section class="bg-card border border-line rounded-xl p-[18px]">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">IT WANTS TO BUY</div>
+
+      {% for row in lines %}
+        {% with line=row.line %}
+        <div class="{% if not forloop.first %}mt-4 pt-4 border-t border-line{% else %}mt-2.5{% endif %}"
+             data-line data-price="{{ line.reference_price|stringformat:'s' }}" data-planned="{{ line.quantity }}" data-floor="{{ row.filled }}">
+          <div class="flex items-baseline gap-2.5 flex-wrap">
+            <span class="text-[26px] font-semibold tracking-[-0.03em]">{{ line.instrument_id }}</span>
+            <span class="font-mono text-[12.5px] text-ink-3">₹{{ line.reference_price|floatformat:2 }} {{ line.get_price_source_display|lower }}</span>
+          </div>
+          {% if can_adjust %}
+            <div class="flex items-center gap-3 mt-3">
+              <button type="button" data-step="-1" aria-label="One {{ line.instrument_id }} fewer"
+                      class="quiet w-[52px] h-[52px] mt-0 p-0 font-mono text-[20px] font-normal rounded-lg">−</button>
+              <div class="grow flex flex-col items-center gap-0.5">
+                <input name="qty_{{ line.instrument_id }}" value="{{ line.quantity }}" inputmode="numeric" pattern="[0-9]*"
+                       aria-label="{{ line.instrument_id }} shares"
+                       class="w-24 h-auto p-0 border-0 bg-transparent text-center font-mono text-[34px] leading-none tabular-nums text-ink">
+                <span class="font-mono text-[10.5px] text-ink-4">shares{% if row.filled %} · {{ row.filled }} filled{% endif %}</span>
+              </div>
+              <button type="button" data-step="1" aria-label="One {{ line.instrument_id }} more"
+                      class="quiet w-[52px] h-[52px] mt-0 p-0 font-mono text-[20px] font-normal rounded-lg">+</button>
+            </div>
+          {% else %}
+            <div class="font-mono text-[15px] text-ink mt-2 tabular-nums">{{ row.filled }} of {{ line.quantity }} filled</div>
+          {% endif %}
+        </div>
+        {% endwith %}
+      {% empty %}
+        <p class="text-[13px] text-ink-2 mt-2">This version buys nothing.</p>
+      {% endfor %}
+
+      <div class="flex flex-col gap-[9px] mt-[18px] pt-4 border-t border-line font-mono text-[12.5px] tabular-nums">
+        <div class="flex justify-between"><span class="text-ink-3">planned, at the prices sized</span><span class="text-ink" data-cost>₹{{ sheet.planned_cost|floatformat:2 }}</span></div>
+        <div class="flex justify-between"><span class="text-ink-3">today has</span><span class="text-ink-2">₹{{ sheet.spendable_cash|floatformat:2 }}</span></div>
+        <div class="flex justify-between"><span class="text-ink-3">left over, before charges</span><span class="text-accent" data-carry>₹{{ left_over|floatformat:2 }}</span></div>
+      </div>
+      <p class="mt-3.5 text-[12px] text-ink-4 leading-[1.55]" data-warn>
+        Sized against the best ask, not the last trade — an order the budget cannot reach never fills.
+      </p>
+
+      {% if can_adjust %}
+        <div data-reason>
+          <label for="reason">Why the change</label>
+          <input id="reason" name="reason" maxlength="255" autocomplete="off" class="max-w-none font-sans text-[14px]"
+                 placeholder="kept with the override, with your name">
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="bg-card border border-line rounded-xl overflow-hidden">
+      <div class="h-[38px] border-b border-line flex items-center justify-between px-3.5">
+        <span class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">WHY THESE</span>
+        <span class="font-mono text-[10.5px] text-ink-4">largest gap to target first</span>
+      </div>
+      {% for r in ranked %}
+        <div class="grid grid-cols-[22px_1fr_66px_auto] gap-x-2 items-center min-h-10 py-2 px-3.5 border-b border-line-soft {% if r.chosen %}bg-accent-bg{% endif %}">
+          <span class="font-mono text-[11px] text-ink-4">{{ r.rank }}</span>
+          <span class="text-[13.5px] truncate {% if r.chosen %}text-ink{% elif r.affordable %}text-ink-2{% else %}text-ink-4{% endif %}">{{ r.symbol }}</span>
+          <span class="text-right font-mono text-[12px] tabular-nums {% if r.chosen %}text-accent{% else %}text-ink-2{% endif %}">{{ r.gap_value|floatformat:2 }}</span>
+          <span class="text-right font-mono text-[10px] {% if r.tone == 'good' %}text-accent{% else %}text-ink-4{% endif %}">{{ r.decision }}</span>
+        </div>
+      {% empty %}
+        <p class="px-3.5 py-3 text-[12.5px] text-ink-4">No ranking was stored with this version.</p>
+      {% endfor %}
+      {% if ranked_more %}
+        <p class="px-3.5 py-2.5 font-mono text-[10.5px] text-ink-4">and {{ ranked_more }} more, on the desk page</p>
+      {% endif %}
+    </section>
+  </form>
+
+  {% if regeneration.allowed %}
+    <section class="bg-card border border-line rounded-xl p-3.5">
+      <form method="post" action="{% url 'engine:regenerate' sheet.trading_date|date:'Y-m-d' sheet.version %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'phone:trade' %}">
+        <div class="font-mono text-[11px] text-ink-2">built {{ sheet.generated_at|date:"H:i" }} · {{ age }}</div>
+        <div class="text-[11.5px] text-ink-4 leading-normal mt-1">
+          Regenerating reprices the ranking against current prices as a new version, and clears any quantity you changed.
+          {% if regeneration.unplanned_money %}₹{{ regeneration.unplanned_money|floatformat:2 }} arrived since this was built.{% endif %}
+        </div>
+        <div class="flex items-end gap-2 mt-1">
+          <div class="grow">
+            <label for="regen-reason" class="mt-2">Why</label>
+            <input id="regen-reason" name="reason" required maxlength="255" autocomplete="off" class="max-w-none font-sans text-[14px] h-[46px]">
+          </div>
+          <button type="submit" class="quiet h-[46px] mt-0 px-4 text-[13.5px] font-medium shrink-0">Regenerate</button>
+        </div>
+      </form>
+    </section>
+  {% endif %}
+
+  {% if can_adjust %}
+    <div class="sticky bottom-0 -mx-4 -mb-4 mt-auto border-t border-line bg-panel px-4 pt-3 pb-4 flex flex-col gap-2">
+      <div class="flex gap-2.5">
+        <a href="{% url 'phone:stop' %}" class="w-[116px] shrink-0 h-[54px] flex items-center justify-center rounded-lg border border-edge text-ink-2 no-underline text-[14px] font-medium">
+          {% if sheet.is_authorized %}Stop today{% else %}Skip today{% endif %}
+        </a>
+        {% if sheet.is_authorized %}
+          <button type="submit" form="trade" name="action" value="save" data-primary
+                  class="grow h-[54px] mt-0 rounded-lg text-[15.5px]">Save changes</button>
+        {% elif authorization.why_not %}
+          <p class="grow text-[12px] text-ink-3 leading-snug self-center">{{ authorization.why_not }}</p>
+        {% else %}
+          <button type="submit" form="trade" name="action" value="authorize" data-primary
+                  class="grow h-[54px] mt-0 rounded-lg text-[15.5px]">Authorise <span data-total>{{ sheet.quantity }}</span> shares</button>
+        {% endif %}
+      </div>
+      <div class="font-mono text-[10px] text-ink-4 text-center leading-[1.6]">authorising records your name, the time and this exact version</div>
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}
+
+{% block footer %}{% if not can_adjust %}{{ block.super }}{% endif %}{% endblock %}
+

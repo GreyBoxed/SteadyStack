@@ -1,0 +1,211 @@
+{% extends "app.html" %}
+{% block title %}Configuration — steadystack{% endblock %}
+{% block page_title %}Configuration{% endblock %}
+{% block content %}
+
+  {% comment %}
+    The emergency handle. Pausing alone stops the system deciding to buy and
+    leaves what it already placed resting at the broker until the close, so
+    this is the one action that means both.
+  {% endcomment %}
+  <div class="card {% if pause %}card-bad{% endif %} mb-6">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">
+          {% if pause %}TRADING IS STOPPED{% else %}STOP TRADING{% endif %}
+        </div>
+        {% if pause %}
+          <div class="text-[15px] mt-1.5 text-bad">{{ pause.reason }}</div>
+          <div class="font-mono text-[10.5px] text-ink-4 mt-1">
+            stopped {{ pause.paused_at|date:"j M Y, H:i" }} by {{ pause.paused_by }}
+            {% if pause.resume_on %} · resumes by itself on {{ pause.resume_on|date:"j M Y" }}{% endif %}
+          </div>
+          <div class="font-mono text-[10.5px] text-ink-4 mt-1">
+            No tradesheet, no tick, no fallback. Carry stops accruing while stopped.
+          </div>
+        {% else %}
+          <div class="font-mono text-[10.5px] text-ink-4 mt-1.5 max-w-prose">
+            Pauses the system and cancels every order still live at the broker, in one
+            action. Fills already taken stand — there is no way to un-buy a share.
+            Coming back is a separate, audited decision.
+          </div>
+        {% endif %}
+      </div>
+
+      {% if pause %}
+        <form method="post" action="{% url 'configuration:resume' %}" class="shrink-0">
+          {% csrf_token %}
+          <input type="text" name="note" placeholder="note (optional)"
+                 class="w-48 mr-2" aria-label="note">
+          <button type="submit">Resume trading</button>
+        </form>
+      {% else %}
+        <form method="post" action="{% url 'configuration:stop' %}" class="shrink-0">
+          {% csrf_token %}
+          <input type="text" name="reason" required placeholder="why (required)"
+                 class="w-56 mr-2" aria-label="why trading is being stopped">
+          <button type="submit" class="text-bad">Stop trading and cancel all orders</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-3 mb-6">
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">CONFIG VERSION</div>
+      <div class="text-[22px] mt-1.5">v{{ current.version }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">
+        {% if current.version %}effective since {{ current.effective_from|date:"j M Y" }}
+        {% else %}nothing configured — running on defaults{% endif %}
+      </div>
+    </div>
+    <div class="card {% if is_live %}card-bad{% endif %}">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">ORDER MODE</div>
+      <div class="text-[22px] mt-1.5 {% if is_live %}text-bad{% else %}text-accent{% endif %}">
+        {{ current.get_order_mode_display|upper }}
+      </div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">
+        {% if is_live %}orders are sent to the broker{% else %}recorded in full, never sent{% endif %}
+      </div>
+    </div>
+    <div class="card {% if not current.registered_static_ip %}card-bad{% endif %}">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">STATIC IP</div>
+      <div class="text-[22px] mt-1.5 {% if not current.registered_static_ip %}text-bad{% endif %}">
+        {{ current.registered_static_ip|default:"not registered" }}
+      </div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">no order is placed without it</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">A DAY'S BUDGET</div>
+      <div class="text-[22px] mt-1.5">₹{{ current.daily_amount|floatformat:2 }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">every trading day, plus carry</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">BENCHMARK</div>
+      <div class="text-[22px] mt-1.5">{{ current.benchmark_symbol }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">the return is judged against it</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">LAST CHANGE</div>
+      <div class="text-[22px] mt-1.5">{% if last_change %}{{ last_change.effective_from|date:"j M" }}{% else %}—{% endif %}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{% if last_change %}{{ last_change.setting }} · {{ last_change.actor }}{% else %}no change recorded{% endif %}</div>
+    </div>
+  </div>
+
+  <div class="card mb-6">
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3 mb-2">BROKER · FROM THE ENVIRONMENT, NOT EDITABLE HERE</div>
+    <dl class="grid grid-cols-[180px_1fr] gap-y-1.5 text-[13px]">
+      <dt class="text-ink-3">API key</dt>
+      <dd class="font-mono {% if not broker.api_key %}text-bad{% endif %}">{{ broker.api_key|default:"not set" }}</dd>
+      <dt class="text-ink-3">API secret, TOTP seed</dt>
+      <dd class="font-mono text-ink-3">held in the environment; never read by this page</dd>
+      <dt class="text-ink-3">Postback URL</dt>
+      <dd class="font-mono break-all">{{ broker.postback_url }}</dd>
+    </dl>
+    <p class="muted text-[12px] mt-2">Paste the postback URL into the Kite developer console. Postbacks are verified by checksum, not by sign-in.</p>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    {% for group, fields in form.grouped %}
+      <h2>{{ group }}</h2>
+      <div class="card mb-4">
+        {% for field in fields %}
+          <div class="flex items-baseline gap-4 py-2.5 {% if not forloop.last %}border-b border-line-soft{% endif %} flex-wrap">
+            <div class="w-64 shrink-0">
+              <label for="{{ field.id_for_label }}" class="mt-0">{{ field.label }}</label>
+              {% if field.help_text %}
+                <div class="text-[11.5px] text-ink-4 leading-snug mt-1">{{ field.help_text }}</div>
+              {% endif %}
+            </div>
+            <div class="grow min-w-[12rem]">
+              {{ field }}
+              {% for error in field.errors %}
+                <div class="errors text-[12px] mt-1">{{ error }}</div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+
+    <h2>Why</h2>
+    <div class="card">
+      <label for="{{ form.reason.id_for_label }}" class="mt-0">Reason</label>
+      {{ form.reason }}
+      {% for error in form.reason.errors %}<div class="errors text-[12px] mt-1">{{ error }}</div>{% endfor %}
+      <div class="text-[11.5px] text-ink-4 mt-2">
+        Stored with the version and never editable afterwards. A tradesheet from 2031
+        is explained by the configuration in force that day.
+      </div>
+      <label for="otp_token">Current code from your authenticator</label>
+      <input type="text" id="otp_token" name="otp_token" inputmode="numeric"
+             autocomplete="one-time-code" maxlength="8">
+      <div class="text-[11.5px] text-ink-4 mt-1">
+        Needed only for going live, changing the registered static IP or raising the
+        daily amount. A signed-in session is not enough for those.
+      </div>
+      <button type="submit">Save a new version</button>
+    </div>
+  </form>
+
+  <h2>Change history</h2>
+  {% if history %}
+    <table>
+      <thead>
+        <tr><th>Version</th><th>Effective</th><th>Actor</th><th>Setting</th>
+            <th>Before</th><th>After</th><th>Reason</th></tr>
+      </thead>
+      <tbody>
+        {% for row in history %}
+          <tr>
+            <td class="font-mono text-[12px]">v{{ row.version }}</td>
+            <td class="font-mono text-[12px]">{{ row.effective_from|date:"j M Y, H:i" }}</td>
+            <td>{{ row.actor }}</td>
+            <td>{{ row.setting }}</td>
+            <td class="text-ink-3">{{ row.before }}</td>
+            <td class="text-accent">{{ row.after }}</td>
+            <td class="muted text-[12px]">{{ row.reason }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% elif current.version %}
+    <p class="muted">
+      Version {{ current.version }} is the only one recorded, so there is nothing to
+      compare it against yet. Changes show here from the next save.
+    </p>
+  {% else %}
+    <p class="muted">Nothing has been configured — every value above is its default.</p>
+  {% endif %}
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4 mt-6">
+    <div>
+      <h2>Exchange closures ahead</h2>
+      <div class="card">
+        {% for day in holidays %}
+          <div class="flex justify-between py-1.5 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+            <span class="font-mono text-[12px]">{{ day.trading_date|date:"j M Y" }}</span>
+            <span class="text-ink-3 text-[13px]">{{ day.note|default:day.get_kind_display }}</span>
+          </div>
+        {% empty %}
+          <p class="muted">No closures loaded. Weekends are still skipped, but a
+          holiday the calendar does not know about will be traded.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div>
+      <h2>What raises an alert</h2>
+      <div class="card">
+        <div class="flex flex-wrap gap-2">
+          {% for alert in alerts %}<span class="tag">{{ alert }}</span>{% endfor %}
+        </div>
+        <p class="muted text-[12px] mt-3">
+          No transport exists yet — these are the conditions the system will raise,
+          not ones it can deliver. That arrives with the box.
+        </p>
+      </div>
+    </div>
+  </div>
+{% endblock %}

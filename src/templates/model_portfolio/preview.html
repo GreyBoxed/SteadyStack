@@ -1,0 +1,40 @@
+{% extends "app.html" %}
+{% block title %}Review changes — steadystack{% endblock %}
+{% block page_title %}What {{ filename }} would change{% endblock %}
+{% block content %}
+
+  {% if diff.is_first %}
+    <p>This would be the first model portfolio.</p>
+  {% elif diff.is_empty %}
+    <p>Nothing. This file says exactly what version {{ diff.previous_version }} already says.</p>
+  {% else %}
+    <p class="muted">Against version {{ diff.previous_version }}.</p>
+  {% endif %}
+
+  <table>
+    <thead><tr><th>Symbol</th><th>Was</th><th>Becomes</th><th></th></tr></thead>
+    <tbody>
+      {% for change in diff.changes %}
+        <tr>
+          <td>{{ change.symbol }}</td>
+          <td>{% if change.before %}{{ change.before }}%{% else %}—{% endif %}</td>
+          <td>{% if change.after %}{{ change.after }}%{% else %}—{% endif %}</td>
+          <td class="muted">{{ change.kind }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p class="muted">The weights in this file sum to {{ result.total }}%.</p>
+
+  <form method="post" action="{% url 'model_portfolio:confirm' %}">
+    {% csrf_token %}
+    {% if identical %}
+      <input type="hidden" name="allow_identical" value="yes">
+      <p class="muted">Storing it anyway will create a version that changes nothing.</p>
+    {% endif %}
+    <button type="submit">Store version</button>
+  </form>
+
+  <p><a href="{% url 'model_portfolio:index' %}">Cancel</a></p>
+{% endblock %}

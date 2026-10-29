@@ -1,0 +1,1 @@
+{% if live.on %}data-live="{% url src %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" data-live-every="{{ live.every }}"{% endif %}

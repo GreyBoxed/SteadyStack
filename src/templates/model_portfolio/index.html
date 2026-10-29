@@ -1,0 +1,117 @@
+{% extends "app.html" %}
+{% block title %}Model portfolio — steadystack{% endblock %}
+{% block page_title %}Model portfolio{% endblock %}
+{% block content %}
+
+  {% if errors %}
+    <div class="errors">
+      <p><strong>{{ filename }} was not accepted.</strong></p>
+      <ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  {% if current %}
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-3 mb-5">
+      <div class="card">
+        <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">UNIVERSE</div>
+        <div class="text-[19px] mt-1.5">{{ summary.universe }}</div>
+        <div class="font-mono text-[10.5px] text-ink-4 mt-1">version {{ current.version }}</div>
+      </div>
+      <div class="card {% if summary.weight_sum != 100 %}card-bad{% endif %}">
+        <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">WEIGHT SUM</div>
+        <div class="text-[19px] mt-1.5 {% if summary.weight_sum == 100 %}text-good{% else %}text-bad{% endif %}">{{ summary.weight_sum|floatformat:2 }}%</div>
+        <div class="font-mono text-[10.5px] text-ink-4 mt-1">drift Σ|gap| {{ summary.drift|floatformat:2 }}%</div>
+      </div>
+      <div class="card">
+        <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">MAX PRICE PER SHARE</div>
+        <div class="text-[19px] mt-1.5">{% if summary.ceiling %}₹{{ summary.ceiling|floatformat:2 }}{% else %}none{% endif %}</div>
+        <div class="font-mono text-[10.5px] text-ink-4 mt-1">set in configuration</div>
+      </div>
+      <div class="card {% if summary.out_of_reach %}card-bad{% endif %}">
+        <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">OUT OF REACH</div>
+        <div class="text-[19px] mt-1.5">{{ summary.out_of_reach|length }}</div>
+        <div class="font-mono text-[10.5px] text-ink-4 mt-1">{% if summary.out_of_reach %}{{ summary.out_of_reach|join:", " }}{% else %}every name is under the ceiling{% endif %}</div>
+      </div>
+      <div class="card">
+        <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">LONGEST WAIT</div>
+        <div class="text-[19px] mt-1.5">{% if summary.longest %}{{ summary.longest.days_since }} day{{ summary.longest.days_since|pluralize }}{% else %}—{% endif %}</div>
+        <div class="font-mono text-[10.5px] text-ink-4 mt-1">{% if summary.longest %}{{ summary.longest.symbol }} since its last buy{% endif %}{% if summary.never_bought %}{% if summary.longest %} · {% endif %}never bought: {{ summary.never_bought|join:", " }}{% endif %}</div>
+      </div>
+    </div>
+
+    <h2>Version {{ current.version }}</h2>
+    <p class="muted">
+      Uploaded {{ current.uploaded_at|date:"j M Y, H:i" }} by {{ current.uploaded_by }}
+      {% if current.source_filename %}from {{ current.source_filename }}{% endif %} —
+      in force from that moment; the next tradesheet ranks against it.
+    </p>
+    <div class="overflow-x-auto">
+    <table class="text-[13.5px]">
+      <thead><tr><th>Symbol</th><th>Exch</th><th>Token</th><th>Tick</th><th>Last close</th><th>Target</th><th>Actual</th><th>Gap</th>
+                 <th class="w-1/4">Allocation — the marker is actual</th><th>Last bought</th></tr></thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td><a href="{% url 'portfolio:detail' row.symbol %}">{{ row.symbol }}</a></td>
+            <td class="font-mono text-[11.5px] text-ink-3">{{ row.exchange }}</td>
+            <td class="font-mono text-[11.5px] text-ink-3">{{ row.token }}</td>
+            <td class="font-mono text-[11.5px] text-ink-3">{{ row.tick_size|floatformat:2 }}</td>
+            <td class="{% if summary.ceiling and row.price and row.price > summary.ceiling %}text-bad{% endif %}">{% if row.price %}₹{{ row.price|floatformat:2 }}{% if row.price_from_ranking %}<span class="text-ink-4 text-[10px]" title="not held; priced by the {{ row.ranked_on|date:'j M' }} ranking"> *</span>{% endif %}{% else %}—{% endif %}</td>
+            <td>{{ row.target|floatformat:2 }}%</td>
+            <td>{{ row.actual|floatformat:2 }}%</td>
+            <td class="{% if row.gap < 0 %}text-accent{% endif %}">{{ row.gap|floatformat:2 }}%</td>
+            <td>
+              <span class="relative block h-2 bg-[#23262B] rounded">
+                <span class="absolute left-0 top-0 h-2 rounded bg-[#2E3239]"
+                      style="width: {{ row.target|floatformat:2 }}%"></span>
+                <span class="absolute top-[-3px] w-[3px] h-[14px] bg-accent rounded-[2px]"
+                      style="left: {{ row.actual|floatformat:2 }}%"></span>
+              </span>
+            </td>
+            <td class="font-mono text-[11.5px] whitespace-nowrap">{% if row.last_bought %}{{ row.last_bought|date:"j M" }} · {{ row.days_since }}d ago{% else %}<span class="text-ink-4">never</span>{% endif %}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="10" class="muted">No weights in this version.</td></tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr><th>Total</th><td colspan="4"></td><td>{{ summary.weight_sum|floatformat:2 }}%</td><td>100%</td><td>Σ|gap| {{ summary.drift|floatformat:2 }}%</td><td colspan="2"></td></tr>
+      </tfoot>
+    </table>
+    </div>
+    <p class="muted text-[12px]">
+      The bar is the target, the marker is what is actually held. A target on its own
+      says nothing about whether it is being reached.
+      {% if summary.prices_as_of %}Prices are the {{ summary.prices_as_of|date:"j M" }} close.{% endif %}
+      * not held, so priced by the latest tradesheet's ranking.
+    </p>
+  {% else %}
+    <p class="muted">No model portfolio has been uploaded yet.</p>
+  {% endif %}
+
+  <h2>Upload a new version</h2>
+  <form method="post" action="{% url 'model_portfolio:upload' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="file">CSV with a symbol column and a weight column</label>
+    <input type="file" name="file" id="file" accept=".csv,text/csv">
+    <button type="submit">Check it</button>
+  </form>
+  <p class="muted">Nothing is stored until you have seen what would change.</p>
+
+  {% if history %}
+    <h2>History</h2>
+    <table class="text-[13px]">
+      <thead><tr><th>Version</th><th>Uploaded</th><th>By</th><th>What changed</th></tr></thead>
+      <tbody>
+        {% for entry in history %}
+          <tr>
+            <td>v{{ entry.version.version }}</td>
+            <td class="font-mono text-[12px]">{{ entry.version.uploaded_at|date:"j M Y, H:i" }}</td>
+            <td class="text-ink-3">{{ entry.version.uploaded_by }}</td>
+            <td class="text-ink-2">{{ entry.summary }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock %}

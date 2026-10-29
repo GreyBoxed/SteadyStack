@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% comment %}
+The operator shell: a fixed sidebar naming every screen, and a header strip
+that answers -- without being asked -- whether Kite is reachable, whether an
+order may be placed at all, and which trading day this is. Pages fill
+`content` and name themselves in `page_title`.
+{% endcomment %}
+
+{% block body %}
+  <div class="flex min-h-screen max-md:flex-col">
+
+    <nav class="w-52 shrink-0 bg-panel border-r border-line flex flex-col sticky top-0 h-screen
+                max-md:w-auto max-md:h-auto max-md:static max-md:border-r-0 max-md:border-b">
+      <div class="px-4 pt-[18px] pb-4 border-b border-line">
+        <div class="text-[19px] font-bold tracking-[-0.02em]">SteadyStack</div>
+        <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3 mt-1.5">DAILY EQUITY ACCUMULATION</div>
+      </div>
+
+      <div class="px-2.5 pt-3 pb-3 flex-1 min-h-0 overflow-y-auto flex flex-col gap-0.5
+                  max-md:flex-none max-md:flex-row max-md:flex-wrap max-md:overflow-visible">
+        {% for item in chrome.nav %}
+          <a href="{{ item.url }}"
+             class="flex items-center h-10 px-3 rounded-md no-underline text-[13.5px] font-medium
+                    {% if item.active %}bg-[#1A1D22] text-ink shadow-[inset_2px_0_0_var(--color-accent)]
+                    {% else %}text-ink-3 hover:text-ink-2 hover:bg-[#15181C]{% endif %}"
+             {% if item.active %}aria-current="page"{% endif %}>
+            {{ item.label }}
+            {% if item.badge %}
+              <span class="ml-auto tag tag-bad text-[10px] px-1.5 py-0.5"
+                    title="{{ item.badge }} instrument(s) in doubt">{{ item.badge }}</span>
+            {% endif %}
+          </a>
+        {% endfor %}
+      </div>
+
+      <div class="shrink-0 px-4 pt-3.5 pb-4 border-t border-line flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <span class="dot {% if chrome.session.valid %}dot-good{% else %}dot-bad{% endif %}"></span>
+          <span class="font-mono text-[11px] tracking-[0.04em] text-ink-2">
+            {% if chrome.session.valid %}KITE SESSION OK{% else %}NO KITE SESSION{% endif %}
+          </span>
+        </div>
+        <div class="font-mono text-[10.5px] leading-relaxed text-ink-3">
+          {% if chrome.session.valid %}
+            expires {{ chrome.session.expires_at|date:"H:i, D" }}
+          {% else %}
+            {{ chrome.session.reason|default:"connect before 15:00" }}
+          {% endif %}
+        </div>
+        {% if user.is_authenticated %}
+          {% comment %}
+            Account settings live under the name they belong to, which also
+            keeps one more row out of a sidebar that was getting long.
+          {% endcomment %}
+          <a href="{% url 'accounts:security' %}"
+             class="font-mono text-[10.5px] text-ink-4 no-underline hover:text-ink-2">
+            {{ user.username }} · security
+          </a>
+          <a href="{% url 'phone:switch' %}?to=phone"
+             class="font-mono text-[10.5px] text-ink-4 no-underline hover:text-ink-2">phone site</a>
+          {% comment %}
+            A form, not a link: signing out changes state, and Django accepts
+            it only as a POST so that a prefetched or stray link cannot do it.
+          {% endcomment %}
+          <form method="post" action="{% url 'accounts:logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="quiet w-full h-8 mt-1 text-[12.5px]">Sign out</button>
+          </form>
+        {% endif %}
+      </div>
+    </nav>
+
+    <div class="grow min-w-0 flex flex-col">
+      <header class="h-14 shrink-0 border-b border-line bg-panel flex items-center gap-3.5 px-5
+                     sticky top-0 z-10 max-md:h-auto max-md:flex-wrap max-md:py-3">
+        <h1>{% block page_title %}{% endblock %}</h1>
+        {% if chrome.trace_id %}<span class="tag">{{ chrome.trace_id }}</span>{% endif %}
+        <span class="font-mono text-[11px] text-ink-3">
+          {{ chrome.today|date:"D j M Y" }}{% if chrome.day_number %} · trading day {{ chrome.day_number }}{% endif %}
+        </span>
+
+        <div class="ml-auto flex items-center gap-4 max-md:ml-0">
+          {% block header_extra %}{% endblock %}
+          <span class="tag {% if chrome.mode == 'paper' %}tag-accent{% else %}tag-bad{% endif %}">
+            {% if chrome.mode == 'paper' %}PAPER · NEVER SENT{% else %}LIVE{% endif %}
+          </span>
+          <span class="font-mono text-[11px] text-ink-3 flex items-center gap-2">
+            <span class="dot {% if chrome.market.is_open %}dot-good{% else %}dot-bad{% endif %}"></span>
+            {{ chrome.market.label }}
+          </span>
+        </div>
+      </header>
+
+      {% if chrome.subnav|length > 1 %}
+        <div class="flex items-center gap-1 px-5 py-2 border-b border-line bg-panel
+                    flex-wrap sticky top-14 z-[9] max-md:static">
+          {% for item in chrome.subnav %}
+            <a href="{{ item.url }}"
+               class="px-3 h-7 flex items-center rounded no-underline text-[12.5px]
+                      {% if item.active %}bg-[#1A1D22] text-ink{% else %}text-ink-3 hover:text-ink-2{% endif %}"
+               {% if item.active %}aria-current="page"{% endif %}>{{ item.label }}</a>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% comment %}
+        The bottom padding is room for a native date picker or select list
+        opened on the last field of a page; without it the popup runs off
+        the bottom of the window.
+      {% endcomment %}
+      <main class="p-5 pb-72 {% block main_width %}max-w-[1100px]{% endblock %}">
+        {% for message in messages %}
+          <p class="{% if message.tags == 'error' %}errors{% else %}muted{% endif %}">{{ message }}</p>
+        {% endfor %}
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+{% endblock %}

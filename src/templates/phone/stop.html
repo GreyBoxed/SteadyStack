@@ -1,0 +1,100 @@
+{% extends "phone/base.html" %}
+{% comment %}
+Two lists, and the second matters more: what it does not do. Panic is when
+people assume a stop button sells. Press and hold rather than tap, because
+the cost of an accidental press is a day. This stops today only; the
+system-wide stop, which also holds tomorrow, is on Configuration at a desk.
+{% endcomment %}
+{% block title %}Stop trading — steadystack{% endblock %}
+{% block header %}{% include "phone/_back.html" with title=ended|yesno:"Stopped,Stop trading" %}{% endblock %}
+
+{% block content %}
+{% if not sheet %}
+  <section class="bg-card border border-line rounded-xl p-[18px]">
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">NOTHING TO STOP</div>
+    <p class="text-[13px] text-ink-2 leading-[1.6] mt-2">Today has no tradesheet, so nothing is placing.</p>
+  </section>
+{% elif ended %}
+  <section class="bg-card border border-line rounded-xl p-[18px] shadow-[inset_3px_0_0_var(--color-ink-4)]">
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">TODAY HAS ENDED</div>
+    <div class="text-[24px] font-semibold tracking-[-0.025em] text-ink mt-2 leading-tight">
+      {% if stopped %}Nothing more will be placed today{% else %}Today ended as {{ sheet.get_state_display|lower }}{% endif %}
+    </div>
+    <div class="text-[13px] text-ink-2 leading-[1.6] mt-3">
+      {% if stopped %}
+        {{ stopped.get_kind_display }} at {{ stopped.decided_at|date:"H:i" }} by {{ stopped.actor }},
+        recorded against {{ sheet.trace_id }}: “{{ stopped.reason }}”.
+      {% endif %}
+      {{ filled }} of {{ sheet.quantity }} share{{ sheet.quantity|pluralize }} filled. ₹{{ unspent|floatformat:2 }} unspent carries to tomorrow.
+    </div>
+  </section>
+  <section class="bg-card border border-line rounded-xl overflow-hidden">
+    <div class="h-[38px] border-b border-line flex items-center px-3.5">
+      <span class="font-mono text-[9.5px] tracking-[0.14em] text-good">WHAT IT DID NOT DO</span>
+    </div>
+    {% include "phone/_stop_doesnt.html" %}
+  </section>
+  <a href="{% url 'phone:today' %}" class="mt-auto h-[54px] flex items-center justify-center rounded-lg border border-edge text-ink-2 no-underline text-[15px] font-semibold">Back to today</a>
+{% else %}
+  <section class="bg-card border border-bad-edge rounded-xl p-[18px] shadow-[inset_3px_0_0_var(--color-bad)]">
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">THIS ENDS THE DAY EARLY</div>
+    <div class="text-[24px] font-semibold tracking-[-0.025em] text-bad mt-2 leading-tight">
+      Stop buying {{ sheet.names_label|default:"today" }} and close the day
+    </div>
+    <div class="text-[13px] text-ink-2 leading-[1.6] mt-3">
+      Use this when something is wrong and you want the money to stop moving — a price that looks broken,
+      a name you no longer want, a decision you want to take at a desk instead of on a train.
+    </div>
+  </section>
+
+  <section class="bg-card border border-line rounded-xl overflow-hidden">
+    <div class="h-[38px] border-b border-line flex items-center px-3.5">
+      <span class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">WHAT IT WILL DO</span>
+    </div>
+    <div class="flex gap-3 px-3.5 py-3 border-b border-line-soft">
+      <span class="w-1.5 h-1.5 rounded-full bg-bad mt-1.5 shrink-0"></span>
+      <span class="text-[13px] text-ink-2 leading-normal">
+        {% if resting %}Cancel the {{ resting }} order{{ resting|pluralize }} resting at the broker now.{% else %}Nothing is resting at the broker right now, so nothing needs cancelling.{% endif %}
+      </span>
+    </div>
+    <div class="flex gap-3 px-3.5 py-3 border-b border-line-soft">
+      <span class="w-1.5 h-1.5 rounded-full bg-bad mt-1.5 shrink-0"></span>
+      <span class="text-[13px] text-ink-2 leading-normal">Place nothing further today — including the {{ clock.cutoff|time:"H:i" }} market fallback.</span>
+    </div>
+    <div class="flex gap-3 px-3.5 py-3 border-b border-line-soft">
+      <span class="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0"></span>
+      <span class="text-[13px] text-ink-2 leading-normal">
+        {% if filled %}End the day as partial, because {{ filled }} of {{ sheet.quantity }} share{{ sheet.quantity|pluralize }} have already filled.{% else %}End the day as skipped: nothing has filled, so nothing was bought.{% endif %}
+      </span>
+    </div>
+    <div class="flex gap-3 px-3.5 py-3">
+      <span class="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0"></span>
+      <span class="text-[13px] text-ink-2 leading-normal">Move the ₹{{ unspent|floatformat:2 }} you have not spent into carry, for tomorrow.</span>
+    </div>
+  </section>
+
+  <section class="bg-card border border-line rounded-xl overflow-hidden">
+    <div class="h-[38px] border-b border-line flex items-center px-3.5">
+      <span class="font-mono text-[9.5px] tracking-[0.14em] text-good">WHAT IT DOES NOT DO</span>
+    </div>
+    {% include "phone/_stop_doesnt.html" %}
+  </section>
+
+  <form method="post" action="{% url 'engine:override' sheet.trading_date|date:'Y-m-d' sheet.version %}" class="mt-auto flex flex-col gap-2.5">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="stop">
+    <input type="hidden" name="next" value="{{ back }}">
+    <div>
+      <label for="stop-reason" class="mt-0">Why</label>
+      <input id="stop-reason" name="reason" required maxlength="255" autocomplete="off"
+             class="max-w-none font-sans text-[14px]" placeholder="kept with the day, and cannot be edited after">
+    </div>
+    <button type="submit" data-hold="1500"
+            class="relative overflow-hidden h-14 mt-0 rounded-lg bg-transparent border border-bad-edge text-bad text-[15.5px] select-none touch-none">
+      <span data-hold-fill class="absolute inset-y-0 left-0 w-0 bg-bad-bg"></span>
+      <span class="relative">Hold to stop today</span>
+    </button>
+    <div class="font-mono text-[10px] text-ink-4 text-center leading-[1.6]">hold for a second and a half · recorded against {{ sheet.trace_id }}</div>
+  </form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,68 @@
+{% comment %}
+Today's moving parts: what a round changes. Rendered inside the page, and on
+its own at web:home_live for the page to swap in while the market is open.
+Keep forms out of here -- a refresh must never move a button from under a click.
+{% endcomment %}
+  <h2>Is anything wrong</h2>
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-3">
+    {% for stat in health %}
+      <div class="card">
+        <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">{{ stat.label }}</div>
+        <div class="text-[19px] mt-1.5 {% if stat.tone == 'good' %}text-good{% elif stat.tone == 'bad' %}text-bad{% elif stat.tone == 'warn' %}text-accent{% endif %}">{{ stat.value }}</div>
+        <div class="font-mono text-[10.5px] text-ink-4 mt-1">{{ stat.sub }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(330px,1fr))] gap-4 mt-6">
+    <div>
+      <h2>The daily cycle</h2>
+      <div class="card">
+        {% for step in cycle %}
+          <div class="flex items-baseline gap-3 py-2 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+            <span class="dot {% if step.tone == 'good' %}dot-good{% elif step.tone == 'bad' %}dot-bad{% endif %}"
+                  {% if step.tone == 'later' %}style="background:#3A3E45"{% elif step.tone == 'next' %}style="background:var(--color-accent)"{% endif %}></span>
+            <span class="font-mono text-[13px] w-14 {% if step.tone == 'next' %}text-accent{% endif %}">{{ step.at|time:"H:i" }}</span>
+            <span class="text-[13.5px] {% if step.tone == 'next' %}text-accent{% elif step.tone == 'later' %}text-ink-4{% endif %}">{{ step.label }}</span>
+            <span class="font-mono text-[10.5px] text-ink-4 ml-auto text-right">{{ step.sub }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div>
+      <h2>What is running</h2>
+      <div class="card">
+        {% for row in running %}
+          <div class="py-2 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+            <div class="flex items-baseline gap-3">
+              <a class="font-semibold no-underline" href="{% url 'web:instrument_day' chrome.today|date:'Y-m-d' row.symbol %}">{{ row.symbol }}</a>
+              <span class="tag {% if row.side == 'BUY' %}tag-good{% else %}tag-bad{% endif %}">{{ row.side }}</span>
+              <span class="font-mono text-[12px] text-ink-2">{{ row.filled }} / {{ row.target }}</span>
+              <span class="font-mono text-[11px] {% if row.open %}text-accent{% else %}text-ink-4{% endif %}">{{ row.open }} open</span>
+              <span class="font-mono text-[11px] text-ink-3">₹{{ row.value|floatformat:2 }}</span>
+              <span class="font-mono text-[10.5px] text-ink-4 ml-auto">{{ row.state }}</span>
+            </div>
+            <div class="h-1 bg-[#23262B] rounded mt-2">
+              <div class="h-1 rounded bg-accent" style="width: {{ row.pct }}%"></div>
+            </div>
+          </div>
+        {% empty %}
+          <p class="muted">Nothing is at the broker today.</p>
+        {% endfor %}
+        {% if running_totals %}
+          <dl class="grid grid-cols-4 gap-2 mt-3 pt-3 border-t border-line font-mono text-[11px]">
+            <div><dt class="text-ink-4">AVAILABLE</dt><dd class="text-ink-2">₹{{ running_totals.available|floatformat:2 }}</dd></div>
+            <div><dt class="text-ink-4">DEPLOYED</dt><dd class="text-good">₹{{ running_totals.deployed|floatformat:2 }}</dd></div>
+            <div><dt class="text-ink-4">RESTING</dt><dd class="text-accent">₹{{ running_totals.committed|floatformat:2 }}</dd></div>
+            <div><dt class="text-ink-4">CARRY, PROJECTED</dt><dd class="text-ink-2">₹{{ running_totals.projected_carry|floatformat:2 }}</dd></div>
+          </dl>
+          <p class="text-[12px] mt-2">
+            <a href="{% url 'web:cash_ledger' %}#lumpsum">Add lumpsum</a> ·
+            <a href="{% url 'web:orders' %}">Trading board</a> ·
+            <a href="{% url 'engine:detail' running_totals.sheet.trading_date|date:'Y-m-d' running_totals.sheet.version %}">Tradesheet v{{ running_totals.sheet.version }}</a>
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>

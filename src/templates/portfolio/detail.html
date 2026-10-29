@@ -1,0 +1,120 @@
+{% extends "app.html" %}
+{% block title %}{{ instrument.tradingsymbol }} — steadystack{% endblock %}
+{% block page_title %}{{ instrument.tradingsymbol }}{% endblock %}
+{% block content %}
+
+  {% if in_doubt %}
+    <p class="errors">
+      This instrument carries an unresolved divergence, so its gains are withheld.
+      <a href="{% url 'records:divergences' %}">Classify it</a> to restore them.
+    </p>
+  {% endif %}
+  {% if priced.as_of %}
+    <p class="tag tag-accent">Priced at the {{ priced.as_of|date:"j M" }} close — the live feed is unavailable.</p>
+  {% endif %}
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(175px,1fr))] gap-3 my-5">
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">HELD</div>
+      <div class="text-[19px] mt-1.5">{{ held }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{{ open_lots|length }} open lot{{ open_lots|length|pluralize }}</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">AVERAGE COST</div>
+      <div class="text-[19px] mt-1.5">{% if average %}₹{{ average|floatformat:2 }}{% else %}—{% endif %}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">including charges</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">LAST TRADED</div>
+      <div class="text-[19px] mt-1.5">{% if price %}₹{{ price|floatformat:2 }}{% else %}—{% endif %}</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">VALUE</div>
+      <div class="text-[19px] mt-1.5">{% if value is not None %}₹{{ value|floatformat:2 }}{% else %}—{% endif %}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">cost ₹{{ cost|floatformat:2 }}</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">UNREALISED</div>
+      <div class="text-[19px] mt-1.5 {% if gain and gain > 0 %}text-good{% elif gain and gain < 0 %}text-bad{% endif %}">
+        {% if gain is not None %}₹{{ gain|floatformat:2 }}{% else %}—{% endif %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">REALISED</div>
+      <div class="text-[19px] mt-1.5 {% if realised_total > 0 %}text-good{% elif realised_total < 0 %}text-bad{% endif %}">
+        ₹{{ realised_total|floatformat:2 }}
+      </div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{{ realised|length }} disposal{{ realised|length|pluralize }}</div>
+    </div>
+  </div>
+
+  <h2>Lots, oldest first</h2>
+  <table>
+    <thead><tr><th>Acquired</th><th>Quantity</th><th>Remaining</th><th>Cost each</th>
+               <th>Basis</th><th>State</th></tr></thead>
+    <tbody>
+      {% for lot in lots %}
+        <tr>
+          <td class="font-mono text-[12px]">{{ lot.acquired_on|date:"j M Y" }}</td>
+          <td>{{ lot.quantity }}</td>
+          <td>{{ lot.remaining_quantity }}</td>
+          <td>₹{{ lot.cost_per_unit|floatformat:2 }}</td>
+          <td>{{ lot.get_basis_state_display }}</td>
+          <td>
+            {% if lot.superseded_by_id %}<span class="tag">superseded</span>
+            {% elif lot.remaining_quantity == 0 %}<span class="tag">consumed</span>
+            {% else %}<span class="tag tag-good">open</span>{% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="muted">This instrument has never been bought.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="muted text-[12px]">
+    FIFO consumes them in this order. A lot is never edited — a split or a contract
+    note supersedes it, and the row above stays as it was written.
+  </p>
+
+  <h2>Disposals</h2>
+  <table>
+    <thead><tr><th>Sold</th><th>Acquired</th><th>Qty</th><th>Cost</th><th>Proceeds</th><th>Gain</th></tr></thead>
+    <tbody>
+      {% for row in realised %}
+        <tr>
+          <td class="font-mono text-[12px]">{{ row.disposed_on|date:"j M Y" }}</td>
+          <td class="font-mono text-[12px]">{{ row.acquired_on|date:"j M Y" }}</td>
+          <td>{{ row.quantity }}</td>
+          <td>₹{{ row.cost|floatformat:2 }}</td>
+          <td>₹{{ row.net_proceeds|floatformat:2 }}</td>
+          <td class="{% if row.gain > 0 %}text-good{% elif row.gain < 0 %}text-bad{% endif %}">₹{{ row.gain|floatformat:2 }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="muted">Nothing has left.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Recent orders</h2>
+  <table>
+    <thead><tr><th>Date</th><th>Tick</th><th>Side</th><th>Qty</th><th>Filled</th>
+               <th>Limit</th><th>State</th></tr></thead>
+    <tbody>
+      {% for order in orders %}
+        <tr>
+          <td class="font-mono text-[12px]">
+            <a href="{% url 'engine:detail' order.trading_date|date:'Y-m-d' order.tradesheet.version %}">{{ order.trading_date|date:"j M Y" }}</a>
+          </td>
+          <td>{{ order.tick_no }}</td>
+          <td>{{ order.get_side_display }}</td>
+          <td>{{ order.quantity }}</td>
+          <td>{{ order.filled_quantity }}</td>
+          <td>{% if order.limit_price %}₹{{ order.limit_price|floatformat:2 }}{% else %}market{% endif %}</td>
+          <td>{{ order.get_state_display }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7" class="muted">No order has ever been placed for it.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

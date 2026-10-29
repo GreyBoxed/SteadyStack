@@ -1,0 +1,140 @@
+{% extends "app.html" %}
+{% block title %}Security — steadystack{% endblock %}
+{% block page_title %}Security{% endblock %}
+{% block content %}
+
+  {% if issued %}
+    <div class="card card-bad mb-5">
+      <div class="flex items-baseline gap-3">
+        <h2 class="mt-0">Your new recovery codes</h2>
+        <span class="tag tag-bad">SHOWN ONCE</span>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mt-3">
+        {% for code in issued %}
+          <div class="h-10 flex items-center justify-center border border-edge rounded-md
+                      bg-field font-mono text-[14px] tracking-[0.08em]">{{ code }}</div>
+        {% endfor %}
+      </div>
+      <p class="text-[12.5px] text-bad mt-3 leading-snug">
+        Save these somewhere that is not this machine. They are stored hashed, so
+        nobody — including whoever runs the server — can read them back. Lose both
+        these and the authenticator and the only way in is a shell on the box.
+      </p>
+      {% comment %}
+        A data: URI, so the file is built in the browser from what is already on
+        screen: the codes are not sent again, and no second request can fetch them.
+      {% endcomment %}
+      <a class="inline-flex items-center h-9 px-4 mt-3 rounded-md border border-edge no-underline text-[13px] text-ink-2 hover:text-ink"
+         download="steadystack-recovery-codes.txt"
+         href="data:text/plain;charset=utf-8,SteadyStack recovery codes%0AEach works once, in place of an authenticator code.%0A%0A{{ issued|join:'%0A' }}%0A">
+        Download as a text file
+      </a>
+    </div>
+  {% endif %}
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(230px,1fr))] gap-3">
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">AUTHENTICATORS</div>
+      <div class="text-[22px] mt-1.5">{{ devices|length }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">
+        {% for device in devices %}{{ device.name }}{% if not forloop.last %}, {% endif %}{% empty %}none enrolled{% endfor %}
+      </div>
+    </div>
+    <div class="card {% if remaining == 0 %}card-bad{% elif remaining < 3 %}card-bad{% endif %}">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">RECOVERY CODES LEFT</div>
+      <div class="text-[22px] mt-1.5 {% if remaining < 3 %}text-bad{% endif %}">{{ remaining }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">of {{ how_many }} — each dies when used</div>
+    </div>
+  </div>
+
+  <h2>Issue a fresh set</h2>
+  <div class="card">
+    <p class="text-ink-2 text-[13px]">
+      Replacing rather than adding: a set somebody half-remembers using is not a set
+      they can rely on, and two live sets is one more than anybody can keep track of.
+      Issuing kills the current codes immediately.
+    </p>
+    <form method="post">
+      {% csrf_token %}
+      <label for="otp_token">Current code from your authenticator</label>
+      <input type="text" id="otp_token" name="otp_token" inputmode="numeric"
+             autocomplete="one-time-code" maxlength="8" required>
+      <div class="text-[11.5px] text-ink-4 mt-1">
+        A signed-in session is not enough. Rotating the fallback needs the primary
+        factor — otherwise one stolen code could mint ten more.
+      </div>
+      <button type="submit">Replace my recovery codes</button>
+    </form>
+  </div>
+
+  <h2>Replace the authenticator</h2>
+  {% if pending %}
+    <div class="card card-bad">
+      <div class="flex items-baseline gap-3">
+        <span class="font-mono text-[9.5px] tracking-[0.12em] text-accent">STEP 2 OF 2</span>
+        <span class="text-[15px] font-semibold">Prove it works before it is enforced</span>
+      </div>
+      <p class="text-ink-2 text-[13px] mt-2 max-w-[44rem]">
+        Scan this with any TOTP app. <strong>Your current authenticator keeps working
+        until you finish</strong> — if you walk away now, nothing changes.
+      </p>
+
+      <div class="flex gap-6 flex-wrap mt-4">
+        <div class="bg-ink p-3 rounded-lg w-[232px] h-[232px] flex items-center justify-center">
+          {{ pending_qr|safe }}
+        </div>
+        <div class="grow min-w-[16rem]">
+          <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">OR TYPE THE SECRET</div>
+          <div class="font-mono text-[15px] tracking-[0.1em] mt-1.5 break-all">{{ pending.key }}</div>
+          <div class="font-mono text-[10.5px] text-ink-4 mt-3 leading-relaxed">
+            issuer SteadyStack · {{ user.username }}<br>
+            SHA1 · {{ pending.digits }} digits · {{ pending.step }}s
+          </div>
+          <p class="text-[11.5px] text-ink-4 mt-3 leading-snug">
+            TOTP depends on the clock. More than thirty seconds of drift between this
+            machine and your phone and correct codes will be rejected.
+          </p>
+
+          <form method="post" action="{% url 'accounts:reset_totp' %}" class="mt-3">
+            {% csrf_token %}
+            <input type="hidden" name="step" value="confirm">
+            <label for="confirm_token">Code from the new authenticator</label>
+            <input type="text" id="confirm_token" name="confirm_token" inputmode="numeric"
+                   autocomplete="one-time-code" maxlength="8" required>
+            <button type="submit">Confirm and replace</button>
+          </form>
+          <form method="post" action="{% url 'accounts:reset_totp' %}" class="mt-2">
+            {% csrf_token %}
+            <input type="hidden" name="step" value="cancel">
+            <button type="submit" class="quiet">Cancel, keep the old one</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">STEP 1 OF 2</div>
+      <p class="text-ink-2 text-[13px] mt-2 max-w-[44rem]">
+        For a new phone, or one you no longer trust. Starting needs a code you hold
+        now — from the current authenticator, or one of your recovery codes, which is
+        exactly the case they exist for. A signed-in session alone cannot begin this.
+      </p>
+      <form method="post" action="{% url 'accounts:reset_totp' %}">
+        {% csrf_token %}
+        <input type="hidden" name="step" value="begin">
+        <label for="reset_otp_token">Current authenticator code, or a recovery code</label>
+        <input type="text" id="reset_otp_token" name="otp_token" maxlength="16"
+               autocomplete="one-time-code" required>
+        <div class="text-[11.5px] text-ink-4 mt-1">
+          Nothing is revoked yet. The new device has to prove itself first.
+        </div>
+        <button type="submit">Start replacing it</button>
+      </form>
+      <p class="muted text-[12px] mt-3">
+        Locked out entirely — no authenticator and no codes left? Then this page is
+        unreachable and the way back is a shell:
+        <span class="font-mono text-[11.5px]">manage.py enrol_totp &lt;user&gt; --replace</span>.
+      </p>
+    </div>
+  {% endif %}
+{% endblock %}

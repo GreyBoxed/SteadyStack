@@ -1,0 +1,315 @@
+#!/usr/bin/env bash
+#
+# First boot. Everything here is idempotent, because cloud-init is not the
+# only thing that will ever run it: once the secrets are populated, it is
+# rerun by hand to finish what placeholders held back (DEPLOY.md §5).
+#
+# What it does not do: hold a secret. Every credential is fetched from Secrets
+# Manager with the instance role, written to a root-owned file under /run --
+# which is tmpfs, and therefore gone on reboot rather than sitting on the
+# volume that gets snapshotted nightly (M48). steadystack-env.service writes it
+# again at every boot, before any other unit starts.
+#
+set -euo pipefail
+
+REGION="${region}"
+NAME="${name}"
+DOMAIN="${domain_name}"
+EMAIL="${operator_email}"
+LOG_GROUP="${log_group}"
+BACKUP_BUCKET="${backup_bucket}"
+ALERTS_TOPIC="${alerts_topic}"
+APP_REPO="${app_repository}"
+SECRET_PREFIX="${secret_prefix}"
+
+APP_DIR=/opt/steadystack
+APP_USER=steadystack
+ENV_FILE=/run/steadystack/env
+OWNER_FILE=/run/steadystack/owner.env
+FIRST_BOOT_MARKER=/var/lib/steadystack-bootstrap/packages-installed
+
+log() { echo "[bootstrap] $*"; }
+
+# -- a route out -----------------------------------------------------------
+#
+# The instance has no public address of its own; the Elastic IP is attached
+# after it is running, and until then there is no way to the package mirrors
+# or Secrets Manager. Wait for it rather than fail the whole boot.
+
+for _ in $(seq 1 60); do
+    curl -sf --max-time 5 https://checkip.amazonaws.com >/dev/null && break
+    sleep 5
+done
+
+# -- packages --------------------------------------------------------------
+#
+# Once. A rerun in the middle of a trading day must not upgrade Postgres or
+# nginx underneath the running services.
+
+if [ ! -f "$FIRST_BOOT_MARKER" ]; then
+    dnf -y update
+    dnf -y install \
+        git nginx postgresql16 postgresql16-server \
+        python3.12 python3.12-pip \
+        amazon-cloudwatch-agent awscli-2 jq
+    install -d -m 0700 "$(dirname "$FIRST_BOOT_MARKER")"
+    touch "$FIRST_BOOT_MARKER"
+fi
+
+# SSM is how anybody gets a shell (M50). Present on AL2023, started here so a
+# failed bootstrap is still reachable.
+systemctl enable --now amazon-ssm-agent
+
+# -- the account the app runs as, and the directories it writes ------------
+
+id -u "$APP_USER" &>/dev/null || useradd --system --home "$APP_DIR" --shell /usr/sbin/nologin "$APP_USER"
+install -d -o "$APP_USER" -g "$APP_USER" "$APP_DIR"
+install -d -o root -g "$APP_USER" -m 0750 /run/steadystack
+# The order lock's home. The units declare it as their StateDirectory too, so
+# systemd keeps it owned by the service user; creating it here covers a shell.
+install -d -o "$APP_USER" -g "$APP_USER" -m 0750 /var/lib/steadystack
+# Before any unit or nginx starts: every one of them appends its log here, and
+# a missing directory fails them at start.
+install -d -o "$APP_USER" -g "$APP_USER" -m 0755 /var/log/steadystack
+
+# Kept small and never lost: the `append:` files stay open in the units, so
+# they are truncated in place rather than moved.
+cat > /etc/logrotate.d/steadystack <<'EOF'
+/var/log/steadystack/*.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}
+EOF
+
+# -- postgres, on this box and listening only to it ------------------------
+
+if [ ! -f /var/lib/pgsql/data/PG_VERSION ]; then
+    postgresql-setup --initdb
+fi
+
+# Never on an interface. The only client is on the same machine, and the
+# security group would not save a database that answered the internet.
+sed -i "s/^#\?listen_addresses.*/listen_addresses = 'localhost'/" /var/lib/pgsql/data/postgresql.conf
+systemctl enable --now postgresql
+
+# Two roles, one database: the invariant that the cash ledger is append-only
+# is enforced by the database rather than by application discipline, and that
+# needs a runtime role with UPDATE revoked and an owner that migrates.
+sudo -u postgres psql -v ON_ERROR_STOP=1 <<'SQL'
+SELECT 'CREATE ROLE steadystack_owner WITH LOGIN'
+ WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'steadystack_owner')\gexec
+SELECT 'CREATE ROLE steadystack_app WITH LOGIN'
+ WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'steadystack_app')\gexec
+SELECT 'CREATE DATABASE steadystack OWNER steadystack_owner'
+ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'steadystack')\gexec
+SQL
+
+# The runtime role's reach, as ops/postgres/init/01-roles.sql grants it on a
+# laptop -- without that file's development password. Each append-only table
+# narrows this in its own migration.
+sudo -u postgres psql -v ON_ERROR_STOP=1 --dbname steadystack <<'SQL'
+GRANT CONNECT ON DATABASE steadystack TO steadystack_app;
+GRANT USAGE ON SCHEMA public TO steadystack_app;
+ALTER DEFAULT PRIVILEGES FOR ROLE steadystack_owner IN SCHEMA public
+    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO steadystack_app;
+ALTER DEFAULT PRIVILEGES FOR ROLE steadystack_owner IN SCHEMA public
+    GRANT USAGE, SELECT ON SEQUENCES TO steadystack_app;
+SQL
+
+# -- the secrets, into tmpfs and nowhere else ------------------------------
+#
+# What write-env.sh needs that is not secret, kept on disk so the
+# steadystack-env unit can rebuild /run/steadystack/env after every reboot.
+
+install -d -m 0755 /etc/steadystack
+cat > /etc/steadystack/bootstrap.env <<EOF
+REGION=$REGION
+SECRET_PREFIX=$SECRET_PREFIX
+DOMAIN=$DOMAIN
+BACKUP_BUCKET=$BACKUP_BUCKET
+ALERTS_TOPIC=$ALERTS_TOPIC
+EOF
+chmod 0644 /etc/steadystack/bootstrap.env
+
+# -- the application -------------------------------------------------------
+
+if [ -n "$APP_REPO" ] && [ ! -d "$APP_DIR/.git" ]; then
+    sudo -H -u "$APP_USER" git clone "$APP_REPO" "$APP_DIR"
+fi
+
+if [ ! -x "$APP_DIR/infra/bin/write-env.sh" ]; then
+    log "no application checkout at $APP_DIR: clone it and rerun (DEPLOY.md §5)"
+    exit 1
+fi
+"$APP_DIR/infra/bin/write-env.sh"
+
+# The two roles' passwords are the ones inside the database URLs in Secrets
+# Manager, so those URLs authenticate over the loopback. A placeholder secret
+# has no password in it; the roles are then left alone until a rerun.
+role_password() {
+    python3.12 -c 'import sys, urllib.parse as u; print(u.unquote(u.urlparse(sys.argv[1]).password or ""))' "$1"
+}
+env_value() { sed -n "s/^$1=//p" "$ENV_FILE" "$OWNER_FILE"; }
+
+APP_PASSWORD=$(role_password "$(env_value DATABASE_URL)")
+OWNER_PASSWORD=$(role_password "$(env_value DATABASE_MIGRATION_URL)")
+if [ -n "$APP_PASSWORD" ] && [ -n "$OWNER_PASSWORD" ]; then
+    sudo -u postgres psql -v ON_ERROR_STOP=1 \
+        -v app_pw="$APP_PASSWORD" -v owner_pw="$OWNER_PASSWORD" <<'SQL'
+ALTER ROLE steadystack_app WITH LOGIN PASSWORD :'app_pw';
+ALTER ROLE steadystack_owner WITH LOGIN PASSWORD :'owner_pw';
+SQL
+    # The URLs connect over TCP to localhost; ident would refuse them.
+    HBA=/var/lib/pgsql/data/pg_hba.conf
+    sed -i -E 's/^(host[[:space:]]+all[[:space:]]+all[[:space:]]+(127\.0\.0\.1\/32|::1\/128)[[:space:]]+)[a-z0-9-]+/\1scram-sha-256/' "$HBA"
+    systemctl reload postgresql
+else
+    log "the database URLs are placeholders: roles left without passwords; populate and rerun"
+fi
+
+python3.12 -m pip install --upgrade pip uv
+( cd "$APP_DIR" && sudo -H -u "$APP_USER" python3.12 -m uv sync --frozen --no-dev )
+
+# As the schema owner, whose URL is only ever in root's owner.env and this
+# one process: a permission error here means that file is missing rather than
+# that the migration is wrong. Not fatal: with placeholder secrets it cannot
+# connect, and the units and nginx below must still be installed for the
+# rerun to have something to start.
+( cd "$APP_DIR" && set -a && . "$ENV_FILE" && . "$OWNER_FILE" && set +a \
+    && sudo -H -u "$APP_USER" --preserve-env .venv/bin/python manage.py migrate --noinput ) \
+    || log "migrate failed: populate the secrets, then rerun bootstrap"
+( cd "$APP_DIR" && set -a && . "$ENV_FILE" && set +a \
+    && sudo -H -u "$APP_USER" --preserve-env .venv/bin/python manage.py collectstatic --noinput ) \
+    || log "collectstatic failed: the admin will be unstyled until it runs"
+
+# -- units -----------------------------------------------------------------
+
+install -m 0644 "$APP_DIR"/infra/systemd/*.service /etc/systemd/system/
+install -m 0644 "$APP_DIR"/infra/systemd/*.timer /etc/systemd/system/
+systemctl daemon-reload
+# At boot, before everything that reads the environment.
+systemctl enable steadystack-env.service
+systemctl enable steadystack-web.service steadystack-ticker.service
+# At the next boot, not now: the previous trading day, if it never settled (NI3).
+systemctl enable settle-catchup.service
+# restart, not start: a rerun after rotating a secret must reach the running
+# processes, which read their environment only when they start.
+systemctl restart steadystack-web.service steadystack-ticker.service
+systemctl enable --now tradesheet.timer ladder.timer fallback.timer eod.timer \
+                       settle-retry.timer session-check.timer balance-check.timer \
+                       backup.timer
+
+# -- the web tier: HTTP for the challenge, then HTTPS only -----------------
+#
+# nginx will not start on a config that names a certificate that does not
+# exist, so the first boot serves the challenge alone, certbot obtains the
+# certificate through it, and only then does the real config go in (M50).
+
+install -d -m 0755 /var/www/html
+rm -f /etc/nginx/conf.d/steadystack-http.conf
+
+if [ ! -x /opt/certbot/bin/certbot ] && ! command -v certbot >/dev/null; then
+    dnf -y install certbot || {
+        # Not packaged on every AL2023 release: its own virtualenv instead.
+        python3.12 -m venv /opt/certbot
+        /opt/certbot/bin/pip install --upgrade pip certbot
+    }
+fi
+CERTBOT=$(command -v certbot || echo /opt/certbot/bin/certbot)
+
+if [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
+    sed "s/__DOMAIN__/$DOMAIN/g" "$APP_DIR/infra/nginx/steadystack-http.conf" \
+        > /etc/nginx/conf.d/steadystack.conf
+    systemctl enable nginx
+    systemctl restart nginx
+    "$CERTBOT" certonly --webroot -w /var/www/html \
+        --non-interactive --agree-tos -m "$EMAIL" -d "$DOMAIN" \
+        --deploy-hook "systemctl reload nginx" \
+        || log "certbot deferred: point DNS at this box and rerun"
+fi
+
+if [ -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
+    sed "s/__DOMAIN__/$DOMAIN/g" "$APP_DIR/infra/nginx/steadystack.conf" \
+        > /etc/nginx/conf.d/steadystack.conf
+    nginx -t
+    systemctl enable nginx
+    systemctl reload-or-restart nginx
+fi
+
+# Renewal: the package's timer when there is one, else our own, twice a day.
+if systemctl list-unit-files certbot-renew.timer >/dev/null 2>&1; then
+    systemctl enable --now certbot-renew.timer
+else
+    cat > /etc/systemd/system/certbot-renew.service <<EOF
+[Unit]
+Description=Renew the Let's Encrypt certificate
+
+[Service]
+Type=oneshot
+ExecStart=$CERTBOT renew --quiet --deploy-hook "systemctl reload nginx"
+EOF
+    cat > /etc/systemd/system/certbot-renew.timer <<'EOF'
+[Unit]
+Description=Renew the Let's Encrypt certificate, twice a day
+
+[Timer]
+OnCalendar=*-*-* 03,15:17
+RandomizedDelaySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+    systemctl daemon-reload
+    systemctl enable --now certbot-renew.timer
+fi
+
+# -- log shipping ----------------------------------------------------------
+#
+# One entry per file. The agent follows only the most recently written file
+# that matches a wildcard, and nginx's access log is written every few
+# seconds -- a single `*.log` would ship it and almost nothing else, and every
+# alarm built on an application log line would never see one.
+
+collect_entry() {
+    printf '          { "file_path": "/var/log/steadystack/%s.log", "log_group_name": "%s", "log_stream_name": "{instance_id}/%s", "timezone": "UTC" }' \
+        "$1" "$LOG_GROUP" "$1"
+}
+ENTRIES=""
+for name in web ticker tradesheet ladder fallback eod session books backup nginx-access nginx-error; do
+    ENTRIES="$ENTRIES$${ENTRIES:+,
+}$(collect_entry "$name")"
+done
+
+cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<EOF
+{
+  "agent": { "run_as_user": "root" },
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+$ENTRIES
+        ]
+      }
+    }
+  },
+  "metrics": {
+    "append_dimensions": { "InstanceId": "\$${aws:InstanceId}" },
+    "metrics_collected": {
+      "disk": { "measurement": ["disk_used_percent"], "resources": ["/"], "drop_device": true },
+      "mem": { "measurement": ["mem_used_percent"] }
+    }
+  }
+}
+EOF
+
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+    -a fetch-config -m ec2 -s \
+    -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+log "bootstrap complete"

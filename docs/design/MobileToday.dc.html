@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Phone — today</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #0B0C0E; font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: #F0A640; } a:hover { color: #FFC470; }
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: #0B0C0E; color: #E9E7E2; overflow: hidden;">
+
+  <header style="height: 56px; flex-shrink: 0; box-sizing: border-box; border-bottom: 1px solid #1E2127; background: #0E1013; display: flex; align-items: center; padding: 0 16px; gap: 10px;">
+    <span style="font-size: 17px; font-weight: 700; letter-spacing: -0.02em;">SteadyStack</span>
+    <a href="MobileKite.dc.html" style="display: flex; align-items: center; gap: 6px; height: 44px; text-decoration: none;">
+      <span style="width: 7px; height: 7px; border-radius: 50%; background: #46C88A;"></span>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #B4B0A8;">SESSION OK</span>
+    </a>
+    <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #B4B0A8; font-variant-numeric: tabular-nums;">11:32</span>
+  </header>
+
+  <div style="flex-grow: 1; box-sizing: border-box; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-height: 0;">
+
+    <section style="flex-shrink: 0; box-sizing: border-box; background: #131518; border: 1px solid {{heroBorder}}; border-radius: 12px; padding: 18px; box-shadow: inset 3px 0 0 {{heroBar}};">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">{{heroKicker}}</div>
+      <div style="font-size: 25px; font-weight: 600; letter-spacing: -0.025em; color: {{heroColor}}; margin-top: 8px;">{{heroTitle}}</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; color: #E9E7E2; margin-top: 12px; font-variant-numeric: tabular-nums;">{{heroLine}}</div>
+      <div style="font-size: 12.5px; color: #8F8C85; line-height: 1.55; margin-top: 8px;">{{heroNote}}</div>
+      <a href="{{ctaHref}}" onClick="{{advance}}" style="display: flex; align-items: center; justify-content: center; height: 52px; margin-top: 16px; border-radius: 8px; background: {{ctaBg}}; color: {{ctaFg}}; border: 1px solid {{ctaBorder}}; text-decoration: none; font-size: 15px; font-weight: 600;">{{ctaLabel}}</a>
+    </section>
+
+    <section style="flex-shrink: 0; box-sizing: border-box; background: #131518; border: 1px solid #1E2127; border-radius: 12px; overflow: hidden;">
+      <div style="height: 38px; box-sizing: border-box; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 14px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">{{runKicker}}</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: {{runNoteColor}};">{{runNote}}</span>
+      </div>
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+        <div style="display: grid; grid-template-columns: 1fr 62px 74px; align-items: center; height: 42px; padding: 0 14px; border-bottom: 1px solid #191C21;">
+          <span style="font-size: 14px; color: #E9E7E2;">{{r.sym}}</span>
+          <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: {{r.qtyColor}}; font-variant-numeric: tabular-nums;">{{r.qty}}</span>
+          <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: {{r.stateColor}};">{{r.state}}</span>
+        </div>
+      </sc-for>
+      <div style="display: flex; align-items: center; justify-content: space-between; height: 40px; padding: 0 14px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8F8C85;">
+        <span>to spend today</span>
+        <span style="color: #F0A640; font-variant-numeric: tabular-nums;">₹3,250.90</span>
+      </div>
+    </section>
+
+    <section style="flex-grow: 1; box-sizing: border-box; background: #131518; border: 1px solid #1E2127; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-height: 0;">
+      <div style="height: 38px; flex-shrink: 0; box-sizing: border-box; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 14px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">ALERTS</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #F06A52;">1 needs you</span>
+      </div>
+      <div style="flex-grow: 1; overflow-y: auto; min-height: 0;">
+        <sc-for list="{{alerts}}" as="al" hint-placeholder-count="3">
+          <div style="display: flex; gap: 10px; padding: 11px 14px; border-bottom: 1px solid #191C21;">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: {{al.color}}; margin-top: 5px; flex-shrink: 0;"></span>
+            <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; color: {{al.color}};">{{al.level}} · {{al.time}}</span>
+              <span style="font-size: 12.5px; color: #B4B0A8; line-height: 1.45;">{{al.text}}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <a href="MobileStop.dc.html" style="flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 9px; height: 52px; border: 1px solid #45211C; border-radius: 8px; background: transparent; text-decoration: none; color: #F06A52; font-size: 14.5px; font-weight: 500;">
+      <span style="width: 13px; height: 13px; border: 1.5px solid #F06A52; border-radius: 3px; display: block;"></span>
+      Stop trading today
+    </a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0A640","options":["#F0A640","#46C88A","#6FA8DC","#D97757"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { phase: 'approve' };
+  }
+
+  renderVals() {
+    var self = this;
+    var a = this.props.accent || '#F0A640';
+    var GR = '#46C88A', RD = '#F06A52', T1 = '#E9E7E2', T2 = '#B4B0A8', T3 = '#8F8C85', T4 = '#83807A';
+    var phase = (this.state && this.state.phase) || 'approve';
+    var waiting = phase === 'approve';
+
+    var rows = waiting
+      ? [
+          { sym: 'ITC', qty: '7', state: 'PROPOSED', qtyColor: T1, stateColor: a },
+          { sym: 'HDFCBANK', qty: '—', state: 'RANKED 2', qtyColor: T4, stateColor: T4 },
+          { sym: 'RELIANCE', qty: '—', state: 'RANKED 3', qtyColor: T4, stateColor: T4 }
+        ]
+      : [
+          { sym: 'ITC', qty: '5 / 7', state: 'WORKING', qtyColor: GR, stateColor: a },
+          { sym: 'ASIANPAINT', qty: '12 / 12', state: 'COMPLETE', qtyColor: GR, stateColor: GR },
+          { sym: 'TCS', qty: '3 / 4', state: 'WORKING', qtyColor: GR, stateColor: a }
+        ];
+
+    var alerts = [
+      { level: 'WAITING', time: '09:45', color: waiting ? a : T4,
+        text: waiting
+          ? 'Today has not been authorised. It expires at 15:00 and carries whole if you do nothing.'
+          : 'Authorised 11:32 by operator. Ladder resumed at tick 21.' },
+      { level: 'WARNING', time: '11:18', color: RD,
+        text: 'RELIANCE rebalance sell has taken no fills in 21 ticks. The batch expires at close.' },
+      { level: 'INFO', time: '08:41', color: T4,
+        text: 'Kite session established for the day.' }
+    ];
+
+    return {
+      a: a, rows: rows, alerts: alerts,
+      heroKicker: waiting ? 'TODAY NEEDS YOU' : 'TODAY IS RUNNING',
+      heroTitle: waiting ? 'Waiting to be authorised' : 'Buying ITC',
+      heroColor: waiting ? a : GR,
+      heroLine: waiting ? 'ITC · 7 shares · ₹3,000.20' : 'ITC · 5 of 7 filled · ₹2,145.10',
+      heroNote: waiting
+        ? 'Nothing is placed until you say so. Expires 15:00 — 3h 28m left, after which the full amount carries to tomorrow.'
+        : 'One order every five minutes, one share each. Tick 21 of 63, next at 11:35. Market fallback at 15:00.',
+      heroBorder: waiting ? '#3A2F1A' : '#22392F',
+      heroBar: waiting ? a : GR,
+      ctaLabel: waiting ? 'Review and authorise' : 'Open the tradesheet',
+      ctaHref: 'MobileTradesheet.dc.html',
+      ctaBg: waiting ? a : 'transparent',
+      ctaFg: waiting ? '#14100A' : T2,
+      ctaBorder: waiting ? a : '#2B2F36',
+      runKicker: waiting ? 'WHAT IT WANTS TO BUY' : 'WHAT IS RUNNING',
+      runNote: waiting ? 'ranking frozen 09:45' : 'tick 21 of 63',
+      runNoteColor: waiting ? T4 : a,
+      advance: function () { self.setState({ phase: waiting ? 'running' : 'approve' }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

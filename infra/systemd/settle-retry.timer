@@ -1,0 +1,20 @@
+[Unit]
+Description=steadystack: retry an unsettled day after the 15:45 close
+
+[Timer]
+# A live day's fills come from Kite's trade book, which holds today's trades
+# only: a day not settled by midnight IST can take them only from Console's
+# tradebook (import_tradebook). Each run settles the day unless its row
+# exists, releasing a failed claim first, and is a no-op once it does.
+OnCalendar=Mon..Fri *-*-* 16:15 Asia/Kolkata
+OnCalendar=Mon..Fri *-*-* 17:30 Asia/Kolkata
+OnCalendar=Mon..Fri *-*-* 20:00 Asia/Kolkata
+OnCalendar=Mon..Fri *-*-* 22:30 Asia/Kolkata
+# Not persistent: a run caught up after midnight would settle the new day,
+# which has not traded yet, and use up its settle.
+Persistent=false
+RandomizedDelaySec=60
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

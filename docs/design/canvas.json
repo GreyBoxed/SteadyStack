@@ -1,0 +1,392 @@
+{
+  "v": 3,
+  "attachments": {},
+  "createdOnFiles": {
+    "at": "2026-09-22T06:35:00Z",
+    "v": 1
+  },
+  "title": "steadystack — screens",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "designSystems": [],
+  "boards": {
+    "Today.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1512,
+      "h": 1010,
+      "title": "Today — command deck",
+      "is_interactive": true
+    },
+    "Tradesheet.dc.html": {
+      "x": 1592,
+      "y": 0,
+      "w": 1512,
+      "h": 1010,
+      "title": "Tradesheet — today's decision",
+      "is_interactive": true
+    },
+    "Main.dc.html": {
+      "x": 3184,
+      "y": 0,
+      "w": 1512,
+      "h": 1010,
+      "title": "Trading — instruments with orders",
+      "is_interactive": true
+    },
+    "Instrument.dc.html": {
+      "x": 4776,
+      "y": 0,
+      "w": 1512,
+      "h": 1010,
+      "title": "Trading / ITC — instrument detail",
+      "is_interactive": true
+    },
+    "DayDetail.dc.html": {
+      "x": 6368,
+      "y": 0,
+      "w": 1512,
+      "h": 1010,
+      "title": "Trading day — 18 Sep 2026",
+      "is_interactive": true
+    },
+    "Holdings.dc.html": {
+      "x": 1592,
+      "y": 1700,
+      "w": 1512,
+      "h": 1010,
+      "title": "Holdings — weights and gaps",
+      "is_interactive": true
+    },
+    "Performance.dc.html": {
+      "x": 3184,
+      "y": 1700,
+      "w": 1512,
+      "h": 1010,
+      "title": "Performance — XIRR and cost drag",
+      "is_interactive": true
+    },
+    "Rebalance.dc.html": {
+      "x": 4776,
+      "y": 1700,
+      "w": 1512,
+      "h": 1010,
+      "title": "Rebalance sell — CSV, FIFO, tax",
+      "is_interactive": true
+    },
+    "Model.dc.html": {
+      "x": 6368,
+      "y": 1700,
+      "w": 1512,
+      "h": 1010,
+      "title": "Model portfolio — target weights",
+      "is_interactive": true
+    },
+    "Config.dc.html": {
+      "x": 7960,
+      "y": 1700,
+      "w": 1512,
+      "h": 1010,
+      "title": "Configuration",
+      "is_interactive": true
+    },
+    "Ledger.dc.html": {
+      "x": 0,
+      "y": 1700,
+      "w": 1512,
+      "h": 1010,
+      "title": "Ledger — cash and shares",
+      "is_interactive": true
+    },
+    "SignIn.dc.html": {
+      "x": 0,
+      "y": 3400,
+      "w": 1512,
+      "h": 1010,
+      "title": "Sign in — password and TOTP",
+      "is_interactive": true
+    },
+    "Enrol.dc.html": {
+      "x": 1592,
+      "y": 3400,
+      "w": 1512,
+      "h": 1010,
+      "title": "Authenticator enrolment",
+      "is_interactive": true
+    },
+    "KiteSession.dc.html": {
+      "x": 3184,
+      "y": 3400,
+      "w": 1512,
+      "h": 1010,
+      "title": "Kite session — connect and gate",
+      "is_interactive": true
+    },
+    "AwaitingSession.dc.html": {
+      "x": 4776,
+      "y": 3400,
+      "w": 1512,
+      "h": 1010,
+      "title": "Today — awaiting session",
+      "is_interactive": true
+    },
+    "MobileSignIn.dc.html": {
+      "x": 0,
+      "y": 5200,
+      "w": 390,
+      "h": 844,
+      "title": "Phone — sign in",
+      "is_interactive": true
+    },
+    "MobileToday.dc.html": {
+      "x": 470,
+      "y": 5200,
+      "w": 390,
+      "h": 844,
+      "title": "Phone — today",
+      "is_interactive": true
+    },
+    "MobileTradesheet.dc.html": {
+      "x": 940,
+      "y": 5200,
+      "w": 390,
+      "h": 844,
+      "title": "Phone — authorise the day",
+      "is_interactive": true
+    },
+    "MobileKite.dc.html": {
+      "x": 1410,
+      "y": 5200,
+      "w": 390,
+      "h": 844,
+      "title": "Phone — Kite session",
+      "is_interactive": true
+    },
+    "MobileStop.dc.html": {
+      "x": 1880,
+      "y": 5200,
+      "w": 390,
+      "h": 844,
+      "title": "Phone — stop trading",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "Today.dc.html",
+    "Tradesheet.dc.html",
+    "Main.dc.html",
+    "Instrument.dc.html",
+    "DayDetail.dc.html",
+    "Ledger.dc.html",
+    "Holdings.dc.html",
+    "Performance.dc.html",
+    "Rebalance.dc.html",
+    "Model.dc.html",
+    "Config.dc.html",
+    "SignIn.dc.html",
+    "Enrol.dc.html",
+    "KiteSession.dc.html",
+    "AwaitingSession.dc.html",
+    "MobileSignIn.dc.html",
+    "MobileToday.dc.html",
+    "MobileTradesheet.dc.html",
+    "MobileKite.dc.html",
+    "MobileStop.dc.html"
+  ],
+  "notes": {
+    "title": {
+      "kind": "title1",
+      "maxW": 7880,
+      "w": 240,
+      "x": 0,
+      "y": -300,
+      "text": "Running the day"
+    },
+    "title2": {
+      "kind": "title1",
+      "maxW": 8000,
+      "w": 240,
+      "x": 0,
+      "y": 1400,
+      "text": "Records, portfolio and setup"
+    },
+    "qToday": {
+      "fill": "gray",
+      "maxH": 220,
+      "w": 420,
+      "x": 0,
+      "y": 1070,
+      "text": "The morning login is the only recurring manual step, so the session card leads. Open question — should the deck auto-refresh, or stay a snapshot you reload deliberately?"
+    },
+    "q0": {
+      "fill": "green",
+      "maxH": 220,
+      "w": 420,
+      "x": 1592,
+      "y": 1070,
+      "text": "Overrides live here: quantity stepper, run/skip for the day, and per-tick exclusion. Every one writes an audit event. Should an override be allowed after the first fill, or frozen once the ladder has traded?"
+    },
+    "q1": {
+      "fill": "orange",
+      "maxH": 220,
+      "w": 420,
+      "x": 3184,
+      "y": 1070,
+      "text": "One order per tick, one share each, nothing ever modified — a day is a list of small orders, not one repriced order. That contradicts PRD M21, which says preserve one order id across modifies. One of the two has to go."
+    },
+    "q1b": {
+      "fill": "blue",
+      "maxH": 220,
+      "w": 420,
+      "x": 4776,
+      "y": 1070,
+      "text": "With a 1-share slice and a 7-share day, all 7 orders are placed by tick 6 and the remaining 57 ticks do nothing. Should a tick reprice the orders already resting, or is placing-and-waiting the whole behaviour?"
+    },
+    "qDay": {
+      "fill": "gray",
+      "maxH": 220,
+      "w": 420,
+      "x": 6368,
+      "y": 1070,
+      "text": "Any past day reconstructed from stored data alone — ranking, orders, depth snapshots, cash and audit under one trace id. This is the screen that proves the system is auditable years later."
+    },
+    "q2": {
+      "fill": "teal",
+      "maxH": 220,
+      "w": 420,
+      "x": 1592,
+      "y": 2770,
+      "text": "The holdings table is sorted by gap, so row 1 is tomorrow's buy. Should the unaffordable rows (LT here) carry an explicit 'priced out' state, or is the ranking enough?"
+    },
+    "q3": {
+      "fill": "red",
+      "maxH": 220,
+      "w": 420,
+      "x": 3184,
+      "y": 2770,
+      "text": "At ₹500/month the data subscription takes about 24% of the gain so far and under 1% of contributions. Small now — but the chart still plots value against contributions-plus-subscription, so the cost can never hide inside the return."
+    },
+    "qReb": {
+      "fill": "pink",
+      "maxH": 220,
+      "w": 420,
+      "x": 4776,
+      "y": 2770,
+      "text": "Validation rejects a whole row rather than selling part of it. Open question — should a row asking for more than you hold be rejected outright, or clamped to the available quantity with a warning?"
+    },
+    "q4": {
+      "fill": "purple",
+      "maxH": 220,
+      "w": 420,
+      "x": 6368,
+      "y": 2770,
+      "text": "LT has not been bought in 76 days — its price exceeds a day's cash, so it stays first in the ranking and never gets reached. Does the model need a per-name 'accumulate over N days' rule, or is that what carry is for?"
+    },
+    "qCfg": {
+      "fill": "gray",
+      "maxH": 220,
+      "w": 420,
+      "x": 7960,
+      "y": 2770,
+      "text": "Slice size is config, which is why the whole order model changes from one line here. A static IP mapped to the API key is the one gate before the first live order — the screen says so rather than hiding it in a runbook."
+    },
+    "qLedger": {
+      "fill": "blue",
+      "maxH": 220,
+      "w": 420,
+      "x": 0,
+      "y": 2770,
+      "text": "Two ledgers on one screen: cash in and out, and shares in and out. The share side exists because a trade made directly in Kite is invisible to the engine — an unrecorded external buy has no cost basis, which silently corrupts FIFO and every realised gain after it."
+    },
+    "title3": {
+      "kind": "title1",
+      "maxW": 6200,
+      "w": 240,
+      "x": 0,
+      "y": 3100,
+      "text": "Getting in"
+    },
+    "qSignIn": {
+      "fill": "gray",
+      "maxH": 260,
+      "w": 420,
+      "x": 0,
+      "y": 4470,
+      "text": "Two factors, no bypass, no reset link — the only account here controls a brokerage. Click through the card: Continue goes to the code step, Verify fails once, then locks. The left panel says the thing that is easy to forget — the timers trade whether or not anyone is signed in, so a lockout is an inconvenience, not an outage."
+    },
+    "qEnrol": {
+      "fill": "orange",
+      "maxH": 260,
+      "w": 420,
+      "x": 1592,
+      "y": 4470,
+      "text": "First run, and the one screen whose secret can never be shown again. The recovery codes are hashed, so losing both them and the phone means a shell on the box through SSM. Open question — should enrolment force the static IP step before it lets you finish, or is a warning enough?"
+    },
+    "qKite": {
+      "fill": "green",
+      "maxH": 260,
+      "w": 420,
+      "x": 3184,
+      "y": 4470,
+      "text": "The four-stage strip exists to make one boundary obvious: the Zerodha password and TOTP are typed on Zerodha's page, never on ours, and request_token is worthless without the API secret. Press Re-connect to see the same screen with no session — four of the six capabilities go red. Static IP is still unregistered, which is why the mode badge reads PAPER."
+    },
+    "qAwait": {
+      "fill": "red",
+      "maxH": 260,
+      "w": 420,
+      "x": 4776,
+      "y": 4470,
+      "text": "The failure path that actually costs money. A day that resumes at 11:35 starts at tick 22, not tick 0 — it inherits the ladder position the clock implies, because tick numbering follows the clock and not the session. Miss 15:00 and the day is SKIPPED with the full ₹2,600 carried. Open question — should the hourly reminders escalate as the cutoff nears?"
+    },
+    "title4": {
+      "kind": "title1",
+      "maxW": 2270,
+      "w": 240,
+      "x": 0,
+      "y": 4900,
+      "text": "On a phone"
+    },
+    "mSign": {
+      "fill": "gray",
+      "maxH": 300,
+      "w": 390,
+      "x": 0,
+      "y": 6120,
+      "text": "The authenticator lives on this same phone, so you leave the app mid-form to fetch the code. The form has to survive that, which is a mobile-only problem the desktop screen never has."
+    },
+    "mToday": {
+      "fill": "orange",
+      "maxH": 300,
+      "w": 390,
+      "x": 470,
+      "y": 6120,
+      "text": "The whole phone app in one screen: is it waiting for me, is it running, is anything wrong. Tap the primary button to walk the day forward — waiting → running. The stop is at the bottom, reachable but never the first thing your thumb finds."
+    },
+    "mTrade": {
+      "fill": "green",
+      "maxH": 300,
+      "w": 390,
+      "x": 940,
+      "y": 6120,
+      "text": "The screen the approval gate exists for. Quantity stepper, the ranking that justified the pick, and how stale the sheet is — because authorising at 14:00 a sheet built at 09:45 is the case worth designing for. Regenerate clears overrides: approving a sheet is approving that sheet."
+    },
+    "mKite": {
+      "fill": "blue",
+      "maxH": 300,
+      "w": 390,
+      "x": 1410,
+      "y": 6120,
+      "text": "Same boundary the desktop screen draws, told in three lines instead of four cards. The badge stays PAPER until the static IP is registered, so the phone never implies a power the system does not have yet."
+    },
+    "mStop": {
+      "fill": "red",
+      "maxH": 300,
+      "w": 390,
+      "x": 1880,
+      "y": 6120,
+      "text": "Two lists, and the second matters more: what it does not do. Panic is when people assume a stop button sells. Press-and-hold rather than tap, because the cost of an accidental press is a day."
+    }
+  }
+}

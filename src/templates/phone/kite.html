@@ -1,0 +1,71 @@
+{% extends "phone/base.html" %}
+{% comment %}
+The same boundary the desk screen draws, told in three lines instead of four
+cards. The badge stays PAPER until the static IP is registered, so the phone
+never implies a power the system does not have yet.
+{% endcomment %}
+{% block title %}Kite session — steadystack{% endblock %}
+{% block header %}{% include "phone/_back.html" with title="Kite session" %}{% endblock %}
+
+{% block content %}
+  <section class="bg-card border rounded-xl p-[18px] {% if session.valid %}border-good-edge shadow-[inset_3px_0_0_var(--color-good)]{% else %}border-bad-edge shadow-[inset_3px_0_0_var(--color-bad)]{% endif %}">
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">ACCESS TOKEN</div>
+    <div class="text-[27px] font-semibold tracking-[-0.025em] mt-2 {% if session.valid %}text-good{% else %}text-bad{% endif %}">
+      {% if session.valid %}Valid{% else %}None{% endif %}
+    </div>
+    <div class="font-mono text-[12px] text-ink-2 mt-2 leading-[1.6]">
+      {% if session.valid %}
+        issued {{ session.session.created_at|date:"H:i" }}{% if session.kite_user_id %} · {{ session.kite_user_id }}{% endif %} · expires {{ session.expires_at|date:"H:i, j M" }}<br>
+        {{ left }} of session left
+      {% else %}
+        {{ session.reason|default:"no session today" }}<br>
+        today waits until you connect
+      {% endif %}
+    </div>
+    <form method="post" action="{% url 'broker:start_login' %}">
+      {% csrf_token %}
+      <button type="submit"
+              class="w-full h-[54px] mt-4 rounded-lg text-[15.5px] {% if session.valid %}quiet{% endif %}">
+        {% if session.valid %}Re-connect{% else %}Connect to Kite{% endif %}
+      </button>
+    </form>
+    <div class="font-mono text-[10px] text-ink-4 text-center mt-2.5">opens Zerodha, then comes back to Today</div>
+  </section>
+
+  <section class="bg-card border border-line rounded-xl p-3.5">
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">WHAT YOU ARE ABOUT TO DO</div>
+    <div class="flex flex-col gap-3 mt-3">
+      {% for step in "123" %}
+        <div class="flex gap-3">
+          <span class="w-5 h-5 shrink-0 rounded-full border border-edge text-ink-3 font-mono text-[10.5px] flex items-center justify-center">{{ step }}</span>
+          <div class="min-w-0">
+            {% if step == "1" %}
+              <div class="text-[13px] text-ink font-medium">Zerodha takes over</div>
+              <div class="text-[11.5px] text-ink-3 leading-normal mt-[3px]">Their page, not this one. Your client ID, password and TOTP are typed there and this app never sees them.</div>
+            {% elif step == "2" %}
+              <div class="text-[13px] text-ink font-medium">You come back with a token</div>
+              <div class="text-[11.5px] text-ink-3 leading-normal mt-[3px]">A short-lived request_token, worthless by itself and useless to anyone who intercepts it.</div>
+            {% else %}
+              <div class="text-[13px] text-ink font-medium">It becomes an access token</div>
+              <div class="text-[11.5px] text-ink-3 leading-normal mt-[3px]">Exchanged server-side with the API secret, encrypted, and never shown on any screen — including this one.</div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="bg-card border border-line rounded-xl overflow-hidden">
+    <div class="h-[38px] border-b border-line flex items-center justify-between px-3.5">
+      <span class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">WITHOUT A SESSION</span>
+      <span class="font-mono text-[10.5px] {% if session.valid %}text-good{% else %}text-bad{% endif %}">{% if session.valid %}nothing blocked{% else %}today is blocked{% endif %}</span>
+    </div>
+    {% for need in needs %}
+      <div class="flex items-center justify-between gap-3 min-h-11 py-2 px-3.5 border-b border-line-soft {% if need.blocked %}bg-bad-bg{% endif %}">
+        <span class="text-[13px] text-ink-2">{{ need.label }}</span>
+        <span class="font-mono text-[10px] tracking-[0.06em] shrink-0 {% if need.status == 'RUNNING' %}text-good{% elif need.status == 'BLOCKED' %}text-bad{% else %}text-ink-4{% endif %}">{{ need.status }}</span>
+      </div>
+    {% endfor %}
+    <div class="px-3.5 py-[11px] font-mono text-[10px] text-ink-4 leading-[1.6]">tokens expire at 06:00 daily, whatever you do — this is a morning ritual, not a fault</div>
+  </section>
+{% endblock %}

@@ -1,0 +1,67 @@
+[project]
+name = "steadystack"
+version = "0.1.0"
+description = "Daily equity accumulation against a model portfolio"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.1",
+    "psycopg[binary]>=3.2",
+    "django-otp>=1.7.3",
+    "qrcode>=8.0",
+    "django-environ>=0.11",
+    "kiteconnect>=5.0",
+    "gunicorn>=26.2.0",
+    "cryptography>=50.0.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-django>=4.9",
+    "pytest-cov>=6.0",
+    "hypothesis>=6.120",
+    "ruff>=0.8",
+    "time-machine>=2.16",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+pythonpath = ["src"]
+testpaths = ["src"]
+python_files = ["test_*.py"]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+line-length = 100
+src = ["src"]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E", "W",    # pycodestyle
+    "F",         # pyflakes
+    "I",         # isort
+    "UP",        # pyupgrade
+    "B",         # bugbear
+    "DJ",        # flake8-django
+    "S",         # bandit
+    "C4",        # comprehensions
+    "RUF",
+]
+ignore = [
+    "S101",      # assert is fine in tests
+    "RUF012",    # Django mutable class attrs are idiomatic
+]
+
+[tool.ruff.lint.per-file-ignores]
+"*/migrations/*" = ["E501", "RUF", "I001", "S608"]
+"*/test_*.py" = ["S105", "S106"]      # hardcoded test credentials are fine
+"*/conftest.py" = ["S105", "S106"]    # and in the fixtures that build them
+
+[tool.ruff.lint.isort]
+known-first-party = ["config", "accounts", "audit", "broker", "configuration", "engine", "portfolio", "model_portfolio", "orders", "records", "rebalance", "gains", "journal", "performance", "trading_calendar", "web"]
+
+[tool.uv]
+package = false

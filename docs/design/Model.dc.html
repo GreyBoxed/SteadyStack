@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Model portfolio — target weights</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #0B0C0E; font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: #F0A640; } a:hover { color: #FFC470; }
+</style>
+</helmet>
+<div style="width: 1512px; height: 1010px; box-sizing: border-box; display: flex; background: #0B0C0E; color: #E9E7E2; overflow: hidden;">
+
+  <nav style="width: 208px; flex-shrink: 0; background: #0E1013; border-right: 1px solid #1E2127; display: flex; flex-direction: column;">
+    <div style="padding: 18px 16px 16px 16px; border-bottom: 1px solid #1E2127;">
+      <div style="font-size: 19px; font-weight: 700; letter-spacing: -0.02em; color: #E9E7E2;">SteadyStack</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; margin-top: 5px;">DAILY EQUITY ACCUMULATION</div>
+    </div>
+    <div style="padding: 12px 10px 0 10px; display: flex; flex-direction: column; gap: 2px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; padding: 0 8px 8px 8px;">DESIGNED</div>
+      <sc-for list="{{nav}}" as="item" hint-placeholder-count="10">
+        <a href="{{item.href}}" style="display: flex; align-items: center; height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 13.5px; font-weight: 500; background: {{item.bg}}; color: {{item.fg}}; box-shadow: {{item.bar}};">{{item.label}}</a>
+      </sc-for>
+    </div>
+    <div style="padding: 20px 10px 0 10px; display: flex; flex-direction: column; gap: 1px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; padding: 0 8px 8px 8px;">NOT YET DESIGNED</div>
+      <sc-for list="{{pending}}" as="p" hint-placeholder-count="1">
+        <div style="padding: 7px 12px; font-size: 12.5px; color: #83807A;">{{p}}</div>
+      </sc-for>
+    </div>
+    <div style="margin-top: auto; padding: 14px 16px 16px 16px; border-top: 1px solid #1E2127; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: #46C88A; flex-shrink: 0;"></span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8; letter-spacing: 0.04em;">KITE SESSION OK</span>
+      </div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #8F8C85; line-height: 1.6;">issued 08:41:22<br>expires 06:00 Wed</div>
+    </div>
+  </nav>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 56px; flex-shrink: 0; border-bottom: 1px solid #1E2127; background: #0E1013; display: flex; align-items: center; padding: 0 20px; gap: 14px;">
+      <h1 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Model portfolio</h1>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8F8C85;">target weights v4 · effective 01 Jul 2026</span>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 18px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: {{sumColor}};">{{sumChip}}</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #E9E7E2; font-variant-numeric: tabular-nums;">11:32:18 IST</span>
+      </div>
+    </header>
+
+    <div style="flex-grow: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 0;">
+
+      <section style="height: 104px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; overflow: hidden;">
+        <sc-for list="{{kpis}}" as="k" hint-placeholder-count="5">
+          <div style="flex-grow: 1; box-sizing: border-box; padding: 16px 20px; border-right: 1px solid #1E2127; display: flex; flex-direction: column; justify-content: center; gap: 7px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">{{k.label}}</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 21px; color: {{k.color}}; font-variant-numeric: tabular-nums;">{{k.value}}</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{k.sub}}</div>
+          </div>
+        </sc-for>
+      </section>
+
+      <section style="height: 504px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="height: 44px; flex-shrink: 0; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">UNIVERSE AND TARGET WEIGHTS</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A;">editing drafts a new version — v4 stays attached to every tradesheet before its successor takes effect</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 124px 66px 82px 54px 152px 344px 76px 66px 84px 106px 78px; height: 28px; align-items: center; padding: 0 16px; border-bottom: 1px solid #1E2127; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; color: #8F8C85;">
+          <span>SYMBOL</span><span>EXCH</span><span style="text-align: right;">TOKEN</span><span style="text-align: right;">TICK</span><span style="text-align: center;">TARGET</span><span style="padding-left: 10px;">ALLOCATION · MARKER IS ACTUAL</span><span style="text-align: right;">ACTUAL</span><span style="text-align: right;">GAP</span><span style="text-align: right;">LTP</span><span style="text-align: right;">LAST BOUGHT</span><span style="text-align: center;">ACTIVE</span>
+        </div>
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="12">
+          <div style="display: grid; grid-template-columns: 124px 66px 82px 54px 152px 344px 76px 66px 84px 106px 78px; height: 32px; align-items: center; padding: 0 16px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-variant-numeric: tabular-nums; background: {{r.bg}}; opacity: {{r.dim}};">
+            <span style="font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 500; color: {{r.symColor}};">{{r.sym}}</span>
+            <span style="color: #83807A; font-size: 11px;">{{r.exch}}</span>
+            <span style="text-align: right; color: #83807A; font-size: 11px;">{{r.token}}</span>
+            <span style="text-align: right; color: #83807A; font-size: 11px;">{{r.tick}}</span>
+            <span style="display: flex; align-items: center; justify-content: center; gap: 2px;">
+              <button type="button" onClick="{{r.dec}}" aria-label="{{r.decAria}}" style="width: 26px; height: 26px; border: 1px solid #2B2F36; border-radius: 4px; background: transparent; color: #B4B0A8; font-family: 'IBM Plex Mono', monospace; font-size: 13px; cursor: {{r.cursor}}; padding: 0;">−</button>
+              <span style="width: 74px; text-align: center; color: {{r.targetColor}}; font-size: 13px;">{{r.target}}</span>
+              <button type="button" onClick="{{r.inc}}" aria-label="{{r.incAria}}" style="width: 26px; height: 26px; border: 1px solid #2B2F36; border-radius: 4px; background: transparent; color: #B4B0A8; font-family: 'IBM Plex Mono', monospace; font-size: 13px; cursor: {{r.cursor}}; padding: 0;">+</button>
+            </span>
+            <span style="display: block; position: relative; height: 32px; padding-left: 10px;">
+              <span style="position: absolute; left: 10px; top: 11px; height: 10px; width: {{r.barW}}px; background: {{r.barColor}}; border-radius: 2px; opacity: 0.55;"></span>
+              <span style="position: absolute; left: {{r.markX}}px; top: 7px; height: 18px; width: 2px; background: {{r.markColor}};"></span>
+            </span>
+            <span style="text-align: right; color: #B4B0A8;">{{r.actual}}</span>
+            <span style="text-align: right; color: {{r.gapColor}};">{{r.gap}}</span>
+            <span style="text-align: right; color: #E9E7E2;">{{r.ltp}}</span>
+            <span style="text-align: right; color: {{r.agoColor}}; font-size: 11px;">{{r.ago}}</span>
+            <span style="display: flex; justify-content: center;">
+              <button type="button" onClick="{{r.toggle}}" aria-label="{{r.toggleAria}}" style="width: 46px; height: 24px; border: 1px solid {{r.swBorder}}; border-radius: 12px; background: {{r.swBg}}; cursor: pointer; display: flex; align-items: center; justify-content: {{r.swJustify}}; padding: 0 3px;">
+                <span style="width: 16px; height: 16px; border-radius: 50%; background: {{r.swDot}}; display: block;"></span>
+              </button>
+            </span>
+          </div>
+        </sc-for>
+        <div style="margin-top: auto; display: grid; grid-template-columns: 124px 66px 82px 54px 152px 344px 76px 66px 84px 106px 78px; height: 36px; align-items: center; padding: 0 16px; border-top: 1px solid #262A30; background: #16181C; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-variant-numeric: tabular-nums;">
+          <span style="font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: #8F8C85;">{{activeCount}}</span>
+          <span></span><span></span><span></span>
+          <span style="text-align: center; color: {{sumColor}}; font-size: 13px;">{{sum}}</span>
+          <span style="padding-left: 10px; font-size: 10.5px; color: {{sumColor}};">{{sumNote}}</span>
+          <span style="text-align: right; color: #B4B0A8;">100.00%</span>
+          <span style="text-align: right; color: {{a}};">{{drift}}</span>
+          <span></span><span></span><span></span>
+        </div>
+      </section>
+
+      <div style="flex-grow: 1; display: flex; gap: 16px; min-height: 0;">
+
+        <section style="width: 400px; flex-shrink: 0; background: #131518; border: 1px solid {{saveBorder}}; border-radius: 8px; box-sizing: border-box; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">DRAFT v5</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: {{saveColor}};">{{editCount}}</span>
+          </div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #B4B0A8; line-height: 1.7;">{{editText}}</div>
+          <div style="display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: 5px; background: {{sumBg}}; border: 1px solid {{saveBorder}};">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: {{sumColor}}; flex-shrink: 0;"></span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: {{sumColor}};">{{sumChip}}</span>
+          </div>
+          <div style="margin-top: auto; display: flex; gap: 8px;">
+            <button type="button" style="flex-grow: 1; height: 44px; border: 0; border-radius: 6px; background: {{saveColor}}; color: #0B0C0E; font-family: 'Space Grotesk', sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer;">Save, effective tomorrow</button>
+            <button type="button" onClick="{{reset}}" style="height: 44px; padding: 0 16px; border: 1px solid #2B2F36; border-radius: 6px; background: transparent; color: #B4B0A8; font-family: 'Space Grotesk', sans-serif; font-size: 13px; cursor: pointer;">Revert</button>
+          </div>
+        </section>
+
+        <section style="width: 400px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 14px 16px; display: flex; flex-direction: column;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85; padding-bottom: 12px;">VERSION HISTORY</div>
+          <sc-for list="{{versions}}" as="v" hint-placeholder-count="4">
+            <div style="display: flex; gap: 11px; padding-bottom: 13px;">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: {{v.dot}}; margin-top: 5px; flex-shrink: 0;"></span>
+              <div style="display: flex; flex-direction: column; gap: 3px;">
+                <div style="display: flex; align-items: baseline; gap: 9px;">
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: {{v.color}};">{{v.ver}}</span>
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{v.eff}} · {{v.actor}}</span>
+                </div>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8; line-height: 1.5;">{{v.change}}</span>
+              </div>
+            </div>
+          </sc-for>
+        </section>
+
+        <section style="flex-grow: 1; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 14px 16px; display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 12px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">WHAT THE DRAFT BUYS NEXT</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A;">cash ₹3,250.90</span>
+          </div>
+          <sc-for list="{{preview}}" as="p" hint-placeholder-count="5">
+            <div style="display: grid; grid-template-columns: 30px 108px 76px 80px 1fr; height: 28px; align-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-variant-numeric: tabular-nums;">
+              <span style="color: #83807A;">{{p.rank}}</span>
+              <span style="font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; color: {{p.color}};">{{p.sym}}</span>
+              <span style="text-align: right; color: {{p.gapColor}};">{{p.gap}}</span>
+              <span style="text-align: right; color: #B4B0A8;">{{p.ltp}}</span>
+              <span style="text-align: right; color: {{p.color}}; font-size: 11px;">{{p.decision}}</span>
+            </div>
+          </sc-for>
+          <div style="margin-top: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A; line-height: 1.6; padding-top: 10px;">{{previewNote}}</div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0A640","options":["#F0A640","#46C88A","#6FA8DC","#D97757"]},"$preview":{"width":1512,"height":1010}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { edits: {}, off: {} };
+  }
+
+  renderVals() {
+    var self = this;
+    var a = this.props.accent || '#F0A640';
+    var GR = '#46C88A', RD = '#F06A52', T1 = '#E9E7E2', T2 = '#B4B0A8', T3 = '#8F8C85', T4 = '#83807A';
+    var st = this.state || {};
+    var edits = st.edits || {};
+    var off = st.off || {};
+
+    var nav = [
+      ['Today.dc.html', 'Today', false],
+      ['Tradesheet.dc.html', 'Tradesheet', false],
+      ['Main.dc.html', 'Trading', false],
+      ['Holdings.dc.html', 'Holdings', false],
+      ['Performance.dc.html', 'Performance', false],
+      ['Ledger.dc.html', 'Cash ledger', false],
+      ['DayDetail.dc.html', 'Day detail', false],
+      ['Rebalance.dc.html', 'Rebalance sell', false],
+      ['Model.dc.html', 'Model portfolio', true],
+      ['Config.dc.html', 'Configuration', false]
+    ].map(function (n) {
+      return { href: n[0], label: n[1], bg: n[2] ? '#1A1D22' : 'transparent', fg: n[2] ? T1 : T3, bar: n[2] ? 'inset 2px 0 0 ' + a : 'none' };
+    });
+    var pending = ['Tax lots and gains'];
+
+    var CASH = 3250.90;
+    var base = [
+      ['HDFCBANK', 'NSE', '341249', 14.00, 13.9314, 1652.40, '18 Sep', 4, true],
+      ['INFY', 'NSE', '408065', 12.00, 12.3153, 1842.75, '11 Sep', 11, true],
+      ['RELIANCE', 'NSE', '738561', 12.00, 13.0010, 1487.60, '16 Sep', 6, true],
+      ['TCS', 'NSE', '2953217', 10.00, 11.1170, 3604.15, '02 Sep', 20, true],
+      ['ICICIBANK', 'NSE', '1270529', 10.00, 10.7807, 1398.05, '21 Sep', 1, true],
+      ['ITC', 'NSE', '424961', 9.00, 7.9377, 428.90, 'today', 0, true],
+      ['LT', 'NSE', '2939649', 9.00, 6.4360, 3912.30, '08 Jul', 76, true],
+      ['ASIANPAINT', 'NSE', '60417', 8.00, 8.8772, 2466.85, '15 Sep', 7, true],
+      ['SUNPHARMA', 'NSE', '857857', 8.00, 8.3060, 1795.20, '17 Sep', 5, true],
+      ['TITAN', 'NSE', '897537', 8.00, 7.2971, 3548.60, '14 Aug', 39, true],
+      ['HINDUNILVR', 'NSE', '356865', 0.00, 0, 2318.55, 'retired', -1, false],
+      ['BAJFINANCE', 'NSE', '81153', 0.00, 0, 948.70, 'retired', -1, false]
+    ];
+
+    var tgt = function (h) {
+      var v = edits[h[0]];
+      return v === undefined ? h[3] : v;
+    };
+    var isOn = function (h) {
+      var v = off[h[0]];
+      return v === undefined ? h[8] : !v;
+    };
+
+    var sumVal = 0, activeN = 0;
+    base.forEach(function (h) { if (isOn(h)) { sumVal += tgt(h); activeN++; } });
+    var ok = Math.abs(sumVal - 100) < 0.005;
+
+    var BARMAX = 16, BARPX = 330;
+    var rows = base.map(function (h, i) {
+      var on = isOn(h), t = tgt(h), actual = h[4], gap = actual - t;
+      var edited = edits[h[0]] !== undefined || off[h[0]] !== undefined;
+      var starved = h[7] > 30;
+      return {
+        sym: h[0], exch: h[1], token: h[2], tick: '0.05',
+        symColor: on ? (starved ? a : T1) : T4,
+        target: t.toFixed(2) + '%',
+        targetColor: edited ? a : (on ? T1 : T4),
+        cursor: on ? 'pointer' : 'default',
+        decAria: 'Decrease ' + h[0] + ' target weight',
+        incAria: 'Increase ' + h[0] + ' target weight',
+        dec: on ? function () { var e = {}; for (var k in edits) { e[k] = edits[k]; } e[h[0]] = Math.max(0, Math.round((t - 0.25) * 100) / 100); self.setState({ edits: e }); } : function () {},
+        inc: on ? function () { var e = {}; for (var k in edits) { e[k] = edits[k]; } e[h[0]] = Math.round((t + 0.25) * 100) / 100; self.setState({ edits: e }); } : function () {},
+        barW: on ? (t / BARMAX * BARPX).toFixed(1) : '0',
+        barColor: edited ? a : '#5A7F9E',
+        markX: on ? (10 + actual / BARMAX * BARPX).toFixed(1) : '-10',
+        markColor: gap < 0 ? RD : GR,
+        actual: on ? actual.toFixed(2) + '%' : '—',
+        gap: on ? ((gap >= 0 ? '+' : '−') + Math.abs(gap).toFixed(2)) : '—',
+        gapColor: on ? (gap < 0 ? RD : GR) : T4,
+        ltp: h[5].toFixed(2),
+        ago: on ? (h[7] === 0 ? 'today' : h[6] + ' · ' + h[7] + 'd') : 'retired',
+        agoColor: starved ? RD : (on ? T2 : T4),
+        toggleAria: (on ? 'Deactivate ' : 'Activate ') + h[0],
+        toggle: function () { var o = {}; for (var k in off) { o[k] = off[k]; } o[h[0]] = !!isOn(h); self.setState({ off: o }); },
+        swBg: on ? '#1A3327' : '#1A1D22',
+        swBorder: on ? '#2B5240' : '#2B2F36',
+        swDot: on ? GR : '#4A4E55',
+        swJustify: on ? 'flex-end' : 'flex-start',
+        dim: on ? '1' : '0.5',
+        bg: i % 2 === 0 ? 'transparent' : '#16181C'
+      };
+    });
+
+    var drift = 0;
+    base.forEach(function (h) { if (isOn(h)) { drift += Math.abs(h[4] - tgt(h)); } });
+
+    var kpis = [
+      { label: 'UNIVERSE', value: String(activeN), color: T1, sub: (12 - activeN) + ' retired · stocks only' },
+      { label: 'WEIGHT SUM', value: sumVal.toFixed(2) + '%', color: ok ? GR : RD, sub: ok ? 'valid' : 'must total 100.00' },
+      { label: 'MAX PRICE CAP', value: '₹5,000', color: T2, sub: 'excludes names above it' },
+      { label: 'OUT OF REACH TODAY', value: '3', color: a, sub: 'LT, TCS, TITAN cost more than ₹3,250.90' },
+      { label: 'LONGEST WAIT', value: '76 d', color: RD, sub: 'LT last bought 08 Jul' }
+    ];
+
+    var eKeys = [];
+    for (var k in edits) { if (edits[k] !== undefined) { eKeys.push(k + ' → ' + edits[k].toFixed(2) + '%'); } }
+    for (var k2 in off) { eKeys.push(k2 + (off[k2] ? ' deactivated' : ' reactivated')); }
+    var editText = eKeys.length ? eKeys.join(' · ') + '. Saving creates v5 with effective_from 23 Sep 2026; today’s tradesheet keeps v4.' : 'No edits. v4 stays in force.';
+
+    var prev = base.filter(isOn).map(function (h) {
+      return { sym: h[0], gap: h[4] - tgt(h), ltp: h[5] };
+    }).sort(function (x, y) { return x.gap - y.gap; }).slice(0, 5);
+
+    var bought = false;
+    var preview = prev.map(function (p, i) {
+      var q = Math.floor(CASH / p.ltp);
+      var dec;
+      if (bought) { dec = 'not reached'; }
+      else if (q > 0) { dec = 'BUY ' + q; bought = true; }
+      else { dec = 'priced out'; }
+      return {
+        rank: String(i + 1), sym: p.sym,
+        gap: (p.gap >= 0 ? '+' : '−') + Math.abs(p.gap).toFixed(2),
+        gapColor: p.gap < 0 ? RD : GR,
+        ltp: p.ltp.toFixed(2),
+        decision: dec,
+        color: dec.indexOf('BUY') === 0 ? GR : (dec === 'priced out' ? RD : T4)
+      };
+    });
+
+    var versions = [
+      { ver: 'v4', eff: 'eff. 01 Jul 2026', actor: 'operator', change: 'TITAN 7.00 → 8.00, ITC 10.00 → 9.00', dot: a, color: a },
+      { ver: 'v3', eff: 'eff. 01 Apr 2026', actor: 'operator', change: 'added SUNPHARMA 8.00 and TITAN 7.00', dot: '#4A4E55', color: T2 },
+      { ver: 'v2', eff: 'eff. 05 Nov 2025', actor: 'operator', change: 'HINDUNILVR deactivated, weight spread across the rest', dot: '#4A4E55', color: T2 },
+      { ver: 'v1', eff: 'eff. 01 Apr 2025', actor: 'operator', change: 'initial eight names', dot: '#4A4E55', color: T2 }
+    ];
+
+    return {
+      a: a, nav: nav, pending: pending, kpis: kpis, rows: rows, versions: versions, preview: preview,
+      sum: sumVal.toFixed(2) + '%',
+      sumColor: ok ? GR : RD,
+      sumBg: ok ? '#152018' : '#221514',
+      sumChip: ok ? 'weights total 100.00%' : 'weights total ' + sumVal.toFixed(2) + '% — cannot save',
+      sumNote: ok ? 'valid — the engine will accept this set' : 'off by ' + (sumVal - 100).toFixed(2) + ' points',
+      activeCount: activeN + ' active',
+      drift: drift.toFixed(2),
+      editText: editText,
+      editCount: eKeys.length ? eKeys.length + ' edit' + (eKeys.length === 1 ? '' : 's') : 'none',
+      saveColor: (eKeys.length && ok) ? a : '#3A3E45',
+      saveBorder: (eKeys.length && ok) ? '#3A2F1A' : (ok ? '#1E2127' : '#4A2622'),
+      previewNote: 'the ranking the engine would walk tomorrow under the draft — LT stays first and stays unaffordable until carry reaches ₹3,912.30',
+      reset: function () { self.setState({ edits: {}, off: {} }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

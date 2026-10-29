@@ -1,0 +1,54 @@
+{% comment %}
+The depth panel. Rendered inside the instrument page, and on its own at
+web:instrument_depth_live for the page to swap in each round while today's
+market is open and no round is pinned. Stored depth only -- never a quote.
+{% endcomment %}
+<div class="flex items-center justify-between px-4 pt-3.5 pb-2.5 border-b border-line">
+  <span class="font-mono text-[10px] tracking-[0.12em] text-ink-3">DEPTH · {{ instrument.tradingsymbol }} · {{ instrument.exchange }}</span>
+  {% if ladder %}<span class="tag">ROUND {{ ladder.tick.tick_no }} · {{ ladder.tick.fired_at|time:"H:i:s" }}</span>{% endif %}
+</div>
+{% if ladder and not ladder.empty %}
+  <div class="grid grid-cols-[1fr_1fr_52px] px-4 py-1.5 font-mono text-[9.5px] tracking-[0.1em] text-ink-3">
+    <span>PRICE</span><span class="text-right">QTY</span><span class="text-right">ORDERS</span>
+  </div>
+  {% for d in ladder.asks %}
+    <div class="relative grid grid-cols-[1fr_1fr_52px] px-4 h-7 items-center font-mono text-[12px]">
+      <div class="absolute inset-y-0.5 right-0 bg-bad-bg" style="width: {{ d.pct }}%"></div>
+      <span class="relative text-bad">{{ d.price|floatformat:2 }}{% if d.yours %} <span class="text-accent text-[9.5px]">YOURS {{ d.yours }}</span>{% endif %}</span>
+      <span class="relative text-right">{{ d.quantity }}</span>
+      <span class="relative text-right text-ink-3">{{ d.orders }}</span>
+    </div>
+  {% endfor %}
+  <div class="flex justify-between px-4 py-1.5 border-y border-line font-mono text-[10.5px] text-ink-3">
+    <span>SPREAD</span>
+    <span>{% if ladder.spread is not None %}{{ ladder.spread|floatformat:2 }}{% if instrument.tick_size %} · {% widthratio ladder.spread instrument.tick_size 1 %} tick{% endif %}{% else %}one-sided{% endif %}</span>
+  </div>
+  {% for d in ladder.bids %}
+    <div class="relative grid grid-cols-[1fr_1fr_52px] px-4 h-7 items-center font-mono text-[12px] {% if d.yours %}shadow-[inset_2px_0_0_var(--color-accent)]{% endif %}">
+      <div class="absolute inset-y-0.5 right-0 bg-good-bg" style="width: {{ d.pct }}%"></div>
+      <span class="relative text-good">{{ d.price|floatformat:2 }}{% if d.yours %} <span class="text-accent text-[9.5px]">YOURS {{ d.yours }}</span>{% endif %}</span>
+      <span class="relative text-right">{{ d.quantity }}</span>
+      <span class="relative text-right text-ink-3">{{ d.orders }}</span>
+    </div>
+  {% endfor %}
+  <div class="flex justify-between px-4 py-2.5 border-t border-line font-mono text-[10.5px] text-ink-3">
+    <span>BIDS {{ ladder.bid_qty }}</span>
+    <span>ASKS {{ ladder.ask_qty }}</span>
+  </div>
+  <div class="flex items-center justify-between px-4 pb-3 font-mono text-[11px]">
+    {% if ladder.previous is not None %}<a href="?tab={{ tab }}&tick={{ ladder.previous }}">← tick {{ ladder.previous }}</a>{% else %}<span></span>{% endif %}
+    <span class="text-ink-4">{{ ladder.ticks|length }} stored</span>
+    {% if ladder.next is not None %}<a href="?tab={{ tab }}&tick={{ ladder.next }}">tick {{ ladder.next }} →</a>{% else %}<span></span>{% endif %}
+  </div>
+{% elif ladder %}
+  <p class="muted text-[13px] px-4 py-3">Tick {{ ladder.tick.tick_no }} read an empty book.</p>
+{% else %}
+  <p class="muted text-[13px] px-4 py-3">No tick stored a book for this instrument on this day.</p>
+{% endif %}
+<p class="text-[11.5px] text-ink-4 px-4 pb-3.5 leading-snug">
+  {% if live.on %}
+    The book as the latest round stored it, followed round by round — what the next order is priced against, not a streaming feed.
+  {% else %}
+    The book as the tick stored it — the one the order was priced against, not a live feed.
+  {% endif %}
+</p>

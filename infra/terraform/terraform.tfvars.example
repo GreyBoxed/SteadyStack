@@ -1,0 +1,26 @@
+# Copy to terraform.tfvars, which is gitignored. Nothing secret belongs here:
+# the broker key, the Django secret and the database passwords live in Secrets
+# Manager and are written out-of-band (M48). A value passed through Terraform
+# is a value in the state file.
+
+region = "ap-south-1"
+name   = "steadystack"
+
+# The hostname the operator reaches the app on. It also becomes
+# ALLOWED_HOSTS and CSRF_TRUSTED_ORIGINS on the box.
+domain_name = "steadystack.example.com"
+
+# The Route 53 zone to put the A record in. Leave empty to manage DNS
+# elsewhere and point it at the elastic IP by hand.
+hosted_zone_id = ""
+
+# Where M51's alerts go. Confirm the subscription email once, after the first
+# apply; until you do it stays pending and nothing is delivered.
+operator_email = "you@example.com"
+
+# Where cloud-init clones the application from. Leave empty to provision the
+# box and deploy the code by hand the first time.
+app_repository = ""
+
+instance_type  = "t4g.small"
+root_volume_gb = 30

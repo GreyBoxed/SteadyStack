@@ -1,0 +1,77 @@
+{% extends "app.html" %}
+{% block title %}Journal — steadystack{% endblock %}
+{% block page_title %}Journal · {{ book|title }} book{% endblock %}
+{% block content %}
+
+  <p class="text-ink-2 max-w-[48rem]">
+    Every entry ever posted to this book, newest first. Each is append-only: a
+    mistake is undone by a reversal, itself an entry, never by editing the row.
+  </p>
+
+  <div class="flex items-center gap-2 my-4 flex-wrap">
+    <span class="font-mono text-[10px] tracking-[0.14em] text-ink-3">BOOK</span>
+    <a href="?book=live" class="tag no-underline {% if book == 'live' %}tag-accent{% endif %}">Live</a>
+    <a href="?book=paper" class="tag no-underline {% if book == 'paper' %}tag-accent{% endif %}">Paper</a>
+    <a href="{% url 'journal:index' %}?book={{ book }}" class="ml-auto font-mono text-[12px]">
+      ← Trial balance
+    </a>
+  </div>
+
+  <form method="get" class="flex items-end gap-3 flex-wrap my-4">
+    <input type="hidden" name="book" value="{{ book }}">
+    <div>
+      <label for="from" class="mt-0">From</label>
+      <input type="date" id="from" name="from" value="{{ start|date:'Y-m-d' }}" class="w-44">
+    </div>
+    <div>
+      <label for="to" class="mt-0">To</label>
+      <input type="date" id="to" name="to" value="{{ end|date:'Y-m-d' }}" class="w-44">
+    </div>
+    <button type="submit" class="mt-0">Show</button>
+    <a class="ml-auto font-mono text-[12px]"
+       href="?{{ request.GET.urlencode }}&format=csv" download>Export CSV</a>
+  </form>
+
+  <table class="text-[13.5px]">
+    <thead>
+      <tr><th>#</th><th>Date</th><th>Kind</th><th>Description</th><th>Lines</th><th>Trace</th></tr>
+    </thead>
+    <tbody>
+      {% for row in page %}
+        <tr>
+          <td class="font-mono text-[12px]"><a href="{% url 'journal:entry' row.pk %}">{{ row.number }}</a></td>
+          <td class="font-mono text-[12px] whitespace-nowrap">{{ row.occurred_on|date:"j M Y" }}</td>
+          <td class="text-ink-3">{{ row.get_kind_display }}</td>
+          <td>{{ row.description }}</td>
+          <td class="text-[12.5px]">
+            {% for line in row.lines.all %}
+              <div class="whitespace-nowrap">
+                {{ line.account_id }}
+                {% if line.amount > 0 %}
+                  <span class="text-ink-2">Dr ₹{{ line.amount|floatformat:2 }}</span>
+                {% else %}
+                  <span class="text-ink-4">Cr ₹{{ line.amount|floatformat:2|cut:"-" }}</span>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </td>
+          <td class="font-mono text-[11px] text-ink-4">{{ row.trace_id }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="muted">No entry has posted in this range.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page.paginator.num_pages > 1 %}
+    <nav class="flex items-center gap-3 font-mono text-[12px] mt-3" aria-label="Pages">
+      {% if page.has_previous %}
+        <a href="?book={{ book }}&from={{ start|date:'Y-m-d' }}&to={{ end|date:'Y-m-d' }}&page={{ page.previous_page_number }}">← previous</a>
+      {% endif %}
+      <span class="text-ink-3">page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+      {% if page.has_next %}
+        <a href="?book={{ book }}&from={{ start|date:'Y-m-d' }}&to={{ end|date:'Y-m-d' }}&page={{ page.next_page_number }}">next →</a>
+      {% endif %}
+    </nav>
+  {% endif %}
+{% endblock %}

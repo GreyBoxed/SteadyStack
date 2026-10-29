@@ -1,0 +1,24 @@
+{% extends "app.html" %}
+{% block title %}Trading — steadystack{% endblock %}
+{% block page_title %}Trading — {{ day|date:"j M Y" }}{% endblock %}
+{% block header_extra %}{% include "web/_live_switch.html" %}{% endblock %}
+{% block content %}
+
+  {% if sheet %}
+    <p class="text-[14px]">
+      <a href="{% url 'engine:detail' day|date:'Y-m-d' sheet.version %}">Tradesheet v{{ sheet.version }}</a>
+      · {{ sheet.get_state_display }}:
+      {% if sheet.instrument_id %}
+        {{ sheet.quantity }} shares across {{ sheet.names_label }}
+      {% else %}
+        nothing chosen
+      {% endif %},
+      ₹{{ sheet.spendable_cash|floatformat:2 }} to spend.
+    </p>
+  {% else %}
+    <p class="muted">No tradesheet for this day.</p>
+  {% endif %}
+  <div {% include "web/_live_region.html" with src="web:orders_live" %}>
+    {% include "web/_orders_live.html" %}
+  </div>
+{% endblock %}

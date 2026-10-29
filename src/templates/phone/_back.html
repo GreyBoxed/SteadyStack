@@ -1,0 +1,4 @@
+<a href="{% url 'phone:today' %}" aria-label="Back to today"
+   class="w-11 h-11 flex items-center justify-center no-underline text-ink-2 text-[19px]">&#8592;</a>
+<span class="text-[16px] font-semibold tracking-[-0.01em]">{{ title }}</span>
+<span class="ml-auto mr-2 tag {% if mode == 'live' %}tag-bad{% else %}tag-accent{% endif %}">{{ mode|upper }}</span>

@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sign in — password and TOTP</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #0B0C0E; font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: #F0A640; } a:hover { color: #FFC470; }
+</style>
+</helmet>
+<div style="width: 1512px; height: 1010px; box-sizing: border-box; display: flex; background: #0B0C0E; color: #E9E7E2; overflow: hidden;">
+
+  <div style="width: 660px; flex-shrink: 0; box-sizing: border-box; background: #0E1013; border-right: 1px solid #1E2127; padding: 56px 56px 44px 56px; display: flex; flex-direction: column;">
+    <div>
+      <div style="font-size: 34px; font-weight: 700; letter-spacing: -0.03em; color: #E9E7E2;">SteadyStack</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.16em; color: #8F8C85; margin-top: 9px;">DAILY EQUITY ACCUMULATION</div>
+    </div>
+
+    <div style="margin-top: 40px; font-size: 17px; line-height: 1.65; color: #B4B0A8; max-width: 460px;">
+      A small amount of money buys shares every trading day, and keeps doing it for eighteen years. This is the window onto that — not the thing itself.
+    </div>
+
+    <div style="margin-top: 20px; font-size: 13.5px; color: #83807A; line-height: 1.6; max-width: 460px;">The timers run whether or not anyone is signed in. Signing in is how you watch the day and how you override it — never how you start it.</div>
+
+    <div style="margin-top: 44px; display: flex; flex-direction: column; gap: 13px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">HOW THIS DOOR IS BUILT</div>
+      <sc-for list="{{facts}}" as="f" hint-placeholder-count="6">
+        <div style="display: flex; align-items: flex-start; gap: 11px;">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: {{f.color}}; margin-top: 7px; flex-shrink: 0;"></span>
+          <span style="font-size: 13px; color: #B4B0A8; line-height: 1.5;">{{f.text}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="margin-top: auto; display: flex; align-items: center; gap: 18px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">
+      <span>Tue 22 Sep 2026 · 11:32:18 IST</span>
+      <span style="color: #46C88A;">● HTTPS · HSTS</span>
+      <span>single operator · no sharing</span>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; padding: 0 40px;">
+
+    <div style="width: 420px; display: flex; flex-direction: column;">
+
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 26px;">
+        <sc-for list="{{steps}}" as="s" hint-placeholder-count="2">
+          <div style="display: flex; align-items: center; gap: 9px;">
+            <span style="width: 22px; height: 22px; border-radius: 50%; box-sizing: border-box; border: 1px solid {{s.ring}}; background: {{s.dotBg}}; color: {{s.dotFg}}; font-family: 'IBM Plex Mono', monospace; font-size: 11px; display: flex; align-items: center; justify-content: center;">{{s.n}}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; color: {{s.fg}};">{{s.label}}</span>
+          </div>
+        </sc-for>
+        <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{stepNote}}</span>
+      </div>
+
+      <div style="background: #131518; border: 1px solid {{cardBorder}}; border-radius: 10px; box-sizing: border-box; padding: 28px; box-shadow: inset 3px 0 0 {{cardBar}};">
+
+        <h1 style="margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; color: {{titleColor}};">{{title}}</h1>
+        <div style="font-size: 13.5px; color: #8F8C85; line-height: 1.55; margin-top: 9px;">{{subtitle}}</div>
+
+        <sc-if value="{{isPassword}}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+              <label for="u" style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8F8C85;">USERNAME</label>
+              <input id="u" type="text" value="operator" readonly style="box-sizing: border-box; width: 100%; height: 46px; border: 1px solid #2B2F36; border-radius: 6px; background: #0F1114; color: #E9E7E2; padding: 0 13px; font-family: 'IBM Plex Mono', monospace; font-size: 14px;">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+              <label for="p" style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8F8C85;">PASSWORD</label>
+              <input id="p" type="password" value="............" readonly style="box-sizing: border-box; width: 100%; height: 46px; border: 1px solid {{fieldBorder}}; border-radius: 6px; background: #0F1114; color: #E9E7E2; padding: 0 13px; font-family: 'IBM Plex Mono', monospace; font-size: 14px; letter-spacing: 0.18em;">
+            </div>
+            <button type="button" onClick="{{toTotp}}" style="height: 48px; border: 0; border-radius: 6px; background: {{a}}; color: #14100A; font-family: 'Space Grotesk', sans-serif; font-size: 14.5px; font-weight: 600; cursor: pointer;">Continue</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isTotp}}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top: 22px; display: flex; flex-direction: column; gap: 18px;">
+            <div style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 13px; background: #0F1114; border: 1px solid #2B2F36; border-radius: 6px;">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: #46C88A; flex-shrink: 0;"></span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #B4B0A8;">operator</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">password accepted</span>
+              <button type="button" onClick="{{toPassword}}" style="margin-left: auto; height: 28px; padding: 0 10px; border: 1px solid #2B2F36; border-radius: 5px; background: transparent; color: #B4B0A8; font-family: 'Space Grotesk', sans-serif; font-size: 12px; cursor: pointer;">Change</button>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 9px;">
+              <label style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8F8C85;">SIX-DIGIT CODE</label>
+              <div style="display: flex; gap: 9px;">
+                <sc-for list="{{digits}}" as="d" hint-placeholder-count="6">
+                  <span style="width: 56px; height: 62px; box-sizing: border-box; border: 1px solid {{d.border}}; border-radius: 7px; background: #0F1114; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 24px; color: {{d.fg}}; box-shadow: {{d.glow}};">{{d.ch}}</span>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 11px;">
+              <span style="position: relative; display: block; width: 130px; height: 4px; border-radius: 2px; background: #23262B; flex-shrink: 0;">
+                <span style="position: absolute; left: 0; top: 0; height: 4px; width: {{rollW}}px; border-radius: 2px; background: {{rollColor}};"></span>
+              </span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #83807A;">{{rollNote}}</span>
+            </div>
+
+            <sc-if value="{{showError}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; gap: 10px; padding: 12px 14px; background: #1C1210; border: 1px solid #45211C; border-radius: 6px;">
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #F06A52; margin-top: 5px; flex-shrink: 0;"></span>
+                <span style="font-size: 12.5px; color: #E0A093; line-height: 1.5;">That code did not match. <strong style="color: #F06A52;">2 attempts left</strong> before this account locks for 15 minutes. Check that your device clock is correct — a drifted clock is the usual cause.</span>
+              </div>
+            </sc-if>
+
+            <button type="button" onClick="{{verify}}" style="height: 48px; border: 0; border-radius: 6px; background: {{a}}; color: #14100A; font-family: 'Space Grotesk', sans-serif; font-size: 14.5px; font-weight: 600; cursor: pointer;">Verify and sign in</button>
+
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <a href="Enrol.dc.html" style="font-size: 12.5px; text-decoration: none;">Use a recovery code</a>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">no bypass path exists</span>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isLocked}}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top: 22px; display: flex; flex-direction: column; gap: 18px;">
+            <div style="display: flex; align-items: baseline; gap: 12px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 42px; color: #F06A52; font-variant-numeric: tabular-nums; letter-spacing: -0.02em;">14:38</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #8F8C85;">until this clears by itself</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 1px;">
+              <sc-for list="{{attempts}}" as="t" hint-placeholder-count="5">
+                <div style="display: flex; align-items: center; gap: 11px; height: 30px; border-bottom: 1px solid #191C21; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px;">
+                  <span style="color: #83807A; width: 68px;">{{t.time}}</span>
+                  <span style="color: {{t.color}}; width: 92px; font-size: 10px; letter-spacing: 0.08em;">{{t.result}}</span>
+                  <span style="color: #8F8C85; flex-grow: 1;">{{t.detail}}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size: 12.5px; color: #83807A; line-height: 1.6;">The lockout is on the account, not the browser — a new window will not help. No email is sent and nothing is reset; waiting is the whole remedy. Trading is unaffected: the timers keep placing today's orders.</div>
+            <button type="button" onClick="{{toPassword}}" style="height: 48px; border: 1px solid #2B2F36; border-radius: 6px; background: transparent; color: #B4B0A8; font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer;">Back to sign in</button>
+          </div>
+        </sc-if>
+
+      </div>
+
+      <div style="margin-top: 18px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A; line-height: 1.7; text-align: center;">{{footer}}</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0A640","options":["#F0A640","#46C88A","#6FA8DC","#D97757"]},"$preview":{"width":1512,"height":1010}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 'password', tries: 0 };
+  }
+
+  renderVals() {
+    var self = this;
+    var a = this.props.accent || '#F0A640';
+    var GR = '#46C88A', RD = '#F06A52', T1 = '#E9E7E2', T2 = '#B4B0A8', T3 = '#8F8C85', T4 = '#83807A';
+    var step = (this.state && this.state.step) || 'password';
+    var tries = (this.state && this.state.tries) || 0;
+
+    var isPassword = step === 'password';
+    var isTotp = step === 'totp';
+    var isLocked = step === 'locked';
+    var showError = isTotp && tries > 0;
+
+    var facts = [
+      { color: GR, text: 'TOTP is mandatory. There is no remember-this-device, no SMS fallback and no reset link — by design, because the only account here controls a brokerage.' },
+      { color: GR, text: 'Five failed attempts lock the account for fifteen minutes. The lock clears on its own.' },
+      { color: GR, text: 'Your Zerodha password and TOTP are never typed here. That happens on Zerodha’s own page, after you sign in.' },
+      { color: GR, text: 'The Kite access token is encrypted at rest, never logged and never rendered on any screen.' },
+      { color: GR, text: 'Nothing about the portfolio appears before you are signed in \u2014 no holdings, no orders, no amounts, not even whether the day has traded.' },
+      { color: T3, text: 'One operator, one account. Nothing to share, so nothing to revoke.' }
+    ];
+
+    var steps = [
+      { n: '1', label: 'PASSWORD', done: !isPassword, active: isPassword },
+      { n: '2', label: 'CODE', done: false, active: isTotp || isLocked }
+    ].map(function (s) {
+      var on = s.active, done = s.done;
+      return {
+        n: done ? '✓' : s.n,
+        label: s.label,
+        ring: done ? '#22392F' : (on ? a : '#2B2F36'),
+        dotBg: done ? '#16251E' : (on ? '#1C1810' : 'transparent'),
+        dotFg: done ? GR : (on ? a : T4),
+        fg: on ? T2 : T4
+      };
+    });
+
+    var code = showError ? ['4', '1', '9', '0', '2', '7'] : ['7', '3', '1', '9', '', ''];
+    var digits = code.map(function (ch, i) {
+      var caret = !showError && i === 4;
+      return {
+        ch: ch === '' ? (caret ? '|' : '') : ch,
+        fg: showError ? RD : (caret ? a : T1),
+        border: showError ? '#45211C' : (caret ? a : '#2B2F36'),
+        glow: caret ? '0 0 0 3px rgba(240,166,64,0.10)' : 'none'
+      };
+    });
+
+    var attempts = [
+      { time: '11:31:48', result: 'FAILED', color: RD, detail: 'code did not match · lockout triggered' },
+      { time: '11:31:22', result: 'FAILED', color: RD, detail: 'code did not match' },
+      { time: '11:30:51', result: 'FAILED', color: RD, detail: 'code did not match' },
+      { time: '11:30:14', result: 'FAILED', color: RD, detail: 'code expired before submission' },
+      { time: '11:29:40', result: 'PASSWORD OK', color: T4, detail: 'first factor accepted' }
+    ];
+
+    var title = isPassword ? 'Sign in' : (isTotp ? 'Second factor' : 'Account locked');
+    var subtitle = isPassword
+      ? 'One operator. The password is the first of two factors and neither one alone will do.'
+      : (isTotp
+        ? 'Open your authenticator and enter the current code for SteadyStack.'
+        : 'Five failed codes in a row. Nothing else is affected — the day keeps trading.');
+
+    return {
+      a: a,
+      facts: facts,
+      steps: steps,
+      digits: digits,
+      attempts: attempts,
+      isPassword: isPassword,
+      isTotp: isTotp,
+      isLocked: isLocked,
+      showError: showError,
+      title: title,
+      titleColor: isLocked ? RD : T1,
+      subtitle: subtitle,
+      cardBorder: isLocked ? '#45211C' : (showError ? '#45211C' : '#1E2127'),
+      cardBar: isLocked ? RD : (isTotp ? a : '#1E2127'),
+      fieldBorder: a,
+      stepNote: isPassword ? 'step 1 of 2' : (isTotp ? 'step 2 of 2' : 'locked'),
+      rollW: String(showError ? 14 : 78),
+      rollColor: showError ? RD : a,
+      rollNote: showError ? 'code rolls in 2s — wait for the next one' : 'this code rolls in 12s',
+      footer: isLocked
+        ? 'attempts are counted per account and recorded in the audit trail with time and source address'
+        : 'every sign-in, failure and lockout is written to the audit trail',
+      toTotp: function () { self.setState({ step: 'totp', tries: 0 }); },
+      toPassword: function () { self.setState({ step: 'password', tries: 0 }); },
+      verify: function () {
+        if (tries === 0) { self.setState({ step: 'totp', tries: 1 }); }
+        else { self.setState({ step: 'locked', tries: 0 }); }
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

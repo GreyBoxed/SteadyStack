@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Configuration</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #0B0C0E; font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: #F0A640; } a:hover { color: #FFC470; }
+</style>
+</helmet>
+<div style="width: 1512px; height: 1010px; box-sizing: border-box; display: flex; background: #0B0C0E; color: #E9E7E2; overflow: hidden;">
+
+  <nav style="width: 208px; flex-shrink: 0; background: #0E1013; border-right: 1px solid #1E2127; display: flex; flex-direction: column;">
+    <div style="padding: 18px 16px 16px 16px; border-bottom: 1px solid #1E2127;">
+      <div style="font-size: 19px; font-weight: 700; letter-spacing: -0.02em; color: #E9E7E2;">SteadyStack</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; margin-top: 5px;">DAILY EQUITY ACCUMULATION</div>
+    </div>
+    <div style="padding: 12px 10px 0 10px; display: flex; flex-direction: column; gap: 2px;">
+      <sc-for list="{{nav}}" as="item" hint-placeholder-count="10">
+        <a href="{{item.href}}" style="display: flex; align-items: center; height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 13.5px; font-weight: 500; background: {{item.bg}}; color: {{item.fg}}; box-shadow: {{item.bar}};">{{item.label}}</a>
+      </sc-for>
+    </div>
+    <div style="padding: 16px 10px 0 10px; display: flex; flex-direction: column; gap: 1px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; padding: 0 8px 6px 8px;">NOT YET DESIGNED</div>
+      <div style="padding: 7px 12px; font-size: 12.5px; color: #83807A;">Tax lots and gains</div>
+    </div>
+    <div style="margin-top: auto; padding: 14px 16px 16px 16px; border-top: 1px solid #1E2127; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: #46C88A; flex-shrink: 0;"></span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8; letter-spacing: 0.04em;">KITE SESSION OK</span>
+      </div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #8F8C85; line-height: 1.6;">issued 08:41:22<br>expires 06:00 Wed</div>
+    </div>
+  </nav>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 56px; flex-shrink: 0; border-bottom: 1px solid #1E2127; background: #0E1013; display: flex; align-items: center; padding: 0 20px; gap: 14px;">
+      <h1 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Configuration</h1>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8F8C85;">every change is audited with actor, timestamp and before/after</span>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 14px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: {{dryColor}};">{{dryLabel}}</span>
+        <button type="button" onClick="{{toggleDry}}" aria-label="Toggle dry run mode" style="width: 52px; height: 28px; border: 1px solid {{dryBorder}}; border-radius: 14px; background: {{dryBg}}; cursor: pointer; display: flex; align-items: center; justify-content: {{dryJustify}}; padding: 0 3px;">
+          <span style="width: 20px; height: 20px; border-radius: 50%; background: {{dryDot}}; display: block;"></span>
+        </button>
+      </div>
+    </header>
+
+    <div style="flex-grow: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 0;">
+
+      <section style="height: 104px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; overflow: hidden;">
+        <sc-for list="{{kpis}}" as="k" hint-placeholder-count="5">
+          <div style="flex-grow: 1; box-sizing: border-box; padding: 16px 20px; border-right: 1px solid #1E2127; display: flex; flex-direction: column; justify-content: center; gap: 7px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">{{k.label}}</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; color: {{k.color}}; font-variant-numeric: tabular-nums;">{{k.value}}</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{k.sub}}</div>
+          </div>
+        </sc-for>
+      </section>
+
+      <div style="height: 546px; flex-shrink: 0; display: flex; gap: 16px;">
+
+        <div style="width: 624px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px;">
+
+          <section style="height: 222px; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 0 16px 12px 16px; display: flex; flex-direction: column;">
+            <div style="height: 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1E2127;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">INVESTMENT</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A;">drives the tradesheet every morning</span>
+            </div>
+            <div style="display: flex; align-items: center; height: 40px; border-bottom: 1px solid #191C21;">
+              <label for="amt" style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #B4B0A8; width: 250px;">daily amount</label>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A; flex-grow: 1;">deposited every trading day</span>
+              <div style="display: flex; align-items: center; gap: 3px;">
+                <button type="button" onClick="{{amtDec}}" aria-label="Decrease daily amount" style="width: 30px; height: 30px; border: 1px solid #2B2F36; border-radius: 4px; background: transparent; color: #B4B0A8; font-family: 'IBM Plex Mono', monospace; font-size: 14px; cursor: pointer; padding: 0;">−</button>
+                <input id="amt" type="text" value="{{amount}}" readonly style="width: 96px; height: 30px; border: 1px solid #2B2F36; border-radius: 4px; background: #0F1114; color: {{amtColor}}; text-align: right; padding: 0 9px; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-variant-numeric: tabular-nums;">
+                <button type="button" onClick="{{amtInc}}" aria-label="Increase daily amount" style="width: 30px; height: 30px; border: 1px solid #2B2F36; border-radius: 4px; background: transparent; color: #B4B0A8; font-family: 'IBM Plex Mono', monospace; font-size: 14px; cursor: pointer; padding: 0;">+</button>
+              </div>
+            </div>
+            <sc-for list="{{investment}}" as="s" hint-placeholder-count="3">
+              <div style="display: flex; align-items: center; height: 34px; border-bottom: {{s.rule}};">
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #B4B0A8; width: 250px;">{{s.label}}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A; flex-grow: 1;">{{s.note}}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: {{s.color}}; font-variant-numeric: tabular-nums;">{{s.value}}</span>
+              </div>
+            </sc-for>
+          </section>
+
+          <section style="height: 188px; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 0 16px 12px 16px; display: flex; flex-direction: column;">
+            <div style="height: 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1E2127;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">CLOCK</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A;">systemd timers are regenerated on save</span>
+            </div>
+            <sc-for list="{{clock}}" as="s" hint-placeholder-count="5">
+              <div style="display: flex; align-items: center; height: 27px; border-bottom: {{s.rule}};">
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #B4B0A8; width: 250px;">{{s.label}}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A; flex-grow: 1;">{{s.note}}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: {{s.color}}; font-variant-numeric: tabular-nums;">{{s.value}}</span>
+              </div>
+            </sc-for>
+          </section>
+
+          <section style="flex-grow: 1; background: #131518; border: 1px solid #4A2622; border-radius: 8px; box-sizing: border-box; padding: 0 16px 10px 16px; display: flex; flex-direction: column;">
+            <div style="height: 36px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1E2127;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">BROKER</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #F06A52;">a static IP mapped to the API key is the real gate</span>
+            </div>
+            <sc-for list="{{broker}}" as="s" hint-placeholder-count="3">
+              <div style="display: flex; align-items: center; height: 26px;">
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #B4B0A8; width: 250px;">{{s.label}}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A; flex-grow: 1;">{{s.note}}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: {{s.color}};">{{s.value}}</span>
+              </div>
+            </sc-for>
+          </section>
+        </div>
+
+        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px;">
+
+          <section style="height: 188px; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 0 16px 12px 16px; display: flex; flex-direction: column;">
+            <div style="height: 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1E2127;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">TAX · FY 2026-27</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A;">moves with each Union Budget, never a constant</span>
+            </div>
+            <sc-for list="{{tax}}" as="s" hint-placeholder-count="5">
+              <div style="display: flex; align-items: center; height: 27px; border-bottom: {{s.rule}};">
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #B4B0A8; width: 250px;">{{s.label}}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A; flex-grow: 1;">{{s.note}}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: {{s.color}}; font-variant-numeric: tabular-nums;">{{s.value}}</span>
+              </div>
+            </sc-for>
+          </section>
+
+          <section style="height: 152px; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 0 16px 12px 16px; display: flex; flex-direction: column;">
+            <div style="height: 38px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1E2127;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">NSE HOLIDAY CALENDAR</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #46C88A;">loaded to 31 Mar 2027</span>
+            </div>
+            <div style="display: flex; gap: 8px; padding: 12px 0 10px 0; flex-wrap: wrap;">
+              <sc-for list="{{holidays}}" as="h" hint-placeholder-count="6">
+                <span style="display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px; border: 1px solid #2B2F36; border-radius: 5px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: {{h.color}};">{{h.date}}<span style="color: #83807A;">{{h.name}}</span></span>
+              </sc-for>
+            </div>
+            <div style="margin-top: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A;">a missing calendar year silently turns holidays into skipped days — the loader must run a year ahead</div>
+          </section>
+
+          <section style="flex-grow: 1; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 0 16px 10px 16px; display: flex; flex-direction: column;">
+            <div style="height: 36px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1E2127;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">ALERTS</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A;">6 conditions armed</span>
+            </div>
+            <div style="display: flex; gap: 7px; padding-top: 11px; flex-wrap: wrap;">
+              <sc-for list="{{alertChips}}" as="c" hint-placeholder-count="6">
+                <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border: 1px solid #22392F; border-radius: 5px; background: #16251E; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #B4B0A8;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #46C88A;"></span>{{c}}</span>
+              </sc-for>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <section style="flex-grow: 1; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; min-height: 0;">
+        <div style="height: 38px; flex-shrink: 0; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">CHANGE HISTORY</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A;">a weight edit that caused unexpected buying must be attributable to a person and a timestamp</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 110px 90px 210px 1fr 1fr 100px; height: 24px; align-items: center; padding: 0 16px; border-bottom: 1px solid #1E2127; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; color: #8F8C85;">
+          <span>EFFECTIVE</span><span>ACTOR</span><span>SETTING</span><span>BEFORE</span><span>AFTER</span><span style="text-align: right;">TRACE</span>
+        </div>
+        <div style="flex-grow: 1; overflow-y: auto; min-height: 0;">
+          <sc-for list="{{history}}" as="h" hint-placeholder-count="7">
+            <div style="display: grid; grid-template-columns: 110px 90px 210px 1fr 1fr 100px; height: 26px; align-items: center; padding: 0 16px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; background: {{h.bg}};">
+              <span style="color: #B4B0A8;">{{h.date}}</span>
+              <span style="color: #83807A;">{{h.actor}}</span>
+              <span style="color: #E9E7E2;">{{h.setting}}</span>
+              <span style="color: #83807A;">{{h.before}}</span>
+              <span style="color: {{h.color}};">{{h.after}}</span>
+              <span style="text-align: right; color: #83807A; font-size: 10px;">{{h.trace}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0A640","options":["#F0A640","#46C88A","#6FA8DC","#D97757"]},"$preview":{"width":1512,"height":1010}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { amount: 2600, dry: false };
+  }
+
+  renderVals() {
+    var self = this;
+    var a = this.props.accent || '#F0A640';
+    var GR = '#46C88A', RD = '#F06A52', T1 = '#E9E7E2', T2 = '#B4B0A8', T3 = '#8F8C85', T4 = '#83807A';
+    var st = this.state || {};
+    var amount = st.amount === undefined ? 2600 : st.amount;
+    var dry = !!st.dry;
+    var RULE = '1px solid #191C21';
+
+    var nav = [
+      ['Today.dc.html', 'Today', false],
+      ['Tradesheet.dc.html', 'Tradesheet', false],
+      ['Main.dc.html', 'Trading', false],
+      ['Holdings.dc.html', 'Holdings', false],
+      ['Performance.dc.html', 'Performance', false],
+      ['Ledger.dc.html', 'Cash ledger', false],
+      ['DayDetail.dc.html', 'Day detail', false],
+      ['Rebalance.dc.html', 'Rebalance sell', false],
+      ['Model.dc.html', 'Model portfolio', false],
+      ['Config.dc.html', 'Configuration', true]
+    ].map(function (n) {
+      return { href: n[0], label: n[1], bg: n[2] ? '#1A1D22' : 'transparent', fg: n[2] ? T1 : T3, bar: n[2] ? 'inset 2px 0 0 ' + a : 'none' };
+    });
+
+    var edited = amount !== 2600;
+    var kpis = [
+      { label: 'CONFIG VERSION', value: edited ? 'draft' : 'v11', color: edited ? a : T1, sub: edited ? '1 unsaved change' : 'effective since 01 Jul 2026' },
+      { label: 'LAST CHANGE', value: '01 Jul 2026', color: T2, sub: 'target weights v3 to v4' },
+      { label: 'WEIGHT SET', value: 'v4', color: T2, sub: '10 active instruments' },
+      { label: 'STATIC IP', value: 'not mapped', color: RD, sub: 'no order is accepted without it' },
+      { label: 'SECRETS', value: 'AWS SM', color: GR, sub: 'fetched at boot by the instance role' }
+    ];
+
+    var investment = [
+      { label: 'slice size', note: 'one order per tick for this many shares', value: '1 share', color: T1, rule: RULE },
+      { label: 'max price per share', note: 'excludes anything dearer from the universe', value: '₹5,000', color: T1, rule: RULE },
+      { label: 'split across several names', note: 'one instrument per day when off', value: 'off', color: T4, rule: RULE },
+      { label: 'lumpsum handling', note: 'credited to carry, spent as prices allow, from the next tradesheet', value: 'to carry', color: T1, rule: '0' }
+    ];
+
+    var clock = [
+      { label: 'tradesheet time', note: 'rank, select, size the day', value: '09:45', color: T1, rule: RULE },
+      { label: 'tick interval', note: 'place and reprice cadence', value: '5 min', color: T1, rule: RULE },
+      { label: 'ladder steps', note: 'ticks to travel from bid to ask', value: '48', color: T1, rule: RULE },
+      { label: 'market fallback', note: 'cancel residual, buy at market', value: '15:00', color: T1, rule: RULE },
+      { label: 'end of day', note: 'reconcile, settle carry, close the row', value: '15:45', color: T1, rule: '0' }
+    ];
+
+    var broker = [
+      { label: 'static IP', note: 'mapped to the API key — the one requirement for placing orders', value: 'not mapped', color: RD },
+      { label: 'API key', note: 'AWS Secrets Manager, never on disk', value: 'kite/api_key', color: T2 },
+      { label: 'postback URL', note: 'checksum verified, session exempt', value: '/kite/postback', color: T2 }
+    ];
+
+    var tax = [
+      { label: 'long-term threshold', note: 'holding period to qualify', value: '12 months', color: T1, rule: RULE },
+      { label: 'LTCG rate', note: 'applied above the exemption', value: '12.5%', color: T1, rule: RULE },
+      { label: 'LTCG exemption', note: 'per financial year', value: '₹1,25,000', color: T1, rule: RULE },
+      { label: 'STCG rate', note: 'no exemption', value: '20%', color: T1, rule: RULE },
+      { label: 'STT in cost basis', note: 'excluded under the s.48 proviso', value: 'excluded', color: T2, rule: '0' }
+    ];
+
+    var holidays = [
+      { date: '02 Oct', name: 'Gandhi Jayanti', color: T2 },
+      { date: '20 Oct', name: 'Diwali', color: T2 },
+      { date: '21 Oct', name: 'Balipratipada', color: T2 },
+      { date: '05 Nov', name: 'Guru Nanak', color: T2 },
+      { date: '25 Dec', name: 'Christmas', color: T2 },
+      { date: '26 Jan', name: 'Republic Day', color: T2 }
+    ];
+
+    var alertChips = [
+      'no session at 09:00', 'order rejected', 'day ended unfilled',
+      'ticker disconnected', 'holdings divergence', 'unhandled task exception'
+    ];
+
+    var history = [
+      ['22 Sep 2026', 'operator', 'lumpsum_policy', 'not configured', 'credit to carry, immediate', GR, 'cfg-4301'],
+      ['01 Jul 2026', 'operator', 'target_weights', 'v3', 'v4 · TITAN 7.00 to 8.00', a, 'cfg-4188'],
+      ['14 Jun 2026', 'operator', 'daily_amount', '₹2,500.00', '₹2,600.00', a, 'cfg-4021'],
+      ['02 Apr 2026', 'operator', 'tax_config', 'FY 2025-26', 'FY 2026-27 · LTCG 12.5%', a, 'cfg-3877'],
+      ['18 Feb 2026', 'operator', 'ladder_steps', '24', '48', a, 'cfg-3610'],
+      ['09 Jan 2026', 'operator', 'max_price_per_share', '₹4,000.00', '₹5,000.00', a, 'cfg-3402'],
+      ['21 Nov 2025', 'operator', 'slice_size', 'full residual', '1 share per tick', GR, 'cfg-3155'],
+      ['05 Nov 2025', 'operator', 'instrument.HINDUNILVR', 'active', 'retired', RD, 'cfg-3098']
+    ].map(function (h, i) {
+      return { date: h[0], actor: h[1], setting: h[2], before: h[3], after: h[4], color: h[5], trace: h[6], bg: i % 2 === 0 ? 'transparent' : '#16181C' };
+    });
+
+    return {
+      a: a, nav: nav, kpis: kpis, investment: investment, clock: clock, broker: broker,
+      tax: tax, holidays: holidays, alertChips: alertChips, history: history,
+      amount: '₹' + amount.toLocaleString('en-IN'),
+      amtColor: edited ? a : T1,
+      amtInc: function () { self.setState({ amount: amount + 100 }); },
+      amtDec: function () { self.setState({ amount: Math.max(100, amount - 100) }); },
+      dryLabel: dry ? 'DRY RUN ON · no live orders' : 'DRY RUN OFF · orders are live',
+      dryColor: dry ? a : RD,
+      dryBg: dry ? '#251F12' : '#1A1D22',
+      dryBorder: dry ? '#4A3A1C' : '#2B2F36',
+      dryDot: dry ? a : '#4A4E55',
+      dryJustify: dry ? 'flex-end' : 'flex-start',
+      toggleDry: function () { self.setState({ dry: !dry }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

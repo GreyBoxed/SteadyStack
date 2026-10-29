@@ -1,0 +1,75 @@
+{% extends "phone/base.html" %}
+{% comment %}
+Password, then code -- as two steps on the screen and one submission to the
+server. The server never checks a password on its own, so this page cannot be
+used to find out whether a password is right without also having the code;
+the same form, throttle and audit as the desk's sign-in stand behind it.
+
+The authenticator is on this same phone, so you leave the browser mid-form to
+fetch the code. The fields stay in the page while you do; if the phone
+reclaims the tab anyway, the username and the step come back and the
+password, deliberately, does not.
+{% endcomment %}
+{% block title %}Sign in — steadystack{% endblock %}
+{% block header %}
+  <div class="pl-2 flex items-baseline gap-2.5">
+    <span class="text-[17px] font-bold tracking-[-0.02em]">SteadyStack</span>
+    <span class="font-mono text-[9.5px] tracking-[0.16em] text-ink-3">DAILY EQUITY ACCUMULATION</span>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <form method="post" id="signin" class="flex flex-col gap-3" {% if form.errors %}data-errors{% endif %}>
+    {% csrf_token %}
+
+    <div class="flex items-center gap-2 font-mono text-[10px] tracking-[0.12em] text-ink-4" aria-hidden="true">
+      <span data-step-mark="1" class="text-accent">1 · PASSWORD</span>
+      <span class="grow h-px bg-line"></span>
+      <span data-step-mark="2">2 · CODE</span>
+    </div>
+
+    <section class="bg-card border border-line rounded-xl p-[18px]">
+      <h1 class="text-[22px]" data-title>Sign in</h1>
+      <p class="text-[13px] text-ink-3 mt-1" data-subtitle>Two factors, and neither one alone will do.</p>
+
+      {% if form.non_field_errors %}
+        <div class="errors text-[12.5px] mt-3">
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          {% if attempts_left is not None %}
+            <p class="font-mono text-[11px] mt-1">{{ attempts_left }} attempt{{ attempts_left|pluralize }} left before a {{ lockout_minutes }}-minute lockout.</p>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <div data-step="1">
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }}
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        {{ form.password }}
+        <button type="button" data-next class="w-full max-w-none h-[52px] mt-4 rounded-lg text-[15px] hidden">Continue</button>
+      </div>
+
+      <div data-step="2">
+        <label for="{{ form.otp_token.id_for_label }}">Code from your authenticator</label>
+        {{ form.otp_token }}
+        <p class="text-[11.5px] text-ink-4 leading-normal mt-2">
+          Six digits, for SteadyStack. Switching apps to fetch it does not cost you the form. A recovery code works here too, and then dies.
+        </p>
+        <button type="submit" class="w-full max-w-none h-[52px] mt-4 rounded-lg text-[15px]">Verify and sign in</button>
+        <button type="button" data-back class="quiet w-full max-w-none h-11 mt-2 rounded-lg text-[13.5px] font-medium hidden">Back</button>
+      </div>
+    </section>
+
+    <ul class="flex flex-col gap-2 px-1 text-[12px] text-ink-3 leading-normal">
+      <li class="flex gap-2.5"><span class="dot dot-good mt-1.5"></span>Nothing about the portfolio shows before you sign in.</li>
+      <li class="flex gap-2.5"><span class="dot dot-good mt-1.5"></span>{{ max_failures }} failures from one address lock it out for {{ lockout_minutes }} minutes.</li>
+      <li class="flex gap-2.5"><span class="dot dot-good mt-1.5"></span>The day trades on its own once authorised — signing in is not what starts it.</li>
+    </ul>
+  </form>
+{% endblock %}
+
+{% block footer %}
+  <footer class="px-4 pb-6 font-mono text-[10.5px]">
+    <a class="text-ink-3 h-11 inline-flex items-center" href="{% url 'phone:switch' %}?to=desktop">Desktop site</a>
+  </footer>
+{% endblock %}

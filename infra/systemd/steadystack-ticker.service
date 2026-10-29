@@ -1,0 +1,50 @@
+[Unit]
+# The environment lives in tmpfs; this unit puts it back after a reboot.
+Requires=steadystack-env.service
+After=steadystack-env.service
+Description=steadystack tick daemon (Kite websocket)
+After=network-online.target postgresql.service
+Wants=network-online.target
+Requires=postgresql.service
+# Never give up restarting. A Postgres restart or a network blip can fail it
+# five times in a minute, and a feed left down is a paper day that cannot
+# fill. The feed writes a pulse every fifteen seconds; /health/ fails when it
+# stops in market hours, and the outside probe alarms on that -- which is the
+# alert, rather than systemd going quiet.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=steadystack
+Group=steadystack
+WorkingDirectory=/opt/steadystack
+# The order lock lives here (ORDER_LOCK_PATH): one file every unit sees,
+# writable by the service user, kept across restarts.
+StateDirectory=steadystack
+EnvironmentFile=/run/steadystack/env
+
+# Long-running and supervised (M29). It reconnects with its own exponential
+# backoff and re-subscribes on a new session, so systemd restarting it is the
+# outer of two loops rather than the only one.
+ExecStart=/opt/steadystack/.venv/bin/python manage.py run_ticker
+
+Restart=always
+# Ten seconds apart, so a daemon that cannot connect at all does not spin. It
+# does not exit for want of a Kite session -- it waits, and reconnects when
+# the day's login changes the token -- so a restart is a genuine crash.
+RestartSec=10
+
+StandardOutput=append:/var/log/steadystack/ticker.log
+StandardError=append:/var/log/steadystack/ticker.log
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/steadystack /run/steadystack
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

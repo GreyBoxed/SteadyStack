@@ -1,0 +1,12 @@
+[Unit]
+Description=steadystack: the 09:00 session check
+
+[Timer]
+# M6: a missing session raises an alert while there is still time to log in.
+OnCalendar=Mon..Fri *-*-* 09:00 Asia/Kolkata
+Persistent=false
+RandomizedDelaySec=30
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

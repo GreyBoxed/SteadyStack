@@ -1,0 +1,285 @@
+{% extends "app.html" %}
+{% block title %}{{ instrument.tradingsymbol }} · {{ day|date:"j M" }} — steadystack{% endblock %}
+{% block page_title %}<a href="{% url 'web:orders' %}?date={{ day|date:'Y-m-d' }}" class="no-underline text-ink-3">Trading</a> <span class="text-ink-4">/</span> {{ instrument.tradingsymbol }}{% endblock %}
+{% block header_extra %}{% include "web/_live_switch.html" %}{% endblock %}
+{% block main_width %}max-w-[1440px]{% endblock %}
+{% block content %}
+{% comment %}
+  One instrument on one day. Everything below is rebuilt from stored rows;
+  the depth ladder is the book a tick stored, which is the book the order was
+  priced against. Charts are inline SVG laid out by web/charts.py.
+{% endcomment %}
+
+  <div class="flex items-center gap-2 flex-wrap mb-4">
+    {% if side %}<span class="tag">{{ side|upper }}{% if is_daily %} · DAILY ACCUMULATION{% endif %}</span>{% endif %}
+    {% for stream in streams %}{% if stream != "daily_buy" %}<span class="tag tag-accent">{{ stream }}</span>{% endif %}{% endfor %}
+    <span class="tag">{{ trace_id }}</span>
+    <span class="font-mono text-[11px] text-ink-3">{{ day|date:"D j M Y" }}</span>
+    {% if sheet %}
+      <a class="font-mono text-[11px] ml-auto" href="{% url 'engine:detail' day|date:'Y-m-d' sheet.version %}">tradesheet v{{ sheet.version }} →</a>
+    {% endif %}
+  </div>
+
+  {% if not orders and not ticks %}
+    <p class="muted">Nothing was placed for {{ instrument.tradingsymbol }} on {{ day|date:"j M Y" }}, and no tick read its book.</p>
+  {% endif %}
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-3 mb-5">
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">FILLED / TARGET</div>
+      <div class="text-[19px] mt-1.5">{{ filled }} <span class="text-ink-3 text-[14px]">/ {{ target }}</span>
+        {% if open_count %}<span class="font-mono text-[11px] text-accent ml-1">{{ open_count }} open</span>{% endif %}</div>
+      <div class="h-1 rounded bg-line mt-2 overflow-hidden" role="img" aria-label="{{ fill_pct }}% filled">
+        <div class="h-full bg-good" style="width: {{ fill_pct }}%"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">OPEN ORDERS</div>
+      <div class="text-[19px] mt-1.5">{{ open_count }}
+        {% if open_prices %}<span class="text-ink-3 text-[14px]">@ {% for p in open_prices %}{{ p|floatformat:2 }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>{% endif %}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{% if open_count %}₹{{ committed_value|floatformat:2 }} still committed{% else %}nothing resting{% endif %}</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">LAST TRADED</div>
+      <div class="text-[19px] mt-1.5">{% if last_price is not None %}{{ last_price|floatformat:2 }}{% else %}—{% endif %}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{% if price_source == "live" %}live{% elif price_source %}{{ price_source }} — feed unavailable{% else %}no price{% endif %}</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">AVG PRICE</div>
+      <div class="text-[19px] mt-1.5">{% if avg_price is not None %}{{ avg_price|floatformat:2 }}{% else %}—{% endif %}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{% if vs_avg is not None %}{% if vs_avg >= 0 %}+{% endif %}{{ vs_avg|floatformat:2 }} vs last{% else %}no fill yet{% endif %}</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">MARKET VWAP</div>
+      <div class="text-[19px] mt-1.5">{% if market_vwap is not None %}{{ market_vwap|floatformat:2 }}{% else %}—{% endif %}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{% if market_vwap is not None %}the day's, as the latest round read it{% else %}no round has read one{% endif %}</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">DEPLOYED</div>
+      <div class="text-[19px] mt-1.5">₹{{ gross|floatformat:2 }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">charges ₹{{ charges|floatformat:2 }}</div>
+    </div>
+  </div>
+
+  <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <div class="min-w-0">
+
+      <section class="card">
+        <div class="flex items-center gap-4 flex-wrap font-mono text-[10px] tracking-[0.1em] text-ink-3 mb-2">
+          <span>EVERY ORDER, FROM PLACEMENT TO FILL</span>
+          <span class="flex items-center gap-1.5"><span class="inline-block w-4 h-[2px] bg-ink-2"></span>mid price</span>
+          <span class="flex items-center gap-1.5"><span class="inline-block w-4 border-t-2 border-dashed border-accent"></span>resting</span>
+          <span class="flex items-center gap-1.5"><span class="inline-block w-4 h-[3px] bg-[#6E8F7E]"></span>filled</span>
+          <span class="flex items-center gap-1.5"><span class="dot dot-good"></span>fill</span>
+        </div>
+        {% if chart.empty %}
+          <p class="muted text-[13px]">No order and no priced tick to draw.</p>
+        {% else %}
+          <svg viewBox="0 0 {{ chart.width }} {{ chart.height }}" class="w-full h-auto" role="img"
+               aria-label="{{ orders|length }} orders for {{ instrument.tradingsymbol }} drawn as bars at their limit prices from placement to fill or cancellation, over the mid price each tick read.">
+            {% if chart.now_x %}<rect x="{{ chart.now_x }}" y="{{ chart.top }}" width="{{ chart.future_w }}" height="{{ chart.bottom|add:"-12" }}" fill="#FFFFFF" opacity="0.022"/>{% endif %}
+            {% for g in chart.grid %}
+              <line x1="{{ chart.left }}" y1="{{ g.y }}" x2="{{ chart.right }}" y2="{{ g.y }}" stroke="#23262B" stroke-width="1"/>
+              <text x="{{ chart.left|add:"-8" }}" y="{{ g.ty }}" text-anchor="end" fill="#8F8C85" font-family="IBM Plex Mono, monospace" font-size="10">{{ g.label }}</text>
+            {% endfor %}
+            {% if chart.fallback_x %}
+              <line x1="{{ chart.fallback_x }}" y1="{{ chart.top }}" x2="{{ chart.fallback_x }}" y2="{{ chart.bottom }}" stroke="#F06A52" stroke-width="1" stroke-dasharray="3 4" opacity="0.7"/>
+              <text x="{{ chart.fallback_x }}" y="{{ chart.top|add:"10" }}" dx="-6" text-anchor="end" fill="#F06A52" font-family="IBM Plex Mono, monospace" font-size="9.5">{{ chart.fallback_at|time:"H:i" }} CANCEL OPEN, MARKET FOR RESIDUAL</text>
+            {% endif %}
+            {% if chart.mid %}<path d="{{ chart.mid }}" fill="none" stroke="#B4B0A8" stroke-width="1.4" stroke-linejoin="round"/>{% endif %}
+            {% for b in chart.bars %}
+              <line x1="{{ b.x1 }}" y1="{{ b.y }}" x2="{{ b.x2 }}" y2="{{ b.y }}" stroke-width="3" stroke-linecap="round"
+                    {% if b.state == "open" %}stroke="#F0A640" stroke-dasharray="6 3"{% elif b.state == "complete" %}stroke="#6E8F7E"{% else %}stroke="#4A4E55"{% endif %}/>
+              <text x="{{ b.lx }}" y="{{ b.ly }}" font-family="IBM Plex Mono, monospace" font-size="9"
+                    fill="{% if b.state == 'open' %}#F0A640{% elif b.state == 'complete' %}#6E8F7E{% else %}#83807A{% endif %}">{{ b.label }}</text>
+            {% endfor %}
+            {% for f in chart.fills %}
+              <circle cx="{{ f.x }}" cy="{{ f.y }}" r="4.5" fill="#46C88A" stroke="#131518" stroke-width="1.5"/>
+            {% endfor %}
+            {% if chart.now_x %}
+              <line x1="{{ chart.now_x }}" y1="{{ chart.top }}" x2="{{ chart.now_x }}" y2="{{ chart.bottom }}" stroke="#E9E7E2" stroke-width="1" opacity="0.5"/>
+              <text x="{{ chart.now_x }}" dx="6" y="{{ chart.bottom|add:"-4" }}" fill="#E9E7E2" font-family="IBM Plex Mono, monospace" font-size="9.5" opacity="0.75">NOW</text>
+            {% endif %}
+            {% for x in chart.x_labels %}
+              <text x="{{ x.x }}" y="{{ chart.bottom|add:"20" }}" text-anchor="middle" fill="#8F8C85" font-family="IBM Plex Mono, monospace" font-size="10">{{ x.label }}</text>
+            {% endfor %}
+          </svg>
+        {% endif %}
+      </section>
+
+      <section class="mt-5">
+        <nav class="flex items-center gap-1 flex-wrap border-b border-line pb-2" aria-label="Views of the day" data-keep-scroll>
+          {% with base=request.path %}
+            <a href="{{ base }}?tab=orders{% if pinned is not None %}&tick={{ pinned }}{% endif %}" class="px-3 h-7 flex items-center rounded no-underline text-[12.5px] {% if tab == 'orders' %}bg-[#22262C] text-ink{% else %}text-ink-3 hover:text-ink-2{% endif %}" {% if tab == 'orders' %}aria-current="page"{% endif %}>Orders · {{ orders|length }}</a>
+            <a href="{{ base }}?tab=ticks{% if pinned is not None %}&tick={{ pinned }}{% endif %}" class="px-3 h-7 flex items-center rounded no-underline text-[12.5px] {% if tab == 'ticks' %}bg-[#22262C] text-ink{% else %}text-ink-3 hover:text-ink-2{% endif %}" {% if tab == 'ticks' %}aria-current="page"{% endif %}>By tick · {{ ticks|length }}</a>
+            <a href="{{ base }}?tab=fills{% if pinned is not None %}&tick={{ pinned }}{% endif %}" class="px-3 h-7 flex items-center rounded no-underline text-[12.5px] {% if tab == 'fills' %}bg-[#22262C] text-ink{% else %}text-ink-3 hover:text-ink-2{% endif %}" {% if tab == 'fills' %}aria-current="page"{% endif %}>Fills · {{ fills|length }}</a>
+            <a href="{{ base }}?tab=calls{% if pinned is not None %}&tick={{ pinned }}{% endif %}" class="px-3 h-7 flex items-center rounded no-underline text-[12.5px] {% if tab == 'calls' %}bg-[#22262C] text-ink{% else %}text-ink-3 hover:text-ink-2{% endif %}" {% if tab == 'calls' %}aria-current="page"{% endif %}>Broker calls · {{ calls|length }}</a>
+          {% endwith %}
+          <span class="ml-auto font-mono text-[11px] text-ink-3">
+            {% if target %}{{ slice.placed }} order{{ slice.placed|pluralize }} for {{ target }} share{{ target|pluralize }}{% if slice.by_tick is not None %}, last at tick {{ slice.by_tick }}{% endif %}{% endif %}
+          </span>
+        </nav>
+
+        <div class="overflow-x-auto">
+        {% if tab == "orders" %}
+          <table class="text-[13px] whitespace-nowrap">
+            <thead><tr><th>Tick</th><th>Broker order id</th><th>Placed</th><th>Limit</th><th>Qty</th><th>Filled</th>
+                       <th>State</th><th>Age</th><th>vs last</th><th>Filled at</th><th>Price</th></tr></thead>
+            <tbody>
+              {% for row in orders %}
+                {% ifchanged row.open %}
+                  <tr><th colspan="11" class="font-mono text-[9.5px] tracking-[0.1em] {% if row.open %}text-accent{% else %}text-ink-3{% endif %}">
+                    {% if row.open %}OPEN · {{ open_count }} · ₹{{ committed_value|floatformat:2 }} COMMITTED{% else %}DONE{% if avg_price %} · AVG {{ avg_price|floatformat:2 }}{% endif %}{% endif %}
+                  </th></tr>
+                {% endifchanged %}
+                <tr {% if row.open %}class="shadow-[inset_2px_0_0_var(--color-accent)]"{% endif %}>
+                  <td>{{ row.order.tick_no }}</td>
+                  <td class="font-mono text-[12px] whitespace-nowrap">{{ row.order.kite_order_id|default:row.order.tag }}{% if row.order.is_paper %} <span class="text-ink-4 text-[10px]">PAPER</span>{% endif %}</td>
+                  <td class="font-mono text-[12px]">{{ row.order.placed_at|time:"H:i:s" }}</td>
+                  <td class="{% if row.open %}text-accent{% endif %}">{% if row.order.limit_price %}{{ row.order.limit_price|floatformat:2 }}{% else %}market{% endif %}</td>
+                  <td>{{ row.order.quantity }}</td>
+                  <td class="{% if row.order.filled_quantity %}text-good{% else %}text-ink-4{% endif %}">{{ row.order.filled_quantity }}</td>
+                  <td><span class="tag {% if row.open %}tag-accent{% elif row.order.state == 'COMPLETE' %}tag-good{% elif row.order.state == 'REJECTED' %}tag-bad{% endif %}">{{ row.order.state }}</span></td>
+                  <td class="font-mono text-[12px]">{% if row.age %}{{ row.order.placed_at|timesince }}{% else %}—{% endif %}</td>
+                  <td class="font-mono text-[12px]">{% if row.vs_last is not None %}{% if row.vs_last >= 0 %}+{% endif %}{{ row.vs_last|floatformat:2 }}{% else %}—{% endif %}</td>
+                  <td class="font-mono text-[12px]">{{ row.filled_at|time:"H:i:s"|default:"—" }}</td>
+                  <td>{% if row.fill_price %}{{ row.fill_price|floatformat:2 }}{% else %}—{% endif %}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="11" class="muted">No order was placed for it this day.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% for row in orders %}{% if row.order.rejection_reason %}
+            <p class="errors text-[12px]">Tick {{ row.order.tick_no }}: {{ row.order.rejection_reason }}</p>
+          {% endif %}{% endfor %}
+
+        {% elif tab == "ticks" %}
+          <table class="text-[13px] whitespace-nowrap">
+            <thead><tr><th>Tick</th><th>Time</th><th>Action</th><th>Order</th><th>Limit</th><th>Bid / ask</th>
+                       <th>Committed</th><th>Result</th><th></th></tr></thead>
+            <tbody>
+              {% for tick in ticks %}
+                <tr class="{% if tick.order_id %}shadow-[inset_2px_0_0_var(--color-good)]{% elif tick.no_place_reason == 'excluded' %}shadow-[inset_2px_0_0_var(--color-bad)]{% endif %}{% if ladder and ladder.tick.pk == tick.pk %} bg-[#1A1D22]{% endif %}"
+                    {% if ladder and ladder.tick.pk == tick.pk %}aria-current="true"{% endif %}>
+                  <td>{{ tick.tick_no }}</td>
+                  <td class="font-mono text-[12px]">{{ tick.fired_at|time:"H:i:s" }}</td>
+                  <td class="font-mono text-[11px] {% if tick.order_id %}text-good{% elif tick.no_place_reason == 'excluded' %}text-bad{% else %}text-ink-4{% endif %}">
+                    {% if tick.order_id %}{% if tick.order.order_type == "MARKET" %}MARKET{% else %}PLACE{% endif %}{% else %}{{ tick.no_place_reason|upper|default:"NOTHING" }}{% endif %}
+                  </td>
+                  <td class="font-mono text-[12px]">{% if tick.order_id %}{{ tick.order.kite_order_id|default:tick.order.tag }}{% else %}—{% endif %}</td>
+                  <td>{% if tick.order.limit_price %}{{ tick.order.limit_price|floatformat:2 }}{% elif tick.order_id %}market{% else %}—{% endif %}</td>
+                  <td class="font-mono text-[12px]">{% if tick.best_bid %}{{ tick.best_bid|floatformat:2 }} / {{ tick.best_ask|floatformat:2 }}{% else %}—{% endif %}</td>
+                  <td>{{ tick.committed_before|add:tick.slice_qty }} / {{ target }}</td>
+                  <td class="text-[13px] whitespace-normal min-w-48 {% if not tick.order_id %}muted{% endif %}">
+                    {% if tick.order_id %}{{ tick.order.state|lower }}{% else %}{{ tick.get_no_place_reason_display }}{% if tick.detail %} ({{ tick.detail }}){% endif %}{% endif %}
+                  </td>
+                  <td>{% if tick.depth_snapshot %}<a class="font-mono text-[11px]" href="?tab=ticks&tick={{ tick.tick_no }}">depth</a>{% endif %}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="9" class="muted">No tick read this instrument's book.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <p class="muted text-[12px]">Every tick writes a row, including the ones that placed nothing, and keeps the book it read.</p>
+
+        {% elif tab == "fills" %}
+          <table>
+            <thead><tr><th>Time</th><th>From order</th><th>Qty</th><th>Price</th><th>Value</th><th>Charges</th><th>Trade id</th><th>Source</th></tr></thead>
+            <tbody>
+              {% for row in fills %}
+                <tr>
+                  <td class="font-mono text-[12px]">{{ row.fill.executed_at|time:"H:i:s" }}</td>
+                  <td class="font-mono text-[12px]">{{ row.order.kite_order_id|default:row.order.tag }}</td>
+                  <td>{{ row.fill.quantity }}</td>
+                  <td>{{ row.fill.price|floatformat:2 }}</td>
+                  <td>₹{{ row.fill.gross|floatformat:2 }}</td>
+                  <td>₹{{ row.fill.charges|floatformat:2 }}</td>
+                  <td class="font-mono text-[12px]">{{ row.fill.kite_trade_id }}</td>
+                  <td class="font-mono text-[11px] text-ink-3">{% if row.order.is_paper %}paper · tick feed{% else %}broker{% endif %}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="8" class="muted">Nothing has filled.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% if fills %}
+            <p class="font-mono text-[12px] text-ink-3">
+              {{ filled }} share{{ filled|pluralize }} · avg price {{ avg_price|floatformat:2 }} · gross ₹{{ gross|floatformat:2 }}
+              · charges ₹{{ charges|floatformat:2 }} · {{ lots }} lot{{ lots|pluralize }} created, one per fill.
+            </p>
+          {% endif %}
+
+        {% elif tab == "calls" %}
+          <table>
+            <thead><tr><th>Time</th><th>Method</th><th>Endpoint</th><th>Status</th><th>Latency</th><th>Bytes</th></tr></thead>
+            <tbody>
+              {% for call in calls %}
+                <tr>
+                  <td class="font-mono text-[12px]">{{ call.at|time:"H:i:s" }}</td>
+                  <td class="font-mono text-[12px] {% if call.method == 'POST' %}text-accent{% else %}text-ink-3{% endif %}">{{ call.method }}</td>
+                  <td class="font-mono text-[12px]">{{ call.endpoint }}</td>
+                  <td>{% if call.ok %}<span class="tag tag-good">ok</span>{% else %}<span class="tag tag-bad" title="{{ call.error }}">failed</span>{% endif %}</td>
+                  <td class="font-mono text-[12px]">{{ call.latency_ms }} ms</td>
+                  <td class="font-mono text-[12px]">{{ call.bytes|filesizeformat }}</td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="6" class="muted">No broker call under {{ trace_id }} touched this instrument. Paper orders are never sent.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <p class="muted text-[12px]">Every broker call is stored with its request and response, credentials redacted before the row is written.</p>
+        {% endif %}
+        </div>
+      </section>
+    </div>
+
+    <aside class="flex flex-col gap-4 min-w-0">
+      <section class="card p-0 overflow-hidden" aria-label="Market depth"
+               {% if live.on %}data-live="{% url 'web:instrument_depth_live' day|date:'Y-m-d' instrument.tradingsymbol %}?tab={{ tab }}" data-live-every="{{ live.every }}"{% endif %}>
+        {% include "web/_depth_live.html" %}
+      </section>
+
+      <section class="card">
+        <div class="font-mono text-[10px] tracking-[0.12em] text-ink-3 mb-2">SLICING AND LADDER</div>
+        <dl class="grid grid-cols-[1fr_auto] gap-y-1.5 text-[13px]">
+          <dt class="text-ink-3">slice floor</dt><dd class="text-right">{{ slice.floor }} share{{ slice.floor|pluralize }} per order</dd>
+          <dt class="text-ink-3">day quantity</dt><dd class="text-right">{{ target }} share{{ target|pluralize }}</dd>
+          <dt class="text-ink-3">orders placed</dt><dd class="text-right {% if slice.placed %}text-good{% endif %}">{{ slice.placed }}{% if slice.by_tick is not None %} · by tick {{ slice.by_tick }}{% endif %}</dd>
+          <dt class="text-ink-3">pays the ask</dt><dd class="text-right text-accent">{{ slice.catch_up }} min behind schedule</dd>
+          <dt class="text-ink-3">stale after</dt><dd class="text-right">{{ slice.ttl }} min unfilled</dd>
+          <dt class="text-ink-3">round interval</dt><dd class="text-right">{{ slice.interval }} s</dd>
+        </dl>
+        <ol class="mt-3 border-t border-line pt-3 flex flex-col gap-1.5">
+          {% for step in timeline %}
+            <li class="flex items-center gap-2.5 text-[12.5px]">
+              <span class="dot {% if step.done %}dot-good{% else %}bg-edge{% endif %}"></span>
+              <span class="font-mono text-[11px] w-11 {% if step.done %}text-ink-2{% else %}text-ink-4{% endif %}">{% if step.at %}{{ step.at|time:"H:i" }}{% else %}—{% endif %}</span>
+              <span class="{% if step.done %}text-ink-2{% else %}text-ink-4{% endif %}">{{ step.label }}</span>
+            </li>
+          {% endfor %}
+        </ol>
+      </section>
+
+      {% if cash %}
+        <section class="card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-mono text-[10px] tracking-[0.12em] text-ink-3">CASH · THIS DAY</span>
+            <span class="tag">APPEND ONLY</span>
+          </div>
+          <dl class="grid grid-cols-[1fr_auto] text-[13px] [&>dd]:text-right [&>*]:py-1.5 [&>*]:border-b [&>*]:border-line-soft">
+            <dt class="text-ink-3">new money</dt><dd>₹{{ cash.new_money|floatformat:2 }}</dd>
+            <dt class="text-ink-3">carry in</dt><dd>₹{{ cash.carry_in|floatformat:2 }}</dd>
+            <dt>available</dt><dd>₹{{ cash.available|floatformat:2 }}</dd>
+            <dt class="text-ink-3">spent · {{ filled }}{% if avg_price %} @ {{ avg_price|floatformat:2 }}{% endif %}</dt><dd class="text-good">−₹{{ cash.spent|floatformat:2 }}</dd>
+            <dt class="text-ink-3">open · {{ open_count }}</dt><dd class="text-accent">−₹{{ cash.open|floatformat:2 }}</dd>
+            <dt class="text-ink-3">charges</dt><dd class="text-ink-4">−₹{{ cash.charges|floatformat:2 }}</dd>
+            <dt>{% if cash.settled %}settled carry out{% else %}projected carry out{% endif %}</dt>
+            <dd>₹{% if cash.settled %}{{ cash.settled.closing_carry|floatformat:2 }}{% else %}{{ cash.projected|floatformat:2 }}{% endif %}</dd>
+          </dl>
+          <p class="text-[11.5px] text-ink-4 mt-2 leading-snug">Carry settles from actual fills at the close, never from the planned price.</p>
+        </section>
+      {% endif %}
+    </aside>
+  </div>
+{% endblock %}

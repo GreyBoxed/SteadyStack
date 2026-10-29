@@ -1,0 +1,118 @@
+{% extends "app.html" %}
+{% block title %}Batch — steadystack{% endblock %}
+{% block page_title %}{{ batch.source_filename|default:"Rebalance batch" }}{% endblock %}
+{% block content %}
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3 mb-5">
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">STATE</div>
+      <div class="text-[20px] mt-1.5">{{ batch.get_state_display }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">{{ batch.uploaded_by }}</div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">ROWS</div>
+      <div class="text-[20px] mt-1.5">{{ rows|length }}</div>
+    </div>
+    <div class="card {% if can_execute %}card-good{% endif %}">
+      <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">CONFIRMATION</div>
+      <div class="text-[20px] mt-1.5">
+        {% if can_execute %}live{% elif batch.token_used_at %}used{% else %}expired{% endif %}
+      </div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">
+        {% if batch.token_expires_at %}until {{ batch.token_expires_at|date:"H:i" }}{% endif %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">SALE PROCEEDS</div>
+      <div class="text-[20px] mt-1.5">{% if batch.reinvest %}Proceeds reinvested{% else %}Proceeds kept out of the engine{% endif %}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">
+        {% if batch.reinvest %}given to the engine when the batch closes; spent the next day{% else %}left in unallocated cash; the engine does not spend them{% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if totals %}
+    <p class="font-mono text-[12px] text-ink-3 mb-2">
+      {{ preview|length }} row{{ preview|length|pluralize }} · {{ totals.shares }} share{{ totals.shares|pluralize }}
+      {% if totals.proceeds %}· about ₹{{ totals.proceeds|floatformat:2 }} at the last price{% endif %}
+      · {{ totals.sold }} sold so far
+    </p>
+  {% endif %}
+  <h2>{% if batch.state == 'draft' %}What executing this would do{% else %}Rows{% endif %}</h2>
+  <div class="overflow-x-auto">
+  <table class="text-[13.5px]">
+    <thead>
+      <tr><th>Symbol</th><th>Requested</th><th>Held</th><th>After</th><th>Last price</th>
+          <th>Est. proceeds</th><th>Lots</th><th>Cost of those lots</th><th>Sold</th><th>Validation</th></tr>
+    </thead>
+    <tbody>
+      {% for row in preview %}
+        <tr>
+          <td>{{ row.symbol }}</td>
+          <td>{{ row.quantity }}</td>
+          <td>{{ row.held }}</td>
+          <td>{{ row.after }}</td>
+          <td>{% if row.price is not None %}₹{{ row.price|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td>{% if row.proceeds is not None %}₹{{ row.proceeds|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td>
+            <details>
+              <summary class="cursor-pointer font-mono text-[12px] text-accent">{{ row.lots|length }} lot{{ row.lots|length|pluralize }}</summary>
+              <ol class="mt-1.5 font-mono text-[11.5px] text-ink-3">
+                {% for lot in row.lots %}
+                  <li>{{ lot.acquired_on|date:"j M Y" }} · {{ lot.take }} of {{ lot.of }} @ ₹{{ lot.cost_per_unit|floatformat:2 }}</li>
+                {% endfor %}
+              </ol>
+            </details>
+          </td>
+          <td>₹{{ row.cost|floatformat:2 }}</td>
+          <td>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-[12px]">{{ row.sold }} / {{ row.quantity }}</span>
+              <span class="h-1 w-16 rounded bg-line overflow-hidden"><span class="block h-1 bg-bad" style="width: {{ row.sold_pct }}%"></span></span>
+            </div>
+          </td>
+          <td><span class="tag tag-good">ok</span></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="10" class="muted">This batch has no rows.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <p class="muted text-[12px]">
+    {% if batch.state == 'draft' %}
+      Lots are consumed oldest first, per fill. These figures are what the lots say
+      today — shown before confirming, not after. Proceeds are at the last price we have;
+      the fills decide the real figure.
+    {% else %}
+      Held and the lots are as they stand now, after what has already sold.
+    {% endif %}
+  </p>
+
+  {% if can_execute %}
+    <h2>Execute</h2>
+    <div class="card card-bad">
+      <p>
+        This places real sell orders across the day's ladder. Fills cannot be
+        undone; a running batch can be cancelled, and what has already filled stands.
+      </p>
+      <form method="post" action="{% url 'rebalance:execute' batch.pk %}" class="mt-3">
+        {% csrf_token %}
+        <input type="hidden" name="token" value="{{ batch.execute_token }}">
+        <button type="submit">Execute this batch</button>
+      </form>
+    </div>
+  {% elif batch.state == 'running' %}
+    <h2>Cancel</h2>
+    <div class="card">
+      <form method="post" action="{% url 'rebalance:cancel' batch.pk %}">
+        {% csrf_token %}
+        <label for="reason">Reason</label>
+        <input type="text" id="reason" name="reason" maxlength="255" required>
+        <button type="submit" class="quiet">Stop placing</button>
+      </form>
+    </div>
+  {% endif %}
+
+  <p class="mt-6"><a href="{% url 'rebalance:index' %}">All batches</a></p>
+{% endblock %}

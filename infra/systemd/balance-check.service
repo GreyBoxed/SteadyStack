@@ -1,0 +1,26 @@
+[Unit]
+# The environment lives in tmpfs; this unit puts it back after a reboot.
+Requires=steadystack-env.service
+After=steadystack-env.service
+Description=steadystack: check Zerodha's funds balance against the books
+After=postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=oneshot
+User=steadystack
+Group=steadystack
+WorkingDirectory=/opt/steadystack
+EnvironmentFile=/run/steadystack/env
+
+# A read that touches no order, so it takes no lock.
+ExecStart=/opt/steadystack/.venv/bin/python manage.py check_balance
+
+StandardOutput=append:/var/log/steadystack/books.log
+StandardError=append:/var/log/steadystack/books.log
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/steadystack /run/steadystack

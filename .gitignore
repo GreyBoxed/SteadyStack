@@ -1,0 +1,122 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ---- Virtual environments ----
+.venv/
+venv/
+ENV/
+env/
+.python-version
+
+# ---- Tooling caches ----
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+.nox/
+.hypothesis/
+
+# ---- Node ----
+# Build-time only. The Tailwind output in src/static/css/app.css IS committed,
+# so deploying needs no Node and no network.
+node_modules/
+
+# ---- Django ----
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+/static_root/
+
+# ---- Secrets & credentials ----
+# Kite API key/secret, TOTP seeds, Django SECRET_KEY, DB passwords.
+# These belong in AWS Secrets Manager, never in the repo.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa
+id_rsa.*
+credentials.json
+secrets.yaml
+secrets.yml
+
+# ---- Terraform ----
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+tfplan
+*.tfplan
+
+# ---- Data uploads ----
+# Rebalance-sell CSVs may carry holdings detail; keep them out of git.
+/uploads/
+*.csv
+!**/fixtures/**/*.csv
+!**/test_data/*.csv
+# Model portfolios are the exception: target weights are public tickers and
+# percentages, with nothing about what is held or what it cost. Tracking them
+# keeps each uploaded version beside the design that argued for it.
+!ops/model-portfolio/*.csv
+# The exchange calendar is published holiday data, and setup loads it.
+!ops/calendar/*.csv
+
+# ---- Editors / IDE ----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.\#*
+\#*\#
+
+# ---- OS ----
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+
+# ---- Markdown ----
+# The machine-global ignore (~/.config/git/ignore) excludes *.md from every
+# repository. In this project docs ARE deliverables — the PRD, the plans and
+# CLAUDE.md must be versioned — so re-include them here. Repo .gitignore takes
+# precedence over core.excludesFile, so this negation wins.
+!*.md

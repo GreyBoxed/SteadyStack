@@ -1,0 +1,31 @@
+[Unit]
+# The environment lives in tmpfs; this unit puts it back after a reboot.
+Requires=steadystack-env.service
+After=steadystack-env.service
+Description=steadystack: nightly pg_dump to S3
+After=postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=oneshot
+User=steadystack
+Group=steadystack
+WorkingDirectory=/opt/steadystack
+EnvironmentFile=/run/steadystack/env
+# The schema owner's URL, which pg_dump needs to read every table. The file is
+# root's; systemd reads it on the unit's behalf, and no other unit has it.
+EnvironmentFile=/run/steadystack/owner.env
+
+# Takes no order lock: it reads the database and touches nothing the ladder
+# cares about. It runs at one in the morning regardless, when the day has
+# settled and nothing is going to write.
+ExecStart=/opt/steadystack/infra/bin/backup.sh
+
+StandardOutput=append:/var/log/steadystack/backup.log
+StandardError=append:/var/log/steadystack/backup.log
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/steadystack /run/steadystack

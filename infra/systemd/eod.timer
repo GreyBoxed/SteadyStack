@@ -1,0 +1,15 @@
+[Unit]
+Description=steadystack: the 15:45 close
+
+[Timer]
+# Not persistent: caught up on a morning boot it would settle *today*, before
+# today is planned (NI3). A day whose box was down at 15:45 is settled by the
+# retry timer that evening, or at the next boot by settle-catchup.service
+# (settle_day --previous --if-unsettled).
+OnCalendar=Mon..Fri *-*-* 15:45 Asia/Kolkata
+Persistent=false
+RandomizedDelaySec=60
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ledger — cash and shares</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #0B0C0E; font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: #F0A640; } a:hover { color: #FFC470; }
+</style>
+</helmet>
+<div style="width: 1512px; height: 1010px; box-sizing: border-box; display: flex; background: #0B0C0E; color: #E9E7E2; overflow: hidden;">
+
+  <nav style="width: 208px; flex-shrink: 0; background: #0E1013; border-right: 1px solid #1E2127; display: flex; flex-direction: column;">
+    <div style="padding: 18px 16px 16px 16px; border-bottom: 1px solid #1E2127;">
+      <div style="font-size: 19px; font-weight: 700; letter-spacing: -0.02em; color: #E9E7E2;">SteadyStack</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; margin-top: 5px;">DAILY EQUITY ACCUMULATION</div>
+    </div>
+    <div style="padding: 12px 10px 0 10px; display: flex; flex-direction: column; gap: 2px;">
+      <sc-for list="{{nav}}" as="item" hint-placeholder-count="10">
+        <a href="{{item.href}}" style="display: flex; align-items: center; height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 13.5px; font-weight: 500; background: {{item.bg}}; color: {{item.fg}}; box-shadow: {{item.bar}};">{{item.label}}</a>
+      </sc-for>
+    </div>
+    <div style="padding: 16px 10px 0 10px; display: flex; flex-direction: column; gap: 1px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; padding: 0 8px 6px 8px;">NOT YET DESIGNED</div>
+      <div style="padding: 7px 12px; font-size: 12.5px; color: #83807A;">Tax lots and gains</div>
+    </div>
+    <div style="margin-top: auto; padding: 14px 16px 16px 16px; border-top: 1px solid #1E2127; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: #46C88A; flex-shrink: 0;"></span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8; letter-spacing: 0.04em;">KITE SESSION OK</span>
+      </div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #8F8C85; line-height: 1.6;">issued 08:41:22<br>expires 06:00 Wed</div>
+    </div>
+  </nav>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 56px; flex-shrink: 0; border-bottom: 1px solid #1E2127; background: #0E1013; display: flex; align-items: center; padding: 0 20px; gap: 14px;">
+      <h1 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Ledger</h1>
+      <div style="display: flex; gap: 4px; margin-left: 4px;">
+        <sc-for list="{{views}}" as="v" hint-placeholder-count="2">
+          <button type="button" onClick="{{v.pick}}" style="height: 44px; padding: 0 14px; border: 0; border-radius: 6px; cursor: pointer; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 500; background: {{v.bg}}; color: {{v.fg}};">{{v.label}}</button>
+        </sc-for>
+      </div>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #46C88A; background: #16251E; border: 1px solid #22392F; border-radius: 4px; padding: 3px 8px;">APPEND ONLY</span>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8F8C85;">{{viewNote}}</span>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 18px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: {{divColor}};">{{divNote}}</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #E9E7E2; font-variant-numeric: tabular-nums;">11:32:18 IST</span>
+      </div>
+    </header>
+
+    <div style="flex-grow: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 0;">
+
+      <section style="height: 112px; flex-shrink: 0; background: #131518; border: 1px solid {{stripBorder}}; border-radius: 8px; display: flex; overflow: hidden; box-shadow: inset 3px 0 0 {{stripBar}};">
+        <sc-for list="{{recon}}" as="r" hint-placeholder-count="5">
+          <div style="flex-grow: 1; box-sizing: border-box; padding: 16px 20px; border-right: 1px solid #1E2127; display: flex; flex-direction: column; justify-content: center; gap: 7px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">{{r.label}}</div>
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8F8C85;">{{r.op}}</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; color: {{r.color}}; font-variant-numeric: tabular-nums;">{{r.value}}</span>
+            </div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{r.sub}}</div>
+          </div>
+        </sc-for>
+      </section>
+
+      <section style="height: 580px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+        <div style="height: 52px; flex-shrink: 0; border-bottom: 1px solid #1E2127; display: flex; align-items: center; padding: 0 16px; gap: 6px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85; margin-right: 10px;">RANGE</span>
+          <sc-for list="{{ranges}}" as="g" hint-placeholder-count="4">
+            <button type="button" onClick="{{g.pick}}" style="height: 44px; padding: 0 13px; border: 0; border-radius: 6px; cursor: pointer; font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; font-weight: 500; background: {{g.bg}}; color: {{g.fg}};">{{g.label}}</button>
+          </sc-for>
+          <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A; margin-right: 12px;">{{rowNote}}</span>
+          <button type="button" style="height: 44px; padding: 0 14px; border: 1px solid {{actionBorder}}; border-radius: 6px; background: {{actionBg}}; color: {{actionFg}}; font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; font-weight: 500; cursor: pointer; margin-right: 8px;">{{actionLabel}}</button>
+          <button type="button" style="height: 44px; padding: 0 14px; border: 1px solid #2B2F36; border-radius: 6px; background: transparent; color: #B4B0A8; font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; cursor: pointer;">Export CSV</button>
+        </div>
+        <sc-if value="{{isCash}}" hint-placeholder-val="{{ true }}">
+          <div style="flex-grow: 1; display: flex; flex-direction: column; min-height: 0;">
+        <div style="display: grid; grid-template-columns: 88px 34px 92px 84px 92px 74px 96px 100px 40px 96px 60px 92px 86px 1fr; height: 28px; align-items: center; padding: 0 16px; border-bottom: 1px solid #1E2127; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; color: #8F8C85;">
+          <span>DATE</span><span></span><span style="text-align: right;">OPEN</span><span style="text-align: right;">DEPOSIT</span><span style="text-align: right;">LUMPSUM</span><span style="text-align: right;">ADJ</span><span style="text-align: right;">AVAILABLE</span><span>SYMBOL</span><span style="text-align: right;">QTY</span><span style="text-align: right;">SPENT</span><span style="text-align: right;">CHG</span><span style="text-align: right;">CLOSE</span><span style="text-align: center;">OUTCOME</span><span style="text-align: right;">TRACE</span>
+        </div>
+        <div style="flex-grow: 1; overflow-y: auto; min-height: 0;">
+          <sc-for list="{{rows}}" as="r" hint-placeholder-count="16">
+            <div style="display: grid; grid-template-columns: 88px 34px 92px 84px 92px 74px 96px 100px 40px 96px 60px 92px 86px 1fr; height: 28px; align-items: center; padding: 0 16px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-variant-numeric: tabular-nums; background: {{r.bg}}; box-shadow: {{r.bar}};">
+              <span style="color: #B4B0A8;">{{r.date}}</span>
+              <span style="color: #83807A; font-size: 10px;">{{r.dow}}</span>
+              <span style="text-align: right; color: #83807A;">{{r.open}}</span>
+              <span style="text-align: right; color: #B4B0A8;">{{r.dep}}</span>
+              <span style="text-align: right; color: {{r.lumpColor}};">{{r.lump}}</span>
+              <span style="text-align: right; color: {{r.adjColor}};">{{r.adj}}</span>
+              <span style="text-align: right; color: #E9E7E2;">{{r.avail}}</span>
+              <span style="font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: {{r.symColor}};">{{r.sym}}</span>
+              <span style="text-align: right; color: #B4B0A8;">{{r.qty}}</span>
+              <span style="text-align: right; color: {{r.spentColor}};">{{r.spent}}</span>
+              <span style="text-align: right; color: #83807A;">{{r.chg}}</span>
+              <span style="text-align: right; color: {{r.closeColor}};">{{r.close}}</span>
+              <span style="text-align: center; color: {{r.color}}; font-size: 9.5px; letter-spacing: 0.06em;">{{r.outcome}}</span>
+              <span style="text-align: right; color: #83807A; font-size: 10px;">{{r.trace}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="height: 36px; flex-shrink: 0; display: grid; grid-template-columns: 88px 34px 92px 84px 92px 74px 96px 100px 40px 96px 60px 92px 86px 1fr; align-items: center; padding: 0 16px; border-top: 1px solid #262A30; background: #16181C; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-variant-numeric: tabular-nums;">
+          <span style="font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: #8F8C85;">Shown</span>
+          <span></span><span></span>
+          <span style="text-align: right; color: #B4B0A8;">{{tDep}}</span>
+          <span style="text-align: right; color: {{a}};">{{tLump}}</span>
+          <span style="text-align: right; color: #F06A52;">{{tAdj}}</span>
+          <span></span><span></span>
+          <span style="text-align: right; color: #B4B0A8;">{{tQty}}</span>
+          <span style="text-align: right; color: #46C88A;">{{tSpent}}</span>
+          <span style="text-align: right; color: #83807A;">{{tChg}}</span>
+          <span></span><span></span><span></span>
+        </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isShares}}" hint-placeholder-val="{{ false }}">
+          <div style="flex-grow: 1; display: flex; flex-direction: column; min-height: 0;">
+            <div style="display: grid; grid-template-columns: 88px 34px 110px 178px 62px 66px 76px 88px 104px 128px 96px 1fr; height: 28px; align-items: center; padding: 0 16px; border-bottom: 1px solid #1E2127; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; color: #8F8C85;">
+              <span>DATE</span><span></span><span>SYMBOL</span><span>SOURCE</span><span style="text-align: right;">IN</span><span style="text-align: right;">OUT</span><span style="text-align: right;">RUNNING</span><span style="text-align: right;">PRICE</span><span style="text-align: right;">VALUE</span><span style="text-align: center;">TAX LOTS</span><span style="text-align: right;">RECORDED</span><span style="text-align: center;">RECONCILED</span>
+            </div>
+            <div style="flex-grow: 1; overflow-y: auto; min-height: 0;">
+              <sc-for list="{{shareRows}}" as="r" hint-placeholder-count="14">
+                <div style="display: grid; grid-template-columns: 88px 34px 110px 178px 62px 66px 76px 88px 104px 128px 96px 1fr; height: 30px; align-items: center; padding: 0 16px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-variant-numeric: tabular-nums; background: {{r.bg}}; box-shadow: {{r.bar}};">
+                  <span style="color: #B4B0A8;">{{r.date}}</span>
+                  <span style="color: #83807A; font-size: 10px;">{{r.dow}}</span>
+                  <span style="font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; color: {{r.symColor}};">{{r.sym}}</span>
+                  <span style="color: {{r.srcColor}}; font-size: 11px;">{{r.source}}</span>
+                  <span style="text-align: right; color: {{r.inColor}};">{{r.qin}}</span>
+                  <span style="text-align: right; color: {{r.outColor}};">{{r.qout}}</span>
+                  <span style="text-align: right; color: #E9E7E2;">{{r.run}}</span>
+                  <span style="text-align: right; color: #B4B0A8;">{{r.price}}</span>
+                  <span style="text-align: right; color: #B4B0A8;">{{r.value}}</span>
+                  <span style="text-align: center; color: {{r.lotColor}}; font-size: 10.5px;">{{r.lots}}</span>
+                  <span style="text-align: right; color: #83807A; font-size: 10.5px;">{{r.recorded}}</span>
+                  <span style="text-align: center; color: {{r.stColor}}; font-size: 9.5px; letter-spacing: 0.06em;">{{r.state}}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="height: 36px; flex-shrink: 0; display: grid; grid-template-columns: 88px 34px 110px 178px 62px 66px 76px 88px 104px 128px 96px 1fr; align-items: center; padding: 0 16px; border-top: 1px solid #262A30; background: #16181C; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-variant-numeric: tabular-nums;">
+              <span style="font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: #8F8C85;">Shown</span>
+              <span></span><span></span><span></span>
+              <span style="text-align: right; color: #46C88A;">{{sIn}}</span>
+              <span style="text-align: right; color: #F06A52;">{{sOut}}</span>
+              <span style="text-align: right; color: #E9E7E2;">{{sNet}}</span>
+              <span></span><span></span>
+              <span style="text-align: center; color: #83807A; font-size: 10.5px;">{{sLots}}</span>
+              <span></span><span></span>
+            </div>
+          </div>
+        </sc-if>
+      </section>
+
+      <div style="flex-grow: 1; display: flex; gap: 16px; min-height: 0;">
+
+        <section style="width: 400px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 14px 16px; display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 11px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">TOTALS</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{rangeLabel}}</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 9px;">
+            <sc-for list="{{totals}}" as="t" hint-placeholder-count="6">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-variant-numeric: tabular-nums; border-top: {{t.rule}}; padding-top: {{t.pad}};">
+                <span style="color: #8F8C85;">{{t.label}}</span>
+                <span style="color: {{t.color}};">{{t.value}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="width: 452px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+          <div style="height: 40px; flex-shrink: 0; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">DAYS THAT NEED A SECOND LOOK</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{excNote}}</span>
+          </div>
+          <div style="flex-grow: 1; overflow-y: auto; min-height: 0;">
+            <sc-for list="{{exceptions}}" as="e" hint-placeholder-count="5">
+              <div style="display: flex; gap: 10px; padding: 9px 16px; border-bottom: 1px solid #191C21; box-shadow: {{e.bar}};">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: {{e.color}}; margin-top: 5px; flex-shrink: 0;"></span>
+                <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+                  <div style="display: flex; align-items: baseline; gap: 9px;">
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #E9E7E2;">{{e.date}}</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; color: {{e.color}};">{{e.kind}}</span>
+                  </div>
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A; line-height: 1.5;">{{e.text}}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="flex-grow: 1; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 14px 16px; display: flex; flex-direction: column;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85; padding-bottom: 11px;">INTEGRITY</div>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <sc-for list="{{integrity}}" as="i" hint-placeholder-count="5">
+              <div style="display: flex; align-items: center; gap: 9px;">
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: {{i.color}}; flex-shrink: 0;"></span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8; flex-grow: 1;">{{i.label}}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: {{i.color}};">{{i.value}}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A; line-height: 1.6;">a correction is a new row, never an edit — the ledger only grows</div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0A640","options":["#F0A640","#46C88A","#6FA8DC","#D97757"]},"$preview":{"width":1512,"height":1010}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { range: '30d', view: 'cash' };
+  }
+
+  renderVals() {
+    var self = this;
+    var a = this.props.accent || '#F0A640';
+    var GR = '#46C88A', RD = '#F06A52', T1 = '#E9E7E2', T2 = '#B4B0A8', T3 = '#8F8C85', T4 = '#83807A';
+    var range = (this.state && this.state.range) || '30d';
+    var view = (this.state && this.state.view) || 'cash';
+    var isCash = view === 'cash';
+    var views = [
+      { key: 'cash', label: 'Cash' },
+      { key: 'shares', label: 'Shares' }
+    ].map(function (v) {
+      return {
+        label: v.label,
+        bg: view === v.key ? '#22262C' : 'transparent',
+        fg: view === v.key ? T1 : T3,
+        pick: function () { self.setState({ view: v.key }); }
+      };
+    });
+
+    var nav = [
+      ['Today.dc.html', 'Today', false],
+      ['Tradesheet.dc.html', 'Tradesheet', false],
+      ['Main.dc.html', 'Trading', false],
+      ['Holdings.dc.html', 'Holdings', false],
+      ['Performance.dc.html', 'Performance', false],
+      ['Ledger.dc.html', 'Cash ledger', true],
+      ['DayDetail.dc.html', 'Day detail', false],
+      ['Rebalance.dc.html', 'Rebalance sell', false],
+      ['Model.dc.html', 'Model portfolio', false],
+      ['Config.dc.html', 'Configuration', false]
+    ].map(function (n) {
+      return { href: n[0], label: n[1], bg: n[2] ? '#1A1D22' : 'transparent', fg: n[2] ? T1 : T3, bar: n[2] ? 'inset 2px 0 0 ' + a : 'none' };
+    });
+
+    var money = function (v) {
+      if (v === null) { return '—'; }
+      var s = Math.abs(v).toFixed(2).split('.');
+      var x = s[0], l3 = x.length > 3 ? x.slice(-3) : x, rest = x.length > 3 ? x.slice(0, -3) : '';
+      if (rest) { l3 = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + ',' + l3; }
+      return (v < 0 ? '−' : '') + l3 + '.' + s[1];
+    };
+
+    var cashRecon = [
+      { label: 'CONTRIBUTED', op: '', value: '₹9,88,600.00', color: T1, sub: '361 daily deposits + 1 lumpsum' },
+      { label: 'DEPLOYED', op: '−', value: '₹9,37,494.20', color: T2, sub: 'cost of every share bought' },
+      { label: 'CASH HELD', op: '−', value: '₹51,105.80', color: a, sub: 'carry ₹1,105.80 + lumpsum ₹50,000' },
+      { label: 'RECONCILES TO', op: '=', value: '₹0.00', color: GR, sub: 'every rupee traces to a day and an order' },
+      { label: 'ADJUSTMENTS', op: '', value: '−₹12.40', color: RD, sub: '1 day over-filled at market, 07 Sep' }
+    ];
+
+    var RAW = [
+      ['22 Sep', 'Tue', 650.90, 2600.00, 50000.00, null, 'ITC', '5 / 7', 2145.10, 2.53, null, 'RUNNING'],
+      ['21 Sep', 'Mon', 312.45, 2600.00, null, null, 'ITC', '5', 2261.55, 2.67, 650.90, 'FILLED'],
+      ['18 Sep', 'Fri', 1846.20, 2600.00, null, null, 'ICICIBANK', '3', 4133.75, 4.88, 312.45, 'FILLED'],
+      ['17 Sep', 'Thu', 98.60, 2600.00, null, null, 'ITC', '2', 852.40, 1.01, 1846.20, 'PARTIAL'],
+      ['16 Sep', 'Wed', 1502.35, 2600.00, null, null, 'RELIANCE', '2', 4003.75, 4.72, 98.60, 'FILLED'],
+      ['15 Sep', 'Tue', 405.80, 2600.00, null, null, 'ITC', '3', 1503.45, 1.77, 1502.35, 'PARTIAL'],
+      ['14 Sep', 'Mon', 2878.15, 2600.00, null, null, 'HDFCBANK', '3', 5072.35, 5.99, 405.80, 'FILLED'],
+      ['11 Sep', 'Fri', 278.15, 2600.00, null, null, 'TITAN', '0', 0, 0, 2878.15, 'UNFILLED'],
+      ['10 Sep', 'Thu', 1912.40, 2600.00, null, null, 'ICICIBANK', '3', 4234.25, 5.00, 278.15, 'FILLED'],
+      ['09 Sep', 'Wed', 1246.75, 2600.00, null, null, 'INFY', '1', 1934.35, 2.28, 1912.40, 'FILLED'],
+      ['08 Sep', 'Tue', 0, 2600.00, null, -12.40, 'ICICIBANK', '1', 1340.85, 1.58, 1246.75, 'FILLED'],
+      ['07 Sep', 'Mon', 1318.75, 2600.00, null, null, 'LT', '1', 3931.15, 4.64, 0, 'MARKET'],
+      ['04 Sep', 'Fri', 2845.60, 2600.00, null, null, 'ITC', '9', 4126.85, 4.87, 1318.75, 'FILLED'],
+      ['03 Sep', 'Thu', 245.60, 2600.00, null, null, 'LT', '0', 0, 0, 2845.60, 'UNFILLED'],
+      ['02 Sep', 'Wed', 1249.35, 2600.00, null, null, 'TCS', '1', 3603.75, 4.25, 245.60, 'FILLED'],
+      ['01 Sep', 'Tue', 2301.90, 2600.00, null, null, 'TITAN', '1', 3652.55, 4.31, 1249.35, 'FILLED']
+    ];
+
+    var rows = RAW.map(function (r, i) {
+      var avail = r[2] + r[3] + (r[4] || 0) + (r[5] || 0);
+      var running = r[11] === 'RUNNING';
+      var over = r[11] === 'MARKET';
+      var colors = { FILLED: GR, PARTIAL: a, UNFILLED: RD, MARKET: RD, RUNNING: a };
+      return {
+        date: r[0], dow: r[1],
+        open: money(r[2]), dep: money(r[3]),
+        lump: r[4] ? '+' + money(r[4]) : '—',
+        lumpColor: r[4] ? a : '#5E5B56',
+        adj: r[5] ? money(r[5]) : '—',
+        adjColor: r[5] ? RD : '#5E5B56',
+        avail: money(avail),
+        sym: r[6], symColor: r[8] ? T1 : T4,
+        qty: r[7],
+        spent: r[8] ? money(r[8]) : '0.00',
+        spentColor: r[8] ? T2 : T4,
+        chg: r[9] ? r[9].toFixed(2) : '—',
+        close: r[10] === null ? '—' : money(r[10]),
+        closeColor: r[10] === 0 ? RD : T1,
+        outcome: r[11], color: colors[r[11]] || T2,
+        trace: 'ts-2026-' + (r[0].indexOf('Sep') > -1 ? '09' : '09') + '-' + r[0].slice(0, 2),
+        bg: running ? '#1A1812' : (over ? '#1E1517' : (i % 2 === 0 ? 'transparent' : '#16181C')),
+        bar: running ? 'inset 2px 0 0 ' + a : (over ? 'inset 2px 0 0 ' + RD : 'none')
+      };
+    });
+
+    var tDepV = 0, tSpentV = 0, tChgV = 0, tQtyV = 0;
+    RAW.forEach(function (r) {
+      tDepV += r[3]; tSpentV += r[8]; tChgV += r[9];
+      var q = parseInt(r[7], 10); tQtyV += isNaN(q) ? 0 : q;
+    });
+
+    var RANGES = { '30d': ['Last 30 days', 16, 41600, 50000, -12.40, 40756.10, 48.10],
+                   '90d': ['Last 90 days', 62, 161200, 50000, -37.95, 158884.40, 187.48],
+                   'fy': ['FY 2026-27', 118, 306800, 50000, -61.20, 302914.75, 357.44],
+                   'all': ['All · since 01 Apr 2025', 361, 938600, 50000, -184.35, 937494.20, 1106.24] };
+    var R = RANGES[range];
+
+    var ranges = [
+      { key: '30d', label: '30d' }, { key: '90d', label: '90d' },
+      { key: 'fy', label: 'FY 26-27' }, { key: 'all', label: 'All' }
+    ].map(function (g) {
+      return {
+        label: g.label,
+        bg: range === g.key ? '#22262C' : 'transparent',
+        fg: range === g.key ? T1 : T3,
+        pick: function () { self.setState({ range: g.key }); }
+      };
+    });
+
+    var cashTotals = [
+      { label: 'daily deposits', value: '₹' + money(R[2]), color: T2, rule: '0', pad: '0' },
+      { label: 'lumpsums', value: R[3] ? '+₹' + money(R[3]) : '₹0.00', color: R[3] ? a : T4, rule: '0', pad: '0' },
+      { label: 'adjustments', value: '₹' + money(R[4]), color: RD, rule: '0', pad: '0' },
+      { label: 'cash in', value: '₹' + money(R[2] + R[3] + R[4]), color: T1, rule: '1px solid #1E2127', pad: '9px' },
+      { label: 'deployed into shares', value: '−₹' + money(R[5]), color: GR, rule: '0', pad: '0' },
+      { label: 'charges, of which basis-eligible', value: '₹' + money(R[6]), color: T4, rule: '0', pad: '0' },
+      { label: 'net change in carry', value: '₹' + money(R[2] + R[3] + R[4] - R[5]), color: a, rule: '1px solid #1E2127', pad: '9px' }
+    ];
+
+    var cashExceptions = [
+      { date: '07 Sep 2026', kind: 'OVER-FILLED', color: RD, text: 'market fallback filled LT at 3,931.15 against 3,918.75 available. Carry floored at zero and −₹12.40 charged to 08 Sep, logged at warning level.', bar: 'inset 3px 0 0 ' + RD },
+      { date: '11 Sep 2026', kind: 'UNFILLED', color: RD, text: 'TITAN never traded through the resting limits. Full ₹2,878.15 carried forward.', bar: 'none' },
+      { date: '03 Sep 2026', kind: 'UNFILLED', color: RD, text: 'LT priced above available cash all day. Nothing placed, ₹2,845.60 carried.', bar: 'none' },
+      { date: '17 Sep 2026', kind: 'PARTIAL', color: a, text: '1 of 2 shares filled. Carry reflects only what was spent, not what was planned.', bar: 'none' },
+      { date: '15 Sep 2026', kind: 'PARTIAL', color: a, text: '2 of 3 shares filled before the 15:00 fallback. Residual abandoned at close.', bar: 'none' },
+      { date: '22 Sep 2026', kind: 'LUMPSUM', color: a, text: '₹50,000 credited at 11:28 by operator. Joins carry; first usable by the 23 Sep tradesheet.', bar: 'inset 3px 0 0 ' + a }
+    ];
+
+    var cashIntegrity = [
+      { label: 'rows since 01 Apr 2025', value: '361', color: T2 },
+      { label: 'rows ever updated', value: '0', color: GR },
+      { label: 'days with no ledger row', value: '0', color: GR },
+      { label: 'carry chain breaks', value: '0', color: GR },
+      { label: 'last full reconciliation', value: 'Mon 15:45', color: GR }
+    ];
+
+    var shareRecon = [
+      { label: 'OPENING', op: '', value: '0', color: T2, sub: 'portfolio started 01 Apr 2025' },
+      { label: 'QUANTITY IN', op: '+', value: '673', color: GR, sub: '652 engine · 5 external · 16 bonus' },
+      { label: 'QUANTITY OUT', op: '−', value: '50', color: RD, sub: '48 rebalance · 2 external' },
+      { label: 'SYSTEM HOLDS', op: '=', value: '623', color: T1, sub: 'across 10 instruments' },
+      { label: 'KITE HOLDS', op: '', value: '622', color: RD, sub: '−1 ITC unexplained since 19 Sep' }
+    ];
+
+    var SRAW = [
+      ['22 Sep', 'Tue', 'ITC', 'engine buy', 5, 0, '185', 429.02, 2145.10, '+5 lots', 'auto', 'PENDING EOD'],
+      ['22 Sep', 'Tue', 'ASIANPAINT', 'rebalance sell', 0, 12, '23', 2471.35, 29656.20, '−12 FIFO', 'auto', 'PENDING EOD'],
+      ['22 Sep', 'Tue', 'TCS', 'rebalance sell', 0, 3, '27', 3601.70, 10805.10, '−3 FIFO', 'auto', 'PENDING EOD'],
+      ['19 Sep', 'Fri', 'ITC', 'divergence vs Kite', 0, 0, '180 / 179', null, null, 'none', '—', 'UNRESOLVED'],
+      ['18 Sep', 'Fri', 'ICICIBANK', 'engine buy', 3, 0, '75', 1377.92, 4133.75, '+3 lots', 'auto', 'RECONCILED'],
+      ['16 Sep', 'Wed', 'RELIANCE', 'engine buy', 2, 0, '85', 2001.88, 4003.75, '+2 lots', 'auto', 'RECONCILED'],
+      ['15 Sep', 'Tue', 'ITC', 'engine buy', 3, 0, '180', 501.15, 1503.45, '+3 lots', 'auto', 'RECONCILED'],
+      ['14 Sep', 'Mon', 'HDFCBANK', 'engine buy', 3, 0, '82', 1690.78, 5072.35, '+3 lots', 'auto', 'RECONCILED'],
+      ['10 Sep', 'Thu', 'TITAN', 'external buy · Kite', 5, 0, '20', 3502.40, 17512.00, '+5 lots', '14 Sep', 'RECONCILED'],
+      ['09 Sep', 'Wed', 'INFY', 'engine buy', 1, 0, '65', 1934.35, 1934.35, '+1 lot', 'auto', 'RECONCILED'],
+      ['04 Sep', 'Fri', 'SUNPHARMA', 'external sell · Kite', 0, 2, '45', 1788.20, 3576.40, '−2 FIFO', '08 Sep', 'RECONCILED'],
+      ['02 Sep', 'Wed', 'TCS', 'engine buy', 1, 0, '30', 3603.75, 3603.75, '+1 lot', 'auto', 'RECONCILED'],
+      ['25 Aug', 'Tue', 'ITC', 'bonus issue 1:10', 16, 0, '177', null, null, '+16 at ₹0', '26 Aug', 'ADJUSTED'],
+      ['21 Aug', 'Fri', 'ASIANPAINT', 'rebalance sell', 0, 8, '35', 2448.60, 19588.80, '−8 FIFO', 'auto', 'RECONCILED']
+    ];
+
+    var sInV = 0, sOutV = 0;
+    var shareRows = SRAW.map(function (r, i) {
+      sInV += r[4]; sOutV += r[5];
+      var ext = r[3].indexOf('external') === 0;
+      var bad = r[11] === 'UNRESOLVED';
+      var corp = r[3].indexOf('bonus') === 0;
+      var srcColor = bad ? RD : (ext ? a : (corp ? '#6FA8DC' : T3));
+      var stColors = { RECONCILED: GR, 'PENDING EOD': T4, UNRESOLVED: RD, ADJUSTED: '#6FA8DC' };
+      return {
+        date: r[0], dow: r[1], sym: r[2],
+        symColor: bad ? RD : T1,
+        source: r[3], srcColor: srcColor,
+        qin: r[4] ? '+' + r[4] : '—', inColor: r[4] ? GR : '#5E5B56',
+        qout: bad ? '1 ?' : (r[5] ? '−' + r[5] : '—'),
+        outColor: bad ? RD : (r[5] ? RD : '#5E5B56'),
+        run: r[6],
+        price: r[7] === null ? '—' : money(r[7]),
+        value: r[8] === null ? '—' : money(r[8]),
+        lots: r[9], lotColor: r[9] === 'none' ? RD : T2,
+        recorded: r[10],
+        state: r[11], stColor: stColors[r[11]] || T2,
+        bg: bad ? '#1E1517' : (ext || corp ? '#1A1812' : (i % 2 === 0 ? 'transparent' : '#16181C')),
+        bar: bad ? 'inset 2px 0 0 ' + RD : ((ext || corp) ? 'inset 2px 0 0 ' + a : 'none')
+      };
+    });
+
+    var SRANGES = { '30d': [17, 5, 16, 23, 2], '90d': [54, 5, 16, 31, 2], 'fy': [118, 5, 16, 39, 2], 'all': [652, 5, 16, 48, 2] };
+    var SR = SRANGES[range];
+    var shareTotals = [
+      { label: 'engine buys', value: '+' + SR[0], color: GR, rule: '0', pad: '0' },
+      { label: 'external buys in Kite', value: '+' + SR[1], color: a, rule: '0', pad: '0' },
+      { label: 'corporate actions', value: '+' + SR[2], color: '#6FA8DC', rule: '0', pad: '0' },
+      { label: 'shares in', value: '+' + (SR[0] + SR[1] + SR[2]), color: T1, rule: '1px solid #1E2127', pad: '9px' },
+      { label: 'rebalance sells', value: '−' + SR[3], color: RD, rule: '0', pad: '0' },
+      { label: 'external sells in Kite', value: '−' + SR[4], color: a, rule: '0', pad: '0' },
+      { label: 'net change in holding', value: '+' + (SR[0] + SR[1] + SR[2] - SR[3] - SR[4]), color: T1, rule: '1px solid #1E2127', pad: '9px' }
+    ];
+
+    var shareExceptions = [
+      { date: '19 Sep 2026', kind: 'UNRESOLVED', color: RD, text: 'Kite reports one ITC share fewer than the ledger. Until it is classified as a sale, a transfer or a system error, FIFO matching and realised gains for ITC cannot be trusted.', bar: 'inset 3px 0 0 ' + RD },
+      { date: '10 Sep 2026', kind: 'EXTERNAL BUY', color: a, text: '5 TITAN bought directly in Kite. Recorded 14 Sep with cost 3,502.40 and that acquisition date, so the lots carry the right long-term clock.', bar: 'inset 3px 0 0 ' + a },
+      { date: '04 Sep 2026', kind: 'EXTERNAL SELL', color: a, text: '2 SUNPHARMA sold in Kite. Recorded 08 Sep; two lots consumed FIFO and immutable realised-gain rows written.', bar: 'inset 3px 0 0 ' + a },
+      { date: '25 Aug 2026', kind: 'BONUS 1:10', color: '#6FA8DC', text: '16 ITC issued at zero cost. Weights re-derived, per-share basis falls, holding period inherits the parent lots.', bar: 'none' },
+      { date: '21 Aug 2026', kind: 'REBALANCE', color: T4, text: '8 ASIANPAINT sold under batch RB-260821, fully reconciled the same evening.', bar: 'none' }
+    ];
+
+    var shareIntegrity = [
+      { label: 'instruments tracked', value: '10', color: T2 },
+      { label: 'open tax lots', value: '371', color: T2 },
+      { label: 'lots ever mutated', value: '0', color: GR },
+      { label: 'divergences this FY', value: '3', color: T2 },
+      { label: 'unresolved', value: '1', color: RD }
+    ];
+
+    return {
+      a: a, nav: nav, views: views, isCash: isCash, isShares: !isCash,
+      recon: isCash ? cashRecon : shareRecon,
+      totals: isCash ? cashTotals : shareTotals,
+      exceptions: isCash ? cashExceptions : shareExceptions,
+      integrity: isCash ? cashIntegrity : shareIntegrity,
+      shareRows: shareRows,
+      sIn: '+' + sInV, sOut: '−' + sOutV, sNet: '+' + (sInV - sOutV), sLots: '+' + sInV + ' / −' + sOutV,
+      viewNote: isCash ? 'one row per trading day since 01 Apr 2025 — no row has ever been updated'
+                       : 'every share in and out, including trades made directly in Kite',
+      divNote: isCash ? 'live · holdings reconcile at 15:45' : '1 unresolved divergence',
+      divColor: isCash ? T3 : RD,
+      stripBorder: isCash ? '#22392F' : '#4A2622',
+      stripBar: isCash ? GR : RD,
+      actionLabel: isCash ? 'Add lumpsum' : 'Record external trade',
+      actionBorder: '#3A2F1A', actionBg: '#1C1810', actionFg: a,
+      rows: rows, ranges: ranges,
+      rangeLabel: R[0], rowNote: isCash ? ('showing 16 of ' + R[1] + ' rows in range') : ('showing 14 of ' + (SR[0] + SR[1] + SR[2] + SR[3] + SR[4]) + ' movements in range'),
+      excNote: isCash ? '6 in range' : '5 in range',
+      tDep: money(tDepV), tLump: '+' + money(50000), tAdj: money(-12.40),
+      tSpent: money(tSpentV), tChg: tChgV.toFixed(2), tQty: String(tQtyV)
+    };
+  }
+}
+</script>
+</body>
+</html>

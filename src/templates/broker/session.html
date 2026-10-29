@@ -1,0 +1,123 @@
+{% extends "app.html" %}
+{% block title %}Kite session — steadystack{% endblock %}
+{% block page_title %}Kite session{% endblock %}
+{% block content %}
+
+  <div class="flex items-center gap-2 mb-4">
+    <span class="tag {% if mode == 'live' %}tag-bad{% else %}tag-accent{% endif %}">
+      {% if mode == 'live' %}LIVE · ORDERS ARE SENT{% else %}PAPER · LIVE REFUSED{% if not static_ip %} UNTIL AN IP IS REGISTERED{% endif %}{% endif %}
+    </span>
+  </div>
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3 mb-5">
+    <div class="card {% if status.valid %}card-good{% else %}card-bad{% endif %}">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">ACCESS TOKEN</div>
+      <div class="text-[26px] mt-1.5 {% if status.valid %}text-good{% else %}text-bad{% endif %}">
+        {% if status.valid %}Valid{% else %}None{% endif %}
+      </div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1 leading-relaxed">
+        {% if status.valid %}
+          {{ status.expires_at|timeuntil }} left · until {{ status.expires_at|date:"H:i, D" }}<br>
+          issued {{ status.session.created_at|date:"j M, H:i" }}{% if status.session.established_by %} by {{ status.session.established_by }}{% endif %}<br>
+          encrypted at rest, never logged, never rendered
+        {% else %}
+          {{ status.reason|default:"never established" }}<br>
+          encrypted at rest, never logged, never rendered
+        {% endif %}
+      </div>
+      <form method="post" action="{% url 'broker:start_login' %}" class="mt-2">
+        {% csrf_token %}
+        <button type="submit" {% if status.valid %}class="quiet"{% endif %}>
+          {% if status.valid %}Re-connect{% else %}Connect to Kite{% endif %}
+        </button>
+      </form>
+    </div>
+    <div class="card">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">ORDER MODE</div>
+      <div class="text-[26px] mt-1.5 {% if mode == 'live' %}text-bad{% else %}text-accent{% endif %}">{{ mode|upper }}</div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">
+        {% if mode == 'live' %}sent to the exchange — real money{% else %}recorded in full, never sent{% endif %}
+      </div>
+    </div>
+    <div class="card {% if morning.state == 'failed' %}card-bad{% elif morning.state == 'passed' %}card-good{% endif %}">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">09:00 CHECK</div>
+      <div class="text-[26px] mt-1.5 {% if morning.state == 'failed' %}text-bad{% elif morning.state == 'passed' %}text-good{% endif %}">
+        {% if morning.state == 'passed' %}Passed{% elif morning.state == 'failed' %}Failed{% else %}Not yet{% endif %}
+      </div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">
+        {% if morning.state == 'passed' %}a usable token was there at nine{% elif morning.state == 'failed' %}no token at nine — the day parks until you connect{% else %}runs at 09:00{% endif %}
+      </div>
+    </div>
+    <div class="card {% if not static_ip %}card-bad{% endif %}">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">STATIC IP</div>
+      <div class="text-[26px] mt-1.5 {% if not static_ip %}text-bad{% endif %}">
+        {{ static_ip|default:"not registered" }}
+      </div>
+      <div class="font-mono text-[10.5px] text-ink-4 mt-1">the one gate before a live order</div>
+    </div>
+  </div>
+
+  <h2>What happens when you connect</h2>
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(230px,1fr))] gap-3">
+    {% for step in flow %}
+      <div class="card {% if step.at_zerodha %}border-accent-edge bg-accent-bg{% endif %}">
+        <div class="flex items-center gap-2">
+          <span class="w-5 h-5 rounded-full border border-edge flex items-center justify-center
+                       font-mono text-[10.5px] {% if step.at_zerodha %}text-accent border-accent{% endif %}">{{ forloop.counter }}</span>
+          <span class="font-mono text-[9.5px] tracking-[0.12em] {% if step.at_zerodha %}text-accent{% else %}text-ink-3{% endif %}">{{ step.where }}</span>
+        </div>
+        <div class="text-[13.5px] font-semibold mt-2">{{ step.title }}</div>
+        <div class="text-[11.5px] text-ink-3 mt-1 leading-snug">{{ step.text }}</div>
+        <div class="font-mono text-[10px] mt-2 {% if step.good %}text-good{% else %}text-ink-4{% endif %}">{{ step.tag }}</div>
+      </div>
+    {% endfor %}
+  </div>
+  <p class="muted text-[12px] mt-2">
+    Your Zerodha password and TOTP are typed on Zerodha's page, never on this one.
+  </p>
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(340px,1fr))] gap-4 mt-6">
+    <div>
+      <h2>What needs a session{% if blocked %} · <span class="text-bad">{{ blocked }} of {{ needs|length }} blocked</span>{% endif %}</h2>
+      <div class="card">
+        {% for need in needs %}
+          <div class="flex items-baseline gap-3 py-2.5 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+            <div class="grow">
+              <div class="text-[13px]">{{ need.label }}</div>
+              <div class="font-mono text-[10.5px] text-ink-4">{{ need.sub }}</div>
+            </div>
+            <span class="font-mono text-[10.5px] tracking-[0.06em]
+                         {% if need.status == 'BLOCKED' %}text-bad{% elif need.status == 'RUNNING' %}text-good{% else %}text-ink-4{% endif %}">
+              {{ need.status }}
+            </span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div>
+      <h2>Session history</h2>
+      <table>
+        <thead><tr><th>Issued</th><th>Expires</th><th>By</th><th>Outcome</th></tr></thead>
+        <tbody>
+          {% for row in history %}
+            <tr>
+              <td class="font-mono text-[12px]">{{ row.issued_at|date:"j M, H:i" }}</td>
+              <td class="font-mono text-[12px]">{{ row.expires_at|date:"j M, H:i" }}</td>
+              <td class="text-ink-3">{{ row.actor|default:"—" }}</td>
+              <td class="{% if row.live %}text-good{% else %}text-ink-4{% endif %}">
+                {% if row.live %}in use now{% elif row.revoked %}{{ row.revoked }}{% else %}expired{% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="muted">No session has ever been established.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p class="muted text-[12px]">
+        The token itself is never shown here or anywhere else — only that one exists
+        and when it dies.
+      </p>
+    </div>
+  </div>
+{% endblock %}

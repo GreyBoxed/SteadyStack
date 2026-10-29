@@ -1,0 +1,169 @@
+{% extends "app.html" %}
+{% block title %}Cash ledger — steadystack{% endblock %}
+{% block page_title %}Cash ledger{% endblock %}
+{% block content %}
+
+  <h2 id="lumpsum" class="mt-0">Credit a lumpsum</h2>
+  <div class="card">
+    <p class="text-ink-2 text-[13px]">
+      Money arriving outside the daily amount. It joins carry and is first available
+      to the next tradesheet — never to one already generated, whose ranking was
+      frozen against the cash it was told about.
+    </p>
+    {% if lumpsum_funds_paper %}
+      <p class="errors text-[13px]">
+        The live book is open but the order mode is still paper:
+        switch to live first; this would fund the paper engine.
+      </p>
+    {% endif %}
+    <form method="post" class="flex items-end gap-3 flex-wrap mt-3">
+      {% csrf_token %}
+      {% for hidden in lumpsum_form.hidden_fields %}{{ hidden }}{% endfor %}
+      {% for field in lumpsum_form.visible_fields %}
+        <div>
+          <label for="{{ field.id_for_label }}" class="mt-0">{{ field.label }}</label>
+          {{ field }}
+        </div>
+      {% endfor %}
+      <button type="submit" class="mt-0">Credit it</button>
+    </form>
+  </div>
+
+  {% if view.identity_holds %}
+    <p>
+      Every rupee reconciles over this range: contributions − deployed − cash held = 0,
+      across {{ view.reconciliation.rows }} day{{ view.reconciliation.rows|pluralize }}.
+    </p>
+  {% else %}
+    <p class="errors">This range does not reconcile.</p>
+    <ul class="errors">
+      {% for day in view.reconciliation.unbalanced %}
+        <li>{{ day }} — the row does not balance on its own</li>
+      {% endfor %}
+      {% for problem in view.reconciliation.chain_breaks %}
+        <li>
+          {{ problem.date }} — {{ problem.problem }}:
+          expected {{ problem.expected }}, found {{ problem.found }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <div class="flex items-center gap-2 my-4 flex-wrap">
+    <span class="font-mono text-[10px] tracking-[0.14em] text-ink-3">RANGE</span>
+    {% for key, label, _ in ranges %}
+      <a href="?range={{ key }}"
+         class="tag no-underline {% if chosen == key %}tag-accent{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </div>
+  <form method="get" class="flex items-end gap-3 flex-wrap my-4">
+    <div>
+      <label for="start" class="mt-0">From</label>
+      <input type="date" id="start" name="start" value="{{ start }}" class="w-44">
+    </div>
+    <div>
+      <label for="end" class="mt-0">To</label>
+      <input type="date" id="end" name="end" value="{{ end }}" class="w-44">
+    </div>
+    <button type="submit" class="mt-0">Show</button>
+    <a class="ml-auto font-mono text-[12px]" href="?{{ query }}{% if query %}&{% endif %}format=csv" download>Export CSV</a>
+  </form>
+
+  <div class="overflow-x-auto">
+  <table class="text-[13.5px]">
+    <thead>
+      <tr><th>Date</th><th>Opening</th><th>Daily</th><th>Extra</th>
+          <th>Available</th><th>Spent</th><th>Charges</th><th>Sale proceeds</th><th>Other</th>
+          <th>Closing</th>
+          <th>Bought</th><th>Outcome</th><th>Trace</th></tr>
+    </thead>
+    <tbody>
+      {% with row=view.provisional %}{% if row %}
+        <tr class="italic text-ink-3 shadow-[inset_2px_0_0_var(--color-accent)]">
+          <td class="font-mono text-[12px] whitespace-nowrap">{{ row.trading_date|date:"j M Y" }} <span class="tag tag-accent not-italic">not settled</span></td>
+          <td>₹{{ row.opening_carry|floatformat:2 }}</td>
+          <td>₹{{ row.daily_allocation|floatformat:2 }}</td>
+          <td>₹{{ row.extra_allocation|floatformat:2 }}</td>
+          <td>₹{{ row.available|floatformat:2 }}</td>
+          <td>₹{{ row.cash_spent|floatformat:2 }}</td>
+          <td>₹{{ row.charges|floatformat:2 }}</td>
+          <td>₹{{ row.proceeds|floatformat:2 }}</td>
+          <td>₹{{ row.other|floatformat:2 }}</td>
+          <td>₹{{ row.closing_carry|floatformat:2 }}</td>
+          <td colspan="3" class="text-[12px]">Today, read live from the journal; the settled row replaces it at the close.{% for on, amount in view.allocated_ahead %} ₹{{ amount|floatformat:2 }} recorded is allocated to {{ on|date:"j M" }}.{% endfor %}</td>
+        </tr>
+      {% endif %}{% endwith %}
+      {% for row, day in rows %}
+        <tr class="{% if row.extra_allocation or row.proceeds %}shadow-[inset_2px_0_0_var(--color-good)]{% elif row.other %}shadow-[inset_2px_0_0_var(--color-accent)]{% elif not row.cash_spent %}shadow-[inset_2px_0_0_var(--color-edge)]{% endif %}">
+          <td class="font-mono text-[12px] whitespace-nowrap">{{ row.trading_date|date:"j M Y" }}</td>
+          <td>₹{{ row.opening_carry|floatformat:2 }}</td>
+          <td>₹{{ row.daily_allocation|floatformat:2 }}</td>
+          <td class="{% if row.extra_allocation %}text-good{% endif %}">₹{{ row.extra_allocation|floatformat:2 }}</td>
+          <td class="text-ink">₹{{ row.available|floatformat:2 }}</td>
+          <td>₹{{ row.cash_spent|floatformat:2 }}</td>
+          <td>₹{{ row.charges|floatformat:2 }}</td>
+          <td class="{% if row.proceeds %}text-good{% endif %}">₹{{ row.proceeds|floatformat:2 }}</td>
+          <td class="{% if row.other %}text-accent{% endif %}">₹{{ row.other|floatformat:2 }}</td>
+          <td>₹{{ row.closing_carry|floatformat:2 }}</td>
+          <td class="whitespace-nowrap">{% if day.symbol %}{{ day.quantity }} × {{ day.symbol }}{% else %}—{% endif %}</td>
+          <td class="text-[12.5px] text-ink-3">{{ day.outcome|default:"—" }}</td>
+          <td class="font-mono text-[11px]">{% if day %}<a href="{% url 'engine:detail' row.trading_date|date:'Y-m-d' day.version %}">{{ day.trace_id }}</a>{% else %}—{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="13" class="muted">No day has settled in this range.</td></tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <th>Range</th>
+        <td>₹{{ view.totals.opening_carry|floatformat:2 }}</td>
+        <td>₹{{ view.totals.daily_allocation|floatformat:2 }}</td>
+        <td>₹{{ view.totals.extra_allocation|floatformat:2 }}</td>
+        <td></td>
+        <td>₹{{ view.totals.cash_spent|floatformat:2 }}</td>
+        <td>₹{{ view.totals.charges|floatformat:2 }}</td>
+        <td>₹{{ view.totals.proceeds|floatformat:2 }}</td>
+        <td>₹{{ view.totals.other|floatformat:2 }}</td>
+        <td>₹{{ view.totals.closing_carry|floatformat:2 }}</td>
+        <td colspan="3"></td>
+      </tr>
+    </tfoot>
+  </table>
+  </div>
+  <p class="muted">
+    The flows are summed; the carry columns open where the range opened and close
+    where it closed. Carry is a balance, not a movement.
+  </p>
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(330px,1fr))] gap-4 mt-6">
+    <div>
+      <h2>Days that need a second look</h2>
+      <div class="card">
+        {% for row in exceptions %}
+          <div class="py-2.5 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+            <div class="flex items-baseline gap-3">
+              <span class="font-mono text-[12px] text-ink-2">{{ row.date|date:"j M Y" }}</span>
+              <span class="tag {% if row.tone == 'bad' %}tag-bad{% else %}tag-accent{% endif %}">{{ row.kind }}</span>
+            </div>
+            <div class="text-[12.5px] text-ink-3 mt-1.5 leading-snug">{{ row.text }}</div>
+          </div>
+        {% empty %}
+          <p class="muted">Nothing here needs explaining.</p>
+        {% endfor %}
+      </div>
+    </div>
+    <div>
+      <h2>Integrity</h2>
+      <div class="card">
+        {% for stat in integrity %}
+          <div class="flex items-baseline gap-3 py-2 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+            <span class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3 w-56 shrink-0">{{ stat.label }}</span>
+            <span class="font-mono text-[13px] {% if stat.tone == 'good' %}text-good{% elif stat.tone == 'bad' %}text-bad{% endif %}">{{ stat.value }}</span>
+            <span class="font-mono text-[10.5px] text-ink-4 ml-auto text-right">{{ stat.sub }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

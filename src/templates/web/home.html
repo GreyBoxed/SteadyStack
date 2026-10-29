@@ -1,0 +1,240 @@
+{% extends "app.html" %}
+{% block title %}steadystack{% endblock %}
+{% block page_title %}Today{% endblock %}
+{% block header_extra %}{% include "web/_live_switch.html" %}{% endblock %}
+{% block content %}
+
+  {% if parked %}
+    <div class="card card-bad mb-5">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-bad">TODAY IS WAITING FOR YOU</div>
+      <div class="flex items-baseline gap-3 flex-wrap mt-1.5">
+        <span class="text-[26px] text-bad">
+          {% if parked.expired %}The cutoff has passed{% else %}Parked {{ parked.parked_for }}{% endif %}
+        </span>
+        <span class="tag">{{ parked.sheet.trace_id }} · {{ parked.sheet.state }}</span>
+      </div>
+      <p class="text-ink-2 mt-1 max-w-[46rem]">
+        The tradesheet was built and is holding. Nothing has been bought, nothing has
+        been lost, and no order exists at the broker.
+        {% if not parked.expired %}
+          <strong>{{ parked.hours_left }}h {{ parked.minutes_remainder }}m</strong>
+          remain before {{ parked.cutoff|time:"H:i" }}.
+        {% endif %}
+      </p>
+
+      <div class="mt-4" aria-label="Time left to save the day">
+        <div class="relative h-2 rounded bg-line">
+          <div class="absolute inset-y-0 left-0 rounded bg-bad-edge" style="width: {{ parked.now_pct }}%"></div>
+        </div>
+        <div class="relative h-12 mt-1">
+          {% for mark in parked.marks %}
+            <div class="absolute font-mono text-[10.5px] {% if mark.edge == 'start' %}text-left{% elif mark.edge == 'end' %}-translate-x-full text-right{% else %}-translate-x-1/2 text-center{% endif %} {% if mark.now %}text-ink{% else %}text-ink-3{% endif %}" style="left: {{ mark.pct }}%">
+              <div class="w-px h-2 {% if mark.edge == 'start' %}mr-auto{% elif mark.edge == 'end' %}ml-auto{% else %}mx-auto{% endif %} {% if mark.now %}bg-ink{% else %}bg-edge{% endif %}"></div>
+              <div>{{ mark.at|time:"H:i" }}</div>
+              <div class="text-ink-4 whitespace-nowrap">{{ mark.label }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-[repeat(auto-fit,minmax(230px,1fr))] gap-3 mt-4">
+        <div class="card {% if not parked.expired %}card-good{% endif %}">
+          <div class="font-mono text-[9.5px] tracking-[0.12em] text-good">BEFORE THE CUTOFF</div>
+          <p class="text-[12.5px] text-ink-2 mt-2">
+            The ladder starts at the tick the clock implies — not at zero. Connect now
+            and the first order goes out at tick {{ parked.resumes_at_tick }}, priced
+            where a day running since the tradesheet time would be priced.
+          </p>
+          <dl class="grid grid-cols-3 gap-2 mt-3 font-mono text-[11px]">
+            <div><dt class="text-ink-4">RESUMES AT</dt><dd class="text-ink-2">tick {{ parked.resumes_at_tick }}</dd></div>
+            <div><dt class="text-ink-4">TICKS LEFT</dt><dd class="text-ink-2">{{ parked.ticks_left }}</dd></div>
+            <div><dt class="text-ink-4">SLICE FLOOR</dt><dd class="text-ink-2">{{ parked.slice }}</dd></div>
+          </dl>
+        </div>
+        <div class="card card-bad">
+          <div class="font-mono text-[9.5px] tracking-[0.12em] text-bad">AFTER IT</div>
+          <p class="text-[12.5px] text-ink-2 mt-2">
+            No orders are placed at all. The day terminates as skipped, the full
+            ₹{{ parked.at_stake|floatformat:2 }} moves to carry, and tomorrow has more
+            to spend. Nothing is lost — it is deferred.
+          </p>
+        </div>
+        <div class="card">
+          <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">NOTHING IS AT RISK</div>
+          <div class="mt-2">
+            {% for line in parked.safe %}
+              <div class="flex gap-2 items-start py-1">
+                <span class="dot dot-good mt-1.5"></span>
+                <span class="text-[12px] text-ink-3 leading-snug">{{ line }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-3 mt-3">
+        <div class="card">
+          <div class="flex justify-between font-mono text-[9.5px] tracking-[0.12em] text-ink-3">
+            <span>WHAT IS BEING HELD</span>
+            <a href="{% url 'engine:detail' parked.sheet.trading_date|date:'Y-m-d' parked.sheet.version %}">Tradesheet</a>
+          </div>
+          <dl class="grid grid-cols-[1fr_auto] gap-y-1 mt-2 text-[12.5px]">
+            {% for label, value in parked.held %}
+              <dt class="text-ink-3">{{ label }}</dt><dd class="text-right font-mono">{{ value }}</dd>
+            {% endfor %}
+          </dl>
+          <p class="text-[11.5px] text-ink-4 mt-2">The ranking was frozen when the sheet was built and is not recomputed on resume.</p>
+        </div>
+        <div class="card">
+          <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">HOW TODAY GOT HERE · {{ parked.sheet.trace_id }}</div>
+          <ol class="mt-2">
+            {% for step in parked.trail %}
+              <li class="flex gap-2 items-baseline py-0.5 text-[12px]">
+                <span class="font-mono text-[10.5px] text-ink-4 w-14 shrink-0">{{ step.at|time:"H:i:s" }}</span>
+                <span class="font-mono text-[10.5px] {% if step.level == 'warning' %}text-bad{% else %}text-accent{% endif %}">{{ step.action }}</span>
+                {% if step.detail %}<span class="text-[11.5px] text-ink-3 truncate">{{ step.detail }}</span>{% endif %}
+                <span class="font-mono text-[10.5px] text-ink-4 ml-auto">{{ step.actor }}</span>
+              </li>
+            {% empty %}
+              <li class="muted text-[12px]">Nothing recorded under this trace id yet.</li>
+            {% endfor %}
+          </ol>
+        </div>
+      </div>
+
+      <form method="post" action="{% url 'broker:start_login' %}" class="mt-3">
+        {% csrf_token %}<button type="submit">Connect to Kite</button>
+      </form>
+    </div>
+  {% endif %}
+
+  {# The one failure that costs a trading day, and the only one a person can fix. #}
+  <div class="card {% if session.valid %}card-good{% else %}card-bad{% endif %} mb-5">
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">KITE SESSION</div>
+    {% if session.valid %}
+      <div class="flex items-baseline gap-3 flex-wrap mt-1.5">
+        <span class="text-[22px] text-good">Valid</span>
+        <span class="font-mono text-[13px] text-ink-2">{{ session.expires_at|timeuntil }} left</span>
+      </div>
+      <p class="text-ink-2 mt-1">
+        Signed in{% if session.kite_user_id %} as {{ session.kite_user_id }}{% endif %} —
+        this token lasts until {{ session.expires_at|date:"H:i, D" }}.
+      </p>
+      <p class="muted text-[12px]">
+        Issued {{ session.session.created_at|date:"j M, H:i" }}{% if session.session.established_by %} by {{ session.session.established_by }}{% endif %}.
+        A token lasts one day, so yesterday's login is never evidence.
+        <a href="{% url 'broker:session' %}">Session details</a>
+      </p>
+      <form method="post" action="{% url 'broker:start_login' %}">
+        {% csrf_token %}<button type="submit" class="quiet">Re-login</button>
+      </form>
+    {% else %}
+      <div class="text-[22px] mt-1.5 text-bad">None</div>
+      <p class="text-ink-2 mt-1">
+        No usable Kite session{% if session.reason %} — {{ session.reason }}{% endif %}.
+      </p>
+      <p class="muted text-[12px]">
+        The timers run whether or not anyone is signed in. Signing in is how you watch
+        the day and how you override it — never how you start it.
+      </p>
+      <form method="post" action="{% url 'broker:start_login' %}">
+        {% csrf_token %}<button type="submit">Sign in to Kite</button>
+      </form>
+    {% endif %}
+  </div>
+
+  {% if authorization %}
+    <div class="mb-5">{% include "engine/_authorize.html" %}</div>
+  {% endif %}
+  {% if regeneration %}
+    <div class="mb-5">{% include "engine/_regenerate.html" %}</div>
+  {% elif can_generate %}
+    <div class="card mb-5">
+      <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">TODAY'S TRADESHEET</div>
+      <div class="text-[19px] mt-1.5">Not generated yet</div>
+      <p class="text-[12.5px] text-ink-3 mt-1">
+        The timer builds it at the tradesheet time. Build it now from fresh holdings and quotes;
+        a name nobody is offering yet is sized at its previous close. Nothing is placed until the
+        ladder runs, and until then the day can be regenerated. Needs a Kite session for quotes.
+      </p>
+      {% if market_closed %}
+        <p class="text-[13px] text-accent mt-2">Not now: {{ market_closed }}.</p>
+        <button type="button" disabled class="opacity-50 cursor-not-allowed">Generate today's tradesheet</button>
+      {% else %}
+        <form method="post" action="{% url 'engine:generate' %}">
+          {% csrf_token %}<button type="submit">Generate today's tradesheet</button>
+        </form>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <div {% include "web/_live_region.html" with src="web:home_live" %}>
+    {% include "web/_today_live.html" %}
+  </div>
+
+  <h2>Worth knowing{% if attention %} · <span class="text-bad">{{ attention }} need{{ attention|pluralize:"s," }} attention</span>{% endif %}</h2>
+  <div class="card">
+    {% for notice in notices %}
+      <div class="flex gap-3 py-2 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+        <span class="tag {% if notice.level == 'warning' %}tag-bad{% else %}tag-accent{% endif %} text-[9.5px] w-20 text-center shrink-0 self-start">{{ notice.level|upper }}</span>
+        <span class="font-mono text-[10px] tracking-[0.1em] {% if notice.level == 'warning' %}text-bad{% else %}text-accent{% endif %} w-48 shrink-0">{{ notice.action }}</span>
+        <span class="font-mono text-[10.5px] text-ink-4 w-32 shrink-0">{{ notice.at|date:"j M, H:i" }}</span>
+        <span class="text-[12.5px] text-ink-2">{{ notice.detail }}</span>
+        <span class="font-mono text-[10.5px] text-ink-4 ml-auto">{{ notice.actor }}</span>
+      </div>
+    {% empty %}
+      <p class="muted">Nothing has happened that anybody needs to be told about.</p>
+    {% endfor %}
+    <p class="muted text-[12px] mt-2">
+      Read from the audit trail rather than a second store that could disagree with it.
+      No transport exists yet — these would have been the alerts.
+    </p>
+  </div>
+
+  <h2>What it is worth</h2>
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3">
+    {% for stat in snapshot %}
+      <div class="card">
+        <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">{{ stat.label }}</div>
+        <div class="text-[19px] mt-1.5 {% if stat.tone == 'good' %}text-good{% elif stat.tone == 'bad' %}text-bad{% elif stat.tone == 'warn' %}text-accent{% endif %}">{{ stat.value }}</div>
+        {% if stat.sub %}<div class="font-mono text-[10.5px] text-ink-4 mt-1">{{ stat.sub }}</div>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(330px,1fr))] gap-4 mt-6">
+    <div>
+      <h2 class="flex items-baseline">Recent days <a class="ml-auto normal-case tracking-normal font-sans text-[12px]" href="{% url 'engine:index' %}">All days →</a></h2>
+      <table>
+        <thead><tr><th>Date</th><th>Bought</th><th>Qty</th><th>Filled</th><th>State</th><th>Carry out</th></tr></thead>
+        <tbody>
+          {% for row in recent %}
+            <tr>
+              <td class="font-mono text-[12px]"><a href="{% url 'engine:detail' row.date|date:'Y-m-d' row.version %}">{{ row.date|date:"j M" }}</a></td>
+              <td>{{ row.symbol }}</td>
+              <td>{{ row.quantity }}</td>
+              <td>{{ row.filled }}</td>
+              <td class="{% if row.tone == 'warn' %}text-accent{% endif %}">{{ row.state }}</td>
+              <td>{% if row.carry is not None %}₹{{ row.carry|floatformat:2 }}{% else %}—{% endif %}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="muted">No day has run yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <h2>The machine</h2>
+      <div class="card">
+        {% for stat in checks %}
+          <div class="flex items-baseline gap-3 py-2 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+            <span class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3 w-40 shrink-0">{{ stat.label }}</span>
+            <span class="font-mono text-[13px] {% if stat.tone == 'good' %}text-good{% elif stat.tone == 'bad' %}text-bad{% endif %}">{{ stat.value }}</span>
+            <span class="font-mono text-[10.5px] text-ink-4 ml-auto text-right">{{ stat.sub }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

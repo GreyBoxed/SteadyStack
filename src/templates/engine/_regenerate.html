@@ -1,0 +1,56 @@
+{% comment %}
+  The Regenerate control, shared by the tradesheet page and Today. Expects
+  `regeneration` from engine.views.regeneration(sheet).
+{% endcomment %}
+{% with sheet=regeneration.sheet %}
+<div class="card {% if regeneration.allowed %}{% if regeneration.unplanned_money %}card-bad{% else %}card-good{% endif %}{% endif %}">
+  <div class="flex items-baseline gap-3 flex-wrap">
+    <span class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">REGENERATE TODAY'S TRADESHEET</span>
+    <span class="tag">v{{ sheet.version }} · ₹{{ sheet.spendable_cash|floatformat:2 }} to spend</span>
+  </div>
+  {% if regeneration.allowed %}
+    {% if regeneration.unplanned_money %}
+      <p class="text-[13.5px] text-bad mt-2">
+        ₹{{ regeneration.unplanned_money|floatformat:2 }} has arrived since v{{ sheet.version }} was built.
+        v{{ sheet.version }} will not spend it — regenerate to put it to work today.
+      </p>
+    {% endif %}
+    <p class="text-[12.5px] text-ink-3 mt-2">
+      Replans from fresh holdings and quotes as a new version; v{{ sheet.version }} is kept as it is.
+      Possible until the day places its first order. Needs a Kite session for quotes.
+    </p>
+    <form method="post" action="{% url 'engine:regenerate' sheet.trading_date|date:'Y-m-d' sheet.version %}" class="flex items-end gap-3 flex-wrap">
+      {% csrf_token %}
+      <div class="grow max-w-md">
+        <label for="regen-reason-{{ sheet.pk }}">Reason</label>
+        <input type="text" id="regen-reason-{{ sheet.pk }}" name="reason" maxlength="255" required
+               {% if regeneration.unplanned_money %}value="Lumpsum of ₹{{ regeneration.unplanned_money|floatformat:2 }} arrived"{% endif %}>
+      </div>
+      <button type="submit" class="mt-0">Regenerate as v{{ sheet.version|add:1 }}</button>
+    </form>
+  {% elif regeneration.replan_allowed %}
+    <p class="text-[13.5px] mt-2">
+      <strong>Replan the rest</strong> — the day has bought and been stopped. A new version ranks
+      against everything bought so far and spends only what is left, against the model portfolio
+      as it is now. It needs authorizing before it places anything.
+    </p>
+    <p class="text-[12.5px] text-ink-3 mt-2">
+      v{{ sheet.version }} is kept as it is. A name sold today is left out. From
+      {{ regeneration.placement_close|time:"H:i" }} a replanned version buys at market in the close.
+    </p>
+    <form method="post" action="{% url 'engine:replan' sheet.trading_date|date:'Y-m-d' sheet.version %}" class="flex items-end gap-3 flex-wrap">
+      {% csrf_token %}
+      <div class="grow max-w-md">
+        <label for="replan-reason-{{ sheet.pk }}">Reason</label>
+        <input type="text" id="replan-reason-{{ sheet.pk }}" name="reason" maxlength="255" required>
+      </div>
+      <button type="submit" class="mt-0">Replan the rest as v{{ sheet.version|add:1 }}</button>
+    </form>
+  {% else %}
+    <p class="muted text-[13px] mt-2">Cannot be regenerated: {{ regeneration.why }}</p>
+    {% if regeneration.replan_why %}
+      <p class="muted text-[13px] mt-1">Cannot be replanned: {{ regeneration.replan_why }}</p>
+    {% endif %}
+  {% endif %}
+</div>
+{% endwith %}

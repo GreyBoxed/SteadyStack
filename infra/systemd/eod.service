@@ -1,0 +1,32 @@
+[Unit]
+# The environment lives in tmpfs; this unit puts it back after a reboot.
+Requires=steadystack-env.service
+After=steadystack-env.service
+Description=steadystack: settle the day, write the ledger row, reconcile
+After=postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=oneshot
+User=steadystack
+Group=steadystack
+WorkingDirectory=/opt/steadystack
+# The order lock lives here (ORDER_LOCK_PATH): one file every unit sees,
+# writable by the service user, kept across restarts.
+StateDirectory=steadystack
+EnvironmentFile=/run/steadystack/env
+
+# Shares the order lock with every other order-touching task (M24), taken
+# inside the command; a flock wrapper on the same file would deadlock it.
+ExecStart=/opt/steadystack/.venv/bin/python manage.py settle_day
+# The evening value point for Performance, once the day's row is written.
+ExecStart=/opt/steadystack/.venv/bin/python manage.py snapshot_valuation
+
+StandardOutput=append:/var/log/steadystack/eod.log
+StandardError=append:/var/log/steadystack/eod.log
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/steadystack /run/steadystack

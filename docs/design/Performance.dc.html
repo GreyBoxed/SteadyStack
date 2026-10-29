@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Performance — XIRR and cost drag</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #0B0C0E; font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: #F0A640; } a:hover { color: #FFC470; }
+</style>
+</helmet>
+<div style="width: 1512px; height: 1010px; box-sizing: border-box; display: flex; background: #0B0C0E; color: #E9E7E2; overflow: hidden;">
+
+  <nav style="width: 208px; flex-shrink: 0; background: #0E1013; border-right: 1px solid #1E2127; display: flex; flex-direction: column;">
+    <div style="padding: 18px 16px 16px 16px; border-bottom: 1px solid #1E2127;">
+      <div style="font-size: 19px; font-weight: 700; letter-spacing: -0.02em; color: #E9E7E2;">SteadyStack</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; margin-top: 5px;">DAILY EQUITY ACCUMULATION</div>
+    </div>
+    <div style="padding: 12px 10px 0 10px; display: flex; flex-direction: column; gap: 2px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; padding: 0 8px 8px 8px;">DESIGNED</div>
+      <sc-for list="{{nav}}" as="item" hint-placeholder-count="10">
+        <a href="{{item.href}}" style="display: flex; align-items: center; height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 13.5px; font-weight: 500; background: {{item.bg}}; color: {{item.fg}}; box-shadow: {{item.bar}};">{{item.label}}</a>
+      </sc-for>
+    </div>
+    <div style="padding: 20px 10px 0 10px; display: flex; flex-direction: column; gap: 1px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; padding: 0 8px 8px 8px;">NOT YET DESIGNED</div>
+      <sc-for list="{{pending}}" as="p" hint-placeholder-count="1">
+        <div style="padding: 7px 12px; font-size: 12.5px; color: #83807A;">{{p}}</div>
+      </sc-for>
+    </div>
+    <div style="margin-top: auto; padding: 14px 16px 16px 16px; border-top: 1px solid #1E2127; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: #46C88A; flex-shrink: 0;"></span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8; letter-spacing: 0.04em;">KITE SESSION OK</span>
+      </div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #8F8C85; line-height: 1.6;">issued 08:41:22<br>expires 06:00 Wed</div>
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: #46C88A; flex-shrink: 0;"></span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8; letter-spacing: 0.04em;">TICKER 0.8s</span>
+      </div>
+    </div>
+  </nav>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 56px; flex-shrink: 0; border-bottom: 1px solid #1E2127; background: #0E1013; display: flex; align-items: center; padding: 0 20px; gap: 14px;">
+      <h1 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Performance</h1>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8F8C85;">since 01 Apr 2025 · 360 trading days</span>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 6px;">
+        <sc-for list="{{ranges}}" as="r" hint-placeholder-count="4">
+          <button type="button" onClick="{{r.pick}}" style="height: 44px; padding: 0 14px; border: 0; border-radius: 6px; cursor: pointer; font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; font-weight: 500; background: {{r.bg}}; color: {{r.fg}};">{{r.label}}</button>
+        </sc-for>
+      </div>
+    </header>
+
+    <div style="flex-grow: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 0;">
+
+      <section style="height: 140px; flex-shrink: 0; display: flex; gap: 16px;">
+        <div style="width: 380px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 16px 20px; display: flex; flex-direction: column; justify-content: center; gap: 4px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">XIRR · MONEY WEIGHTED</div>
+          <div style="display: flex; align-items: baseline; gap: 14px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 46px; font-weight: 500; color: #46C88A; letter-spacing: -0.02em;">5.42%</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #8F8C85;">Nifty 50 · 4.81%</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 2px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: {{a}};">4.11%</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #83807A;">net of the Kite subscription</span>
+          </div>
+        </div>
+        <sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+          <div style="flex-grow: 1; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 16px 18px; display: flex; flex-direction: column; justify-content: center; gap: 8px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">{{k.label}}</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; color: {{k.color}}; font-variant-numeric: tabular-nums;">{{k.value}}</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{k.sub}}</div>
+          </div>
+        </sc-for>
+      </section>
+
+      <section style="height: 320px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 12px 16px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; align-items: center; gap: 18px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">VALUE VS WHAT IT COST TO GET THERE</span>
+          <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{rangeNote}}</span>
+        </div>
+        <svg viewBox="0 0 1200 262" width="1200" height="262" role="img" aria-label="Portfolio market value against cumulative contributions and against contributions plus the Kite subscription, monthly since April 2025. Value sits clearly above the true-cost line.">
+          <sc-for list="{{chart.grid}}" as="g" hint-placeholder-count="5">
+            <g>
+              <line x1="64" y1="{{g.y}}" x2="1104" y2="{{g.y}}" stroke="#23262B" stroke-width="1" />
+              <text x="56" y="{{g.ty}}" text-anchor="end" fill="#8F8C85" font-family="IBM Plex Mono, monospace" font-size="10">{{g.label}}</text>
+            </g>
+          </sc-for>
+          <path d="{{chart.valueArea}}" fill="{{a}}" opacity="0.09" />
+          <path d="{{chart.contrib}}" fill="none" stroke="#B4B0A8" stroke-width="1.6" />
+          <path d="{{chart.trueCost}}" fill="none" stroke="#F06A52" stroke-width="1.6" stroke-dasharray="5 4" />
+          <path d="{{chart.value}}" fill="none" stroke="{{a}}" stroke-width="2.2" stroke-linejoin="round" />
+          <circle cx="{{chart.endX}}" cy="{{chart.endValueY}}" r="4" fill="{{a}}" />
+          <text x="{{chart.labelX}}" y="{{chart.endValueY}}" fill="{{a}}" font-family="IBM Plex Mono, monospace" font-size="11" dy="4">value ₹9.73L</text>
+          <text x="{{chart.labelX}}" y="{{chart.endTrueY}}" fill="#F06A52" font-family="IBM Plex Mono, monospace" font-size="11" dy="4">+ subscription ₹9.45L</text>
+          <text x="{{chart.labelX}}" y="{{chart.endContribY}}" fill="#B4B0A8" font-family="IBM Plex Mono, monospace" font-size="11" dy="4">contributed ₹9.36L</text>
+          <sc-for list="{{chart.xLabels}}" as="x" hint-placeholder-count="6">
+            <text x="{{x.x}}" y="248" text-anchor="middle" fill="#8F8C85" font-family="IBM Plex Mono, monospace" font-size="10">{{x.label}}</text>
+          </sc-for>
+        </svg>
+      </section>
+
+      <div style="flex-grow: 1; display: flex; gap: 16px; min-height: 0;">
+
+        <section style="width: 400px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 12px 14px; display: flex; flex-direction: column;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85; padding-bottom: 12px;">THE KITE SUBSCRIPTION, MADE VISIBLE</div>
+          <div style="display: flex; flex-direction: column; gap: 11px;">
+            <sc-for list="{{drag}}" as="d" hint-placeholder-count="3">
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 11px;">
+                  <span style="color: #B4B0A8;">{{d.label}}</span>
+                  <span style="color: {{d.color}}; font-size: 13px;">{{d.value}}</span>
+                </div>
+                <div style="height: 6px; border-radius: 3px; background: #23262B; overflow: hidden;">
+                  <div style="height: 6px; width: {{d.pct}}%; min-width: 3px; background: {{d.color}};"></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top: auto; border-top: 1px solid #1E2127; padding-top: 11px; display: flex; flex-direction: column; gap: 7px;">
+            <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px;">
+              <span style="color: #8F8C85;">paid to date · 18 months</span><span style="color: {{a}};">₹9,000</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px;">
+              <span style="color: #8F8C85;">gain after subscription</span><span style="color: #46C88A;">₹28,245.25</span>
+            </div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A; line-height: 1.6; padding-top: 3px;">₹500/month for the data APIs the ticker and depth calls need; order and account APIs are free. Confirm against Zerodha&#39;s current pricing before relying on this.</div>
+          </div>
+        </section>
+
+        <section style="width: 400px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 12px 14px; display: flex; flex-direction: column;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85; padding-bottom: 10px;">CONTRIBUTION TO RETURN</div>
+          <sc-for list="{{contrib}}" as="c" hint-placeholder-count="10">
+            <div style="height: 20px; display: flex; align-items: center; gap: 8px;">
+              <span style="width: 82px; flex-shrink: 0; font-family: 'Space Grotesk', sans-serif; font-size: 11.5px; color: #B4B0A8;">{{c.sym}}</span>
+              <span style="flex-grow: 1; position: relative; height: 20px; display: block;">
+                <span style="position: absolute; left: 96px; top: 3px; bottom: 3px; width: 1px; background: #33373E;"></span>
+                <span style="position: absolute; left: {{c.left}}px; top: 6px; height: 9px; width: {{c.w}}px; background: {{c.color}}; border-radius: 2px;"></span>
+              </span>
+              <span style="width: 64px; flex-shrink: 0; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-variant-numeric: tabular-nums; color: {{c.color}};">{{c.value}}</span>
+            </div>
+          </sc-for>
+          <div style="margin-top: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A; line-height: 1.6;">two names carry a third of the gain — worth knowing before editing target weights</div>
+        </section>
+
+        <section style="flex-grow: 1; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 12px 14px; display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 10px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">DID IT RUN · 360 TRADING DAYS</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">Apr 2025 → Sep 2026</span>
+          </div>
+          <div style="display: flex; gap: 18px;">
+            <div style="display: grid; grid-template-rows: repeat(20, 7px); grid-auto-flow: column; grid-auto-columns: 7px; gap: 3px;">
+              <sc-for list="{{calendar}}" as="c" hint-placeholder-count="360">
+                <span style="display: block; width: 7px; height: 7px; border-radius: 1.5px; background: {{c}};"></span>
+              </sc-for>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 9px;">
+              <sc-for list="{{legend}}" as="l" hint-placeholder-count="4">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="width: 8px; height: 8px; border-radius: 2px; background: {{l.color}}; flex-shrink: 0;"></span>
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8;">{{l.label}}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="margin-top: auto; border-top: 1px solid #1E2127; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px;">
+            <sc-for list="{{quality}}" as="q" hint-placeholder-count="6">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 11px;">
+                <span style="color: #8F8C85;">{{q.label}}</span><span style="color: #E9E7E2;">{{q.value}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+      </div>
+
+      <section style="height: 132px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; overflow: hidden;">
+        <div style="width: 300px; flex-shrink: 0; box-sizing: border-box; padding: 14px 18px; border-right: 1px solid #1E2127; display: flex; flex-direction: column; justify-content: center; gap: 7px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">REALISED · FY 2026-27</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; color: #83807A;">₹0.00</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A; line-height: 1.5;">no rebalance sell executed — shares only leave by CSV upload</div>
+        </div>
+        <sc-for list="{{tax}}" as="t" hint-placeholder-count="4">
+          <div style="flex-grow: 1; box-sizing: border-box; padding: 14px 18px; border-right: 1px solid #1E2127; display: flex; flex-direction: column; justify-content: center; gap: 7px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">{{t.label}}</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; color: {{t.color}}; font-variant-numeric: tabular-nums;">{{t.value}}</div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{t.sub}}</div>
+          </div>
+        </sc-for>
+      </section>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0A640","options":["#F0A640","#46C88A","#6FA8DC","#D97757"]},"$preview":{"width":1512,"height":1010}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { range: 'all' };
+  }
+
+  renderVals() {
+    var self = this;
+    var a = this.props.accent || '#F0A640';
+    var GR = '#46C88A', RD = '#F06A52', T1 = '#E9E7E2', T2 = '#B4B0A8', T3 = '#8F8C85', T4 = '#83807A';
+    var range = (this.state && this.state.range) || 'all';
+
+    var nav = [
+      ['Today.dc.html', 'Today', false],
+      ['Tradesheet.dc.html', 'Tradesheet', false],
+      ['Main.dc.html', 'Trading', false],
+      ['Holdings.dc.html', 'Holdings', false],
+      ['Performance.dc.html', 'Performance', true],
+      ['Ledger.dc.html', 'Cash ledger', false],
+      ['DayDetail.dc.html', 'Day detail', false],
+      ['Rebalance.dc.html', 'Rebalance sell', false],
+      ['Model.dc.html', 'Model portfolio', false],
+      ['Config.dc.html', 'Configuration', false]
+    ].map(function (n) {
+      return { href: n[0], label: n[1], bg: n[2] ? '#1A1D22' : 'transparent', fg: n[2] ? T1 : T3, bar: n[2] ? 'inset 2px 0 0 ' + a : 'none' };
+    });
+    var pending = ['Tax lots and gains'];
+
+    var ranges = [
+      { key: '6m', label: '6M', n: 6 }, { key: '1y', label: '1Y', n: 12 }, { key: 'all', label: 'All', n: 18 }
+    ].map(function (r) {
+      return {
+        label: r.label,
+        bg: range === r.key ? '#22262C' : 'transparent',
+        fg: range === r.key ? T1 : T3,
+        pick: function () { self.setState({ range: r.key }); }
+      };
+    });
+    var months = range === '6m' ? 6 : (range === '1y' ? 12 : 18);
+    var rangeNote = months + ' months · monthly close · contributions ₹2,600 every trading day';
+
+    var kpis = [
+      { label: 'MARKET VALUE', value: '₹9,72,594', color: T1, sub: 'as at 11:32 today' },
+      { label: 'CONTRIBUTED', value: '₹9,36,000', color: T2, sub: '360 days, no missed deposit' },
+      { label: 'ABSOLUTE GAIN', value: '+₹37,245', color: GR, sub: '+3.98% on cost basis' },
+      { label: 'DAYS RUN', value: '331 / 360', color: a, sub: '18 partial · 7 unfilled · 4 skipped' }
+    ];
+
+    var labels = ['Apr 25', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan 26', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+    var contribAll = [52000, 104000, 156000, 210600, 262600, 314600, 366600, 413400, 465400, 517400, 566800, 621400, 673400, 725400, 777400, 837200, 889200, 936000];
+    var valueAll = [51200, 106800, 163900, 215400, 258300, 320800, 379100, 421700, 486200, 512400, 548900, 640300, 702800, 735600, 812500, 861400, 905300, 972594];
+
+    var start = 18 - months;
+    var cSlice = contribAll.slice(start), vSlice = valueAll.slice(start), lSlice = labels.slice(start);
+    var tSlice = cSlice.map(function (c, i) { return c + 500 * (start + i + 1); });
+
+    var vmax = 1050000;
+    var CX0 = 64, CX1 = 1104, CY0 = 12, CY1 = 222;
+    var cpx = function (i) { return CX0 + (cSlice.length === 1 ? 0 : i / (cSlice.length - 1)) * (CX1 - CX0); };
+    var cpy = function (v) { return CY1 - v / vmax * (CY1 - CY0); };
+    var mk = function (arr) {
+      var d = '';
+      arr.forEach(function (v, i) { d += (i === 0 ? 'M' : 'L') + cpx(i).toFixed(1) + ' ' + cpy(v).toFixed(1) + ' '; });
+      return d.trim();
+    };
+
+    var lastI = cSlice.length - 1;
+    var chart = {
+      grid: [0, 250000, 500000, 750000, 1000000].map(function (v) {
+        return { y: cpy(v).toFixed(1), ty: (cpy(v) + 3.5).toFixed(1), label: v === 0 ? '0' : (v / 100000) + 'L' };
+      }),
+      value: mk(vSlice),
+      contrib: mk(cSlice),
+      trueCost: mk(tSlice),
+      valueArea: mk(vSlice) + ' L' + cpx(lastI).toFixed(1) + ' ' + CY1 + ' L' + CX0 + ' ' + CY1 + ' Z',
+      endX: cpx(lastI).toFixed(1),
+      labelX: (cpx(lastI) + 10).toFixed(1),
+      endValueY: cpy(vSlice[lastI]).toFixed(1),
+      endTrueY: (cpy(tSlice[lastI]) + 13).toFixed(1),
+      endContribY: (cpy(cSlice[lastI]) + 28).toFixed(1),
+      xLabels: lSlice.map(function (l, i) { return { x: cpx(i).toFixed(1), label: l }; }).filter(function (x, i) {
+        return months <= 6 ? true : (i % (months > 12 ? 3 : 2) === 0);
+      })
+    };
+
+    var drag = [
+      { label: 'as a share of contributions', value: '0.96%', color: a, pct: 0.96 },
+      { label: 'as a share of the gain so far', value: '24.2%', color: a, pct: 24.2 },
+      { label: 'annual drag on the current corpus', value: '0.62%', color: GR, pct: 0.62 }
+    ];
+
+    var cRaw = [
+      ['HDFCBANK', 10147.50], ['ICICIBANK', 9513.75], ['RELIANCE', 7267.50], ['SUNPHARMA', 4990.50],
+      ['INFY', 4312.75], ['TCS', 3637.50], ['LT', 2664.00], ['TITAN', 2573.00],
+      ['ITC', -3537.00], ['ASIANPAINT', -4324.25]
+    ];
+    var cmax = 10147.50;
+    var contrib = cRaw.map(function (c) {
+      var w = Math.max(2, Math.abs(c[1]) / cmax * 92);
+      return {
+        sym: c[0],
+        w: w.toFixed(1),
+        left: c[1] < 0 ? (96 - w).toFixed(1) : '97',
+        color: c[1] >= 0 ? GR : RD,
+        value: (c[1] >= 0 ? '+' : '−') + Math.abs(Math.round(c[1])).toLocaleString('en-IN')
+      };
+    });
+
+    var pool = [];
+    var i;
+    for (i = 0; i < 331; i++) { pool.push(GR); }
+    for (i = 0; i < 18; i++) { pool.push(a); }
+    for (i = 0; i < 7; i++) { pool.push(RD); }
+    for (i = 0; i < 4; i++) { pool.push('#4A4E55'); }
+    var seed = 20260922;
+    var rnd = function () { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+    for (i = pool.length - 1; i > 0; i--) {
+      var j = Math.floor(rnd() * (i + 1));
+      var tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
+    }
+    var calendar = pool.map(function (c) { return c; });
+
+    var legend = [
+      { color: GR, label: 'filled · 331' },
+      { color: a, label: 'partial · 18' },
+      { color: RD, label: 'unfilled · 7' },
+      { color: '#4A4E55', label: 'skipped, no session · 4' }
+    ];
+
+    var quality = [
+      { label: 'avg attempts', value: '9.4' },
+      { label: 'median time to fill', value: '47 min' },
+      { label: 'filled on ladder', value: '287' },
+      { label: 'filled at fallback', value: '44' },
+      { label: 'avg slippage vs 09:45', value: '+0.07%' },
+      { label: 'worst slippage', value: '+0.84%' }
+    ];
+
+    var tax = [
+      { label: 'UNREALISED · LONG TERM', value: '+₹28,460', color: GR, sub: '118 lots past 12 months' },
+      { label: 'UNREALISED · SHORT TERM', value: '+₹8,785', color: GR, sub: '242 lots' },
+      { label: 'LTCG EXEMPTION HEADROOM', value: '₹1,25,000', color: T2, sub: 'from tax config, FY 2026-27' },
+      { label: 'LOTS CREATED', value: '360', color: T2, sub: 'about 250 per name per year ahead' }
+    ];
+
+    return {
+      a: a, nav: nav, pending: pending, ranges: ranges, rangeNote: rangeNote,
+      kpis: kpis, chart: chart, drag: drag, contrib: contrib,
+      calendar: calendar, legend: legend, quality: quality, tax: tax
+    };
+  }
+}
+</script>
+</body>
+</html>

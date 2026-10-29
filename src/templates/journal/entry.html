@@ -1,0 +1,100 @@
+{% extends "app.html" %}
+{% block title %}Entry #{{ entry.number }} — steadystack{% endblock %}
+{% block page_title %}{{ entry.book|title }} #{{ entry.number }} · {{ entry.get_kind_display }}{% endblock %}
+{% block content %}
+
+  <div class="card mb-5">
+    <div class="flex gap-8 flex-wrap">
+      <div>
+        <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">DATE</div>
+        <div class="font-mono text-[16px] mt-1">{{ entry.occurred_on|date:"j M Y" }}</div>
+      </div>
+      <div>
+        <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">ACTOR</div>
+        <div class="font-mono text-[16px] mt-1">{{ entry.actor }}</div>
+      </div>
+      <div>
+        <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">TRACE</div>
+        <div class="font-mono text-[16px] mt-1">{{ entry.trace_id|default:"—" }}</div>
+      </div>
+      <div>
+        <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">SOURCE</div>
+        <div class="font-mono text-[16px] mt-1">{{ entry.source_type|default:"—" }} {{ entry.source_id }}</div>
+      </div>
+    </div>
+    <p class="text-ink-2 mt-3">{{ entry.description }}</p>
+  </div>
+
+  {% if reverses %}
+    <p class="muted">
+      This reverses <a href="{% url 'journal:entry' reverses.pk %}">#{{ reverses.number }}</a>.
+    </p>
+  {% endif %}
+  {% if reversed_by %}
+    <p class="muted">
+      Reversed by <a href="{% url 'journal:entry' reversed_by.pk %}">#{{ reversed_by.number }}</a>.
+    </p>
+  {% endif %}
+
+  <table class="text-[13.5px] mt-3">
+    <thead>
+      <tr><th>Account</th><th>Name</th><th>Instrument</th><th>Component</th><th>Debit</th><th>Credit</th></tr>
+    </thead>
+    <tbody>
+      {% for line in lines %}
+        <tr>
+          <td class="font-mono text-[12px]">
+            <a href="{% url 'journal:ledger' line.account_id %}?book={{ entry.book }}">{{ line.account_id }}</a>
+          </td>
+          <td>{{ line.account.name }}</td>
+          <td class="font-mono text-[12px]">{{ line.instrument_id|default:"—" }}</td>
+          <td class="text-ink-3">{{ line.get_component_display }}</td>
+          <td>{% if line.amount > 0 %}₹{{ line.amount|floatformat:2 }}{% endif %}</td>
+          <td>{% if line.amount < 0 %}₹{{ line.amount|floatformat:2|cut:"-" }}{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if statement_lines %}
+    <h2 class="mt-6">Matched to the broker's statement</h2>
+    <div class="card">
+      {% for line in statement_lines %}
+        <div class="py-2 {% if not forloop.last %}border-b border-line-soft{% endif %} text-[12.5px]">
+          {{ line.posting_date|date:"j M Y" }} — {{ line.particulars }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if reversible and not reversed_by %}
+    <h2 class="mt-6">Reverse this entry</h2>
+    <p class="text-ink-2 max-w-[46rem] text-[13px]">
+      A reversal appends the mirror of every line above; nothing here is edited
+      or deleted.
+    </p>
+    <form method="post" action="{% url 'journal:reverse' entry.pk %}" class="mt-3">
+      {% csrf_token %}
+      {% if reverse_form.non_field_errors %}
+        <div class="errors mb-3">{% for e in reverse_form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>
+      {% endif %}
+      <div class="card">
+        {% for field in reverse_form %}
+          <div class="py-2.5 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+            <label for="{{ field.id_for_label }}" class="mt-0">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}
+              <div class="errors text-[12px] mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+        <button type="submit">Reverse</button>
+      </div>
+    </form>
+  {% elif not reversible and entry.kind != "reversal" %}
+    <p class="muted mt-6 text-[13px]">
+      This is the engine's entry. It is not reversed from the books: lots or the
+      daily cash ledger rest on it.
+    </p>
+  {% endif %}
+{% endblock %}

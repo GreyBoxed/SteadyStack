@@ -1,0 +1,14 @@
+{
+  "name": "steadystack-styles",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "Tailwind build for the operator UI. The built CSS is committed, so the box needs no Node.",
+  "scripts": {
+    "build": "tailwindcss -i src/static/css/input.css -o src/static/css/app.css --minify",
+    "watch": "tailwindcss -i src/static/css/input.css -o src/static/css/app.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.0.0",
+    "tailwindcss": "^4.0.0"
+  }
+}

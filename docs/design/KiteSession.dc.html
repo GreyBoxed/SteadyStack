@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kite session</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #0B0C0E; font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: #F0A640; } a:hover { color: #FFC470; }
+</style>
+</helmet>
+<div style="width: 1512px; height: 1010px; box-sizing: border-box; display: flex; background: #0B0C0E; color: #E9E7E2; overflow: hidden;">
+
+  <nav style="width: 208px; flex-shrink: 0; background: #0E1013; border-right: 1px solid #1E2127; display: flex; flex-direction: column;">
+    <div style="padding: 18px 16px 16px 16px; border-bottom: 1px solid #1E2127;">
+      <div style="font-size: 19px; font-weight: 700; letter-spacing: -0.02em; color: #E9E7E2;">SteadyStack</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; margin-top: 5px;">DAILY EQUITY ACCUMULATION</div>
+    </div>
+    <div style="padding: 12px 10px 0 10px; display: flex; flex-direction: column; gap: 2px;">
+      <sc-for list="{{nav}}" as="item" hint-placeholder-count="11">
+        <a href="{{item.href}}" style="display: flex; align-items: center; height: 40px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 13.5px; font-weight: 500; background: {{item.bg}}; color: {{item.fg}}; box-shadow: {{item.bar}};">{{item.label}}</a>
+      </sc-for>
+    </div>
+    <div style="margin-top: auto; padding: 14px 16px 16px 16px; border-top: 1px solid #1E2127; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: {{dot}}; flex-shrink: 0;"></span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8; letter-spacing: 0.04em;">{{chip}}</span>
+      </div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #8F8C85; line-height: 1.6;">{{chipSub}}</div>
+    </div>
+  </nav>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 56px; flex-shrink: 0; box-sizing: border-box; border-bottom: 1px solid #1E2127; background: #0E1013; display: flex; align-items: center; padding: 0 20px; gap: 14px;">
+      <h1 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Kite session</h1>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8F8C85;">the one manual step on an ordinary day</span>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 18px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: {{modeFg}}; background: {{modeBg}}; border: 1px solid {{modeBorder}}; border-radius: 4px; padding: 3px 8px; letter-spacing: 0.08em;">{{modeLabel}}</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #E9E7E2; font-variant-numeric: tabular-nums;">11:32:18 IST</span>
+      </div>
+    </header>
+
+    <div style="flex-grow: 1; box-sizing: border-box; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 0;">
+
+      <section style="height: 148px; flex-shrink: 0; display: flex; gap: 16px;">
+        <div style="width: 472px; flex-shrink: 0; box-sizing: border-box; background: #131518; border: 1px solid {{cardBorder}}; border-radius: 8px; padding: 16px 18px; display: flex; flex-direction: column; justify-content: center; gap: 9px; box-shadow: inset 3px 0 0 {{cardBar}};">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">ACCESS TOKEN</div>
+          <div style="display: flex; align-items: baseline; gap: 12px;">
+            <span style="font-size: 27px; font-weight: 600; color: {{stateColor}}; letter-spacing: -0.02em;">{{stateLabel}}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #B4B0A8;">{{stateSub}}</span>
+          </div>
+          <div style="display: flex; align-items: flex-end; gap: 14px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A; line-height: 1.55; flex-grow: 1;">{{tokenLine}}</span>
+            <button type="button" onClick="{{toggle}}" style="height: 44px; padding: 0 18px; border: 1px solid {{btnBorder}}; border-radius: 6px; background: {{btnBg}}; color: {{btnFg}}; font-family: 'Space Grotesk', sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer;">{{btnLabel}}</button>
+          </div>
+        </div>
+        <sc-for list="{{cards}}" as="c" hint-placeholder-count="3">
+          <div style="flex-grow: 1; box-sizing: border-box; background: #131518; border: 1px solid {{c.border}}; border-radius: 8px; padding: 16px 18px; display: flex; flex-direction: column; justify-content: center; gap: 8px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">{{c.label}}</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: {{c.color}}; flex-shrink: 0;"></span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 16px; color: {{c.color}};">{{c.value}}</span>
+            </div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A; line-height: 1.5;">{{c.sub}}</div>
+          </div>
+        </sc-for>
+      </section>
+
+      <section style="height: 232px; flex-shrink: 0; box-sizing: border-box; background: #131518; border: 1px solid #1E2127; border-radius: 8px; padding: 16px 18px; display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">WHAT HAPPENS WHEN YOU CONNECT</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">your Zerodha password and TOTP are typed on Zerodha's page, never on this one</span>
+        </div>
+        <div style="flex-grow: 1; display: flex; align-items: center; gap: 0; margin-top: 8px;">
+          <sc-for list="{{flow}}" as="f" hint-placeholder-count="4">
+            <div style="display: flex; align-items: center; flex-grow: 1; min-width: 0;">
+              <div style="flex-grow: 1; min-width: 0; box-sizing: border-box; height: 138px; border: 1px solid {{f.border}}; border-radius: 8px; background: {{f.bg}}; padding: 13px 14px; display: flex; flex-direction: column; gap: 7px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="width: 19px; height: 19px; border-radius: 50%; box-sizing: border-box; border: 1px solid {{f.ring}}; color: {{f.num}}; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">{{f.n}}</span>
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.12em; color: {{f.where}};">{{f.side}}</span>
+                </div>
+                <div style="font-size: 13.5px; font-weight: 600; color: #E9E7E2; letter-spacing: -0.01em;">{{f.title}}</div>
+                <div style="font-size: 11.5px; color: #8F8C85; line-height: 1.5;">{{f.text}}</div>
+                <div style="margin-top: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: {{f.tagFg}};">{{f.tag}}</div>
+              </div>
+              <span style="width: 34px; flex-shrink: 0; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 15px; color: #3A3E45; display: {{f.arrow}};">&#8594;</span>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <div style="flex-grow: 1; display: flex; gap: 16px; min-height: 0;">
+
+        <section style="width: 512px; flex-shrink: 0; box-sizing: border-box; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+          <div style="height: 42px; flex-shrink: 0; box-sizing: border-box; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">WHAT NEEDS A SESSION</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: {{impactColor}};">{{impactNote}}</span>
+          </div>
+          <sc-for list="{{needs}}" as="n" hint-placeholder-count="6">
+            <div style="display: grid; grid-template-columns: 1fr 138px; align-items: center; height: 50px; padding: 0 16px; border-bottom: 1px solid #191C21; background: {{n.bg}};">
+              <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+                <span style="font-size: 13px; color: #E9E7E2;">{{n.label}}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{n.sub}}</span>
+              </div>
+              <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.06em; color: {{n.color}};">{{n.status}}</span>
+            </div>
+          </sc-for>
+        </section>
+
+        <section style="flex-grow: 1; box-sizing: border-box; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; min-width: 0;">
+          <div style="height: 42px; flex-shrink: 0; box-sizing: border-box; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">SESSION HISTORY</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">tokens expire at 06:00 every day, whatever you do</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 86px 82px 82px 116px 1fr; height: 26px; align-items: center; padding: 0 16px; border-bottom: 1px solid #1E2127; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; color: #8F8C85;">
+            <span>DATE</span><span>ISSUED</span><span>09:00 CHECK</span><span>SOURCE</span><span style="text-align: right;">OUTCOME</span>
+          </div>
+          <div style="flex-grow: 1; overflow-y: auto; min-height: 0;">
+            <sc-for list="{{history}}" as="h" hint-placeholder-count="8">
+              <div style="display: grid; grid-template-columns: 86px 82px 82px 116px 1fr; height: 38px; align-items: center; padding: 0 16px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-variant-numeric: tabular-nums; background: {{h.bg}};">
+                <span style="color: #B4B0A8;">{{h.date}}</span>
+                <span style="color: {{h.issuedColor}};">{{h.issued}}</span>
+                <span style="color: {{h.checkColor}}; font-size: 10px; letter-spacing: 0.06em;">{{h.check}}</span>
+                <span style="color: #83807A; font-size: 10.5px;">{{h.source}}</span>
+                <span style="text-align: right; color: {{h.outColor}}; font-size: 10.5px;">{{h.out}}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="height: 40px; flex-shrink: 0; box-sizing: border-box; border-top: 1px solid #1E2127; display: flex; align-items: center; padding: 0 16px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">the token itself is never shown here or anywhere else — only that one exists and when it dies</div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0A640","options":["#F0A640","#46C88A","#6FA8DC","#D97757"]},"$preview":{"width":1512,"height":1010}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { live: true };
+  }
+
+  renderVals() {
+    var self = this;
+    var a = this.props.accent || '#F0A640';
+    var GR = '#46C88A', RD = '#F06A52', T1 = '#E9E7E2', T2 = '#B4B0A8', T3 = '#8F8C85', T4 = '#83807A';
+    var ok = !!(this.state && this.state.live);
+
+    var nav = [
+      ['Today.dc.html', 'Today', false],
+      ['Tradesheet.dc.html', 'Tradesheet', false],
+      ['Main.dc.html', 'Trading', false],
+      ['Holdings.dc.html', 'Holdings', false],
+      ['Performance.dc.html', 'Performance', false],
+      ['Ledger.dc.html', 'Cash ledger', false],
+      ['DayDetail.dc.html', 'Day detail', false],
+      ['Rebalance.dc.html', 'Rebalance sell', false],
+      ['Model.dc.html', 'Model portfolio', false],
+      ['KiteSession.dc.html', 'Kite session', true],
+      ['Config.dc.html', 'Configuration', false]
+    ].map(function (n) {
+      return { href: n[0], label: n[1], bg: n[2] ? '#1A1D22' : 'transparent', fg: n[2] ? T1 : T3, bar: n[2] ? 'inset 2px 0 0 ' + a : 'none' };
+    });
+
+    var cards = [
+      { label: 'ORDER MODE', value: 'PAPER', color: a, border: '#3A2F1A',
+        sub: 'recorded in full, never sent to Kite' },
+      { label: 'STATIC IP', value: 'not registered', color: RD, border: '#45211C',
+        sub: '203.0.113.10 allocated, not yet mapped' },
+      { label: '09:00 CHECK', value: ok ? 'passed' : 'failed', color: ok ? GR : RD, border: ok ? '#1E2127' : '#45211C',
+        sub: ok ? 'valid session found, no alert' : 'no session — alert sent 09:00:04' }
+    ];
+
+    var flow = [
+      { n: '1', side: 'THIS APP', title: 'You press Connect', text: 'The app builds the Kite login URL from the API key and sends your browser there.', tag: 'no credentials involved', tagFg: T4, arrow: 'block' },
+      { n: '2', side: 'ZERODHA', title: 'You log in to Kite', text: 'Zerodha’s own page takes your client ID, password and TOTP. This app never sees any of the three.', tag: 'the only place secrets are typed', tagFg: GR, arrow: 'block' },
+      { n: '3', side: 'THIS APP', title: 'request_token returns', text: 'Zerodha redirects back with a short-lived request_token in the URL. It is worthless on its own.', tag: 'single use · expires in minutes', tagFg: T4, arrow: 'block' },
+      { n: '4', side: 'THIS APP', title: 'Exchanged for access_token', text: 'Combined with the API secret from Secrets Manager, server side, then encrypted and stored.', tag: 'never logged · never rendered', tagFg: GR, arrow: 'none' }
+    ].map(function (f) {
+      var zer = f.side === 'ZERODHA';
+      return {
+        n: f.n, side: f.side, title: f.title, text: f.text, tag: f.tag, tagFg: f.tagFg, arrow: f.arrow,
+        border: zer ? '#3A2F1A' : '#1E2127',
+        bg: zer ? '#16130E' : '#0F1114',
+        ring: zer ? a : '#2B2F36',
+        num: zer ? a : T3,
+        where: zer ? a : T3
+      };
+    });
+
+    var needs = [
+      { label: 'Placing and cancelling orders', sub: 'the whole ladder, and the 15:00 fallback', need: true },
+      { label: 'Tradesheet generation', sub: 'needs a live price to size against the ask', need: true },
+      { label: 'Tick feed and depth', sub: 'the websocket authenticates with the token', need: true },
+      { label: 'Holdings reconciliation', sub: 'compares the broker against the ledger', need: true },
+      { label: 'Ledger, day detail, performance', sub: 'read from Postgres, not from Kite', need: false },
+      { label: 'Overrides and configuration', sub: 'edits stored state, takes effect on resume', need: false }
+    ].map(function (n, i) {
+      var blocked = n.need && !ok;
+      return {
+        label: n.label, sub: n.sub,
+        status: n.need ? (ok ? 'RUNNING' : 'BLOCKED') : 'UNAFFECTED',
+        color: n.need ? (ok ? GR : RD) : T4,
+        bg: blocked ? '#16110F' : (i % 2 === 0 ? 'transparent' : '#16181C')
+      };
+    });
+
+    var history = [
+      ['22 Sep', ok ? '08:41:22' : '—', ok ? 'PASSED' : 'FAILED', 'manual', ok ? 'in use now' : 'day parked at 09:45'],
+      ['21 Sep', '08:38:10', 'PASSED', 'manual', 'expired 06:00'],
+      ['18 Sep', '09:52:41', 'FAILED', 'manual, late', 'resumed at tick 22'],
+      ['17 Sep', '08:33:55', 'PASSED', 'manual', 'expired 06:00'],
+      ['16 Sep', '08:44:02', 'PASSED', 'manual', 'expired 06:00'],
+      ['15 Sep', '08:40:19', 'PASSED', 'manual', 'expired 06:00'],
+      ['12 Sep', '—', 'FAILED', '—', 'day skipped, full carry'],
+      ['11 Sep', '08:37:44', 'PASSED', 'manual', 'expired 06:00']
+    ].map(function (h, i) {
+      return {
+        date: h[0], issued: h[1], check: h[2], source: h[3], out: h[4],
+        issuedColor: h[1] === '—' ? T4 : T2,
+        checkColor: h[2] === 'PASSED' ? GR : RD,
+        outColor: h[4].indexOf('skipped') >= 0 ? RD : (h[4].indexOf('resumed') >= 0 ? a : T3),
+        bg: i % 2 === 0 ? 'transparent' : '#16181C'
+      };
+    });
+
+    return {
+      a: a, nav: nav, cards: cards, flow: flow, needs: needs, history: history,
+      dot: ok ? GR : RD,
+      chip: ok ? 'KITE SESSION OK' : 'NO KITE SESSION',
+      chipSub: ok ? 'issued 08:41:22\nexpires 06:00 Wed' : 'today has parked\nconnect before 15:00',
+      cardBorder: ok ? '#22392F' : '#45211C',
+      cardBar: ok ? GR : RD,
+      stateColor: ok ? GR : RD,
+      stateLabel: ok ? 'Valid' : 'None',
+      stateSub: ok ? '18h 28m until 06:00 Wed' : 'expired 06:00 today, never renewed',
+      tokenLine: ok ? 'issued 08:41:22 by operator\nencrypted at rest · AES-GCM, key in Secrets Manager' : 'the 09:00 check raised an alert\nthe tradesheet is holding, not lost',
+      btnLabel: ok ? 'Re-connect' : 'Connect to Kite',
+      btnBg: ok ? 'transparent' : a,
+      btnFg: ok ? T2 : '#14100A',
+      btnBorder: ok ? '#2B2F36' : a,
+      modeLabel: 'PAPER · LIVE REFUSED',
+      modeFg: a, modeBg: '#1C1810', modeBorder: '#3A2F1A',
+      impactColor: ok ? T4 : RD,
+      impactNote: ok ? 'everything available' : '4 of 6 blocked right now',
+      toggle: function () { self.setState({ live: !ok }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{% comment %}
+The switch for a page's live region. Only while there is something to refresh:
+off-hours the page is already the whole truth, and a switch that does nothing
+is a switch nobody trusts. Its setting is this browser's, and remembered.
+{% endcomment %}
+{% if live.on %}
+  <button type="button" class="quiet mt-0 h-auto py-1 px-2 rounded flex items-center gap-2 font-mono text-[11px] font-normal leading-none tracking-[0.08em]"
+          data-live-switch aria-pressed="true"
+          title="Refresh this page's figures every {{ live.every }}s while the market is open">
+    <span class="dot dot-good" data-live-dot></span>
+    <span data-live-label>LIVE</span>
+  </button>
+{% endif %}

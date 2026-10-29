@@ -1,0 +1,148 @@
+{% extends "app.html" %}
+{% block title %}Holdings — steadystack{% endblock %}
+{% block page_title %}Holdings{% endblock %}
+{% block content %}
+
+  {% if priced.unavailable %}
+    {% if priced.as_of %}
+      <p class="tag tag-accent">Prices as of {{ priced.as_of|date:"j M" }} — the last stored close. The live feed is unavailable.</p>
+    {% else %}
+      <p class="errors">Prices could not be read — {{ priced.unavailable }}. Values below are incomplete.</p>
+    {% endif %}
+  {% endif %}
+  {% for caveat in caveats %}
+    <p class="errors">
+      Figures withheld for {{ caveat.instrument }} — the lots say {{ caveat.lots_say }},
+      the broker says {{ caveat.broker_says }}.
+      <a href="{% url 'records:divergences' %}">Classify the divergence</a> to restore them.
+    </p>
+  {% endfor %}
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(185px,1fr))] gap-3 mb-5">
+    {% for stat in stats %}
+      <div class="card">
+        <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">{{ stat.label }}</div>
+        <div class="text-[19px] mt-1.5 {% if stat.tone == 'good' %}text-good{% elif stat.tone == 'bad' %}text-bad{% elif stat.tone == 'warn' %}text-accent{% endif %}">{{ stat.value }}</div>
+        {% if stat.sub %}<div class="font-mono text-[10.5px] text-ink-4 mt-1">{{ stat.sub }}</div>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if rows %}
+    <div class="flex items-center gap-1 flex-wrap">
+      <h2 class="m-0 mr-3">Weights against target</h2>
+      {% for key, label in sorts %}
+        <a href="?sort={{ key }}" class="px-3 h-7 flex items-center rounded no-underline text-[12.5px] {% if sort == key %}bg-[#22262C] text-ink{% else %}text-ink-3 hover:text-ink-2{% endif %}" {% if sort == key %}aria-current="true"{% endif %}>{{ label }}</a>
+      {% endfor %}
+    </div>
+    <div class="overflow-x-auto">
+    <table class="text-[13.5px]">
+      <thead>
+        <tr><th>#</th><th>Symbol</th><th>Qty</th><th>Avg cost</th><th>Price</th><th>Day</th><th>Value</th>
+            <th>Now</th><th>Target</th><th>Gap</th><th>Under · over</th><th>Unrealised</th><th>Lots</th></tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td class="text-ink-3">{{ row.rank }}</td>
+            <td><a href="{% url 'portfolio:detail' row.symbol %}">{{ row.symbol }}</a></td>
+            {% if row.withheld %}
+              <td colspan="11" class="muted">withheld — divergence unresolved</td>
+            {% elif row.unpriced %}
+              <td>{{ row.quantity }}</td>
+              <td colspan="10" class="muted">no price on the feed</td>
+            {% else %}
+              <td>{{ row.quantity }}</td>
+              <td>{% if row.average %}₹{{ row.average|floatformat:2 }}{% else %}—{% endif %}</td>
+              <td>₹{{ row.price|floatformat:2 }}</td>
+              <td class="font-mono text-[12px] {% if row.day_change > 0 %}text-good{% elif row.day_change < 0 %}text-bad{% endif %}">{% if row.day_pct is not None %}{% if row.day_pct >= 0 %}+{% endif %}{{ row.day_pct|floatformat:2 }}%{% else %}—{% endif %}</td>
+              <td>₹{{ row.value|floatformat:2 }}</td>
+              <td>{{ row.current_pct|floatformat:2 }}%</td>
+              <td>{{ row.target_pct|floatformat:2 }}%</td>
+              <td class="{% if row.gap < 0 %}text-bad{% else %}text-good{% endif %}">{{ row.gap|floatformat:2 }}%</td>
+              <td>
+                <span class="relative block h-2 w-28" role="img" aria-label="gap {{ row.gap|floatformat:2 }}%">
+                  <span class="absolute inset-y-0 left-1/2 w-px bg-edge"></span>
+                  {% if row.gap < 0 %}
+                    <span class="absolute inset-y-0 right-1/2 rounded-l bg-bad" style="width: {{ row.gap_pct }}%"></span>
+                  {% else %}
+                    <span class="absolute inset-y-0 left-1/2 rounded-r bg-good" style="width: {{ row.gap_pct }}%"></span>
+                  {% endif %}
+                </span>
+              </td>
+              <td class="{% if row.gain > 0 %}text-good{% elif row.gain < 0 %}text-bad{% endif %}">
+                {% if row.gain is not None %}₹{{ row.gain|floatformat:2 }} <span class="font-mono text-[11px] text-ink-3">{{ row.gain_pct|floatformat:2 }}%</span>{% else %}—{% endif %}
+              </td>
+              <td>{{ row.lots }}</td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th></th><th>Total</th><td>{{ totals.quantity }}</td><td></td><td></td><td></td>
+          <td>₹{{ total|floatformat:2 }}</td><td>100%</td><td>{{ totals.target|floatformat:2 }}%</td>
+          <td></td><td></td>
+          <td class="{% if totals.gain > 0 %}text-good{% elif totals.gain < 0 %}text-bad{% endif %}">₹{{ totals.gain|floatformat:2 }}</td>
+          <td>{{ totals.lots }}</td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+    <p class="muted text-[12px]">
+      # is the order the engine ranks in, most underweight first.
+      {% if portfolio %}Against model portfolio v{{ portfolio.version }}.{% endif %}
+      Unrealised is value less cost across the open lots, charges included.
+    </p>
+
+    <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] mt-6">
+      <section class="card">
+        <div class="flex items-baseline gap-3 mb-1">
+          <span class="font-mono text-[10px] tracking-[0.12em] text-ink-3">DRIFT · Σ|GAP| · 90 DAYS</span>
+          {% if drift_now is not None %}<span class="font-mono text-[12px] text-accent ml-auto">{{ drift_now }}% now</span>{% endif %}
+        </div>
+        {% if drift_chart.empty %}
+          <p class="muted text-[13px]">Fewer than two evenings are recorded, so there is no line yet.</p>
+        {% else %}
+          <svg viewBox="0 0 {{ drift_chart.width }} {{ drift_chart.height }}" class="w-full h-auto" role="img" aria-label="Total distance from target weights, each evening for ninety days, against today's targets.">
+            {% for g in drift_chart.grid %}
+              <line x1="64" y1="{{ g.y }}" x2="{{ drift_chart.right }}" y2="{{ g.y }}" stroke="#23262B" stroke-width="1"/>
+              <text x="56" y="{{ g.ty }}" text-anchor="end" fill="#8F8C85" font-family="IBM Plex Mono, monospace" font-size="10">{{ g.label }}</text>
+            {% endfor %}
+            {% for line in drift_chart.lines %}
+              <path d="{{ line.d }}" fill="none" stroke="#F0A640" stroke-width="1.8" stroke-linejoin="round"/>
+              <circle cx="{{ line.end_x }}" cy="{{ line.end_y }}" r="3.5" fill="#F0A640"/>
+            {% endfor %}
+            {% for x in drift_chart.x_labels %}
+              <text x="{{ x.x }}" y="{{ drift_chart.height|add:'-6' }}" text-anchor="middle" fill="#8F8C85" font-family="IBM Plex Mono, monospace" font-size="10">{{ x.label }}</text>
+            {% endfor %}
+          </svg>
+          <p class="muted text-[12px]">Each evening's holdings against today's targets. Falling means the daily buys are closing the gaps.</p>
+        {% endif %}
+      </section>
+
+      <section class="card">
+        <div class="flex items-baseline justify-between mb-2">
+          <span class="font-mono text-[10px] tracking-[0.12em] text-ink-3">RECENT CASH LEDGER</span>
+          <a class="font-mono text-[11px]" href="{% url 'web:cash_ledger' %}">all →</a>
+        </div>
+        <table class="text-[12.5px] my-0">
+          <thead><tr><th>Day</th><th>Spent</th><th>Carry out</th></tr></thead>
+          <tbody>
+            {% for row in recent_cash %}
+              <tr>
+                <td class="font-mono text-[11.5px]">{{ row.trading_date|date:"j M" }}</td>
+                <td>₹{{ row.cash_spent|floatformat:2 }}</td>
+                <td>₹{{ row.closing_carry|floatformat:2 }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3" class="muted">No day has settled in the last fortnight.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+    </div>
+  {% else %}
+    <p class="muted">No model portfolio has been uploaded yet.</p>
+  {% endif %}
+{% endblock %}

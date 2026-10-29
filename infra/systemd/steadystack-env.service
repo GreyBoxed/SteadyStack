@@ -1,0 +1,17 @@
+[Unit]
+Description=steadystack: write the services' environment from Secrets Manager into /run
+# /run is tmpfs: after a reboot every service would start without its secrets.
+# Every other steadystack unit requires this one and starts after it.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/opt/steadystack/infra/bin/write-env.sh
+# Secrets Manager can be a few seconds from reachable at boot.
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

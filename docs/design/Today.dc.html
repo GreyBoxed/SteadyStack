@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Today — command deck</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #0B0C0E; font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: #F0A640; } a:hover { color: #FFC470; }
+</style>
+</helmet>
+<div style="width: 1512px; height: 1010px; box-sizing: border-box; display: flex; background: #0B0C0E; color: #E9E7E2; overflow: hidden;">
+
+  <nav style="width: 208px; flex-shrink: 0; background: #0E1013; border-right: 1px solid #1E2127; display: flex; flex-direction: column;">
+    <div style="padding: 18px 16px 16px 16px; border-bottom: 1px solid #1E2127;">
+      <div style="font-size: 19px; font-weight: 700; letter-spacing: -0.02em; color: #E9E7E2;">SteadyStack</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; margin-top: 5px;">DAILY EQUITY ACCUMULATION</div>
+    </div>
+    <div style="padding: 12px 10px 0 10px; display: flex; flex-direction: column; gap: 2px;">
+      <sc-for list="{{nav}}" as="item" hint-placeholder-count="10">
+        <a href="{{item.href}}" style="display: flex; align-items: center; height: 44px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 13.5px; font-weight: 500; background: {{item.bg}}; color: {{item.fg}}; box-shadow: {{item.bar}};">{{item.label}}</a>
+      </sc-for>
+    </div>
+    <div style="padding: 16px 10px 0 10px; display: flex; flex-direction: column; gap: 1px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; padding: 0 8px 6px 8px;">NOT YET DESIGNED</div>
+      <div style="padding: 7px 12px; font-size: 12.5px; color: #83807A;">Tax lots and gains</div>
+    </div>
+    <div style="margin-top: auto; padding: 14px 16px 16px 16px; border-top: 1px solid #1E2127; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: #46C88A; flex-shrink: 0;"></span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8; letter-spacing: 0.04em;">KITE SESSION OK</span>
+      </div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #8F8C85; line-height: 1.6;">issued 08:41:22<br>expires 06:00 Wed</div>
+    </div>
+  </nav>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 56px; flex-shrink: 0; border-bottom: 1px solid #1E2127; background: #0E1013; display: flex; align-items: center; padding: 0 20px; gap: 14px;">
+      <h1 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Today</h1>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: {{a}}; background: #1C1810; border: 1px solid #3A2F1A; border-radius: 4px; padding: 3px 8px;">ts-2026-09-22</span>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8F8C85;">Tue 22 Sep 2026 · trading day 361</span>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 22px;">
+        <div style="display: flex; align-items: center; gap: 7px;">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: #46C88A;"></span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8;">NSE OPEN · closes 15:30</span>
+        </div>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #E9E7E2; font-variant-numeric: tabular-nums;">11:32:18 IST</span>
+      </div>
+    </header>
+
+    <div style="flex-grow: 1; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 0;">
+
+      <section style="height: 140px; flex-shrink: 0; display: flex; gap: 16px;">
+        <div style="width: 396px; flex-shrink: 0; background: #131518; border: 1px solid #22392F; border-radius: 8px; box-sizing: border-box; padding: 16px 18px; display: flex; flex-direction: column; justify-content: center; gap: 8px; box-shadow: inset 3px 0 0 #46C88A;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">KITE SESSION</div>
+          <div style="display: flex; align-items: baseline; gap: 12px;">
+            <span style="font-size: 26px; font-weight: 600; color: #46C88A; letter-spacing: -0.02em;">Valid</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #B4B0A8;">18h 28m left</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A; line-height: 1.5;">issued 08:41:22 · expires 06:00 Wed<br>access token encrypted at rest</span>
+            <a href="KiteSession.dc.html" style="margin-left: auto; display: flex; align-items: center; height: 44px; padding: 0 16px; border: 1px solid #2B2F36; border-radius: 6px; text-decoration: none; color: #B4B0A8; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 500;">Re-login</a>
+          </div>
+        </div>
+        <sc-for list="{{health}}" as="h" hint-placeholder-count="4">
+          <div style="flex-grow: 1; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 16px 18px; display: flex; flex-direction: column; justify-content: center; gap: 8px;">
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">{{h.label}}</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: {{h.color}}; flex-shrink: 0;"></span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 19px; color: {{h.color}}; font-variant-numeric: tabular-nums;">{{h.value}}</span>
+            </div>
+            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{h.sub}}</div>
+          </div>
+        </sc-for>
+      </section>
+
+      <section style="height: 196px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 14px 18px; display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 18px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">THE DAILY CYCLE</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: {{a}};">tick 21 of 63 · next reprice 11:35:00</span>
+        </div>
+        <div style="position: relative; height: 3px; background: #23262B; border-radius: 2px; margin: 0 8px;">
+          <div style="position: absolute; left: 0; top: 0; height: 3px; width: 31%; background: #46C88A; border-radius: 2px;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 0 0 0 0; margin-top: -8px;">
+          <sc-for list="{{cycle}}" as="c" hint-placeholder-count="6">
+            <div style="width: 178px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
+              <span style="width: 13px; height: 13px; border-radius: 50%; background: {{c.dot}}; border: 3px solid #131518; box-sizing: content-box; margin-left: {{c.ml}};"></span>
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: {{c.timeColor}}; font-variant-numeric: tabular-nums;">{{c.time}}</span>
+                <span style="font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; color: {{c.labelColor}};">{{c.label}}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A; line-height: 1.5;">{{c.sub}}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <div style="height: 276px; flex-shrink: 0; display: flex; gap: 16px;">
+
+        <section style="width: 624px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+          <div style="height: 42px; flex-shrink: 0; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">WHAT IS RUNNING</span>
+            <a href="Main.dc.html" style="font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; text-decoration: none;">Open trading</a>
+          </div>
+          <div style="display: grid; grid-template-columns: 112px 56px 62px 62px 130px 92px 1fr; height: 26px; align-items: center; padding: 0 16px; border-bottom: 1px solid #1E2127; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; color: #8F8C85;">
+            <span>SYMBOL</span><span>SIDE</span><span style="text-align: right;">FILLED</span><span style="text-align: right;">OPEN</span><span style="text-align: center;">PROGRESS</span><span style="text-align: right;">VALUE</span><span style="text-align: right;">STATE</span>
+          </div>
+          <sc-for list="{{running}}" as="r" hint-placeholder-count="4">
+            <div style="display: grid; grid-template-columns: 112px 56px 62px 62px 130px 92px 1fr; height: 34px; align-items: center; padding: 0 16px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-variant-numeric: tabular-nums; background: {{r.bg}};">
+              <span style="font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 500;">{{r.sym}}</span>
+              <span style="color: {{r.sideColor}}; font-size: 10.5px; letter-spacing: 0.08em;">{{r.side}}</span>
+              <span style="text-align: right; color: #46C88A;">{{r.filled}}</span>
+              <span style="text-align: right; color: {{r.openColor}};">{{r.open}}</span>
+              <span style="display: block; position: relative; height: 34px;">
+                <span style="position: absolute; left: 12px; right: 12px; top: 14px; height: 6px; border-radius: 3px; background: #23262B;"></span>
+                <span style="position: absolute; left: 12px; top: 14px; height: 6px; width: {{r.w}}px; border-radius: 3px; background: #46C88A;"></span>
+              </span>
+              <span style="text-align: right; color: #E9E7E2;">{{r.value}}</span>
+              <span style="text-align: right; color: {{r.stateColor}}; font-size: 10px; letter-spacing: 0.06em;">{{r.state}}</span>
+            </div>
+          </sc-for>
+          <div style="margin-top: auto; padding: 0 16px; height: 40px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #1E2127; font-family: 'IBM Plex Mono', monospace; font-size: 11px;">
+            <span style="color: #8F8C85;">cash available ₹3,250.90 · deployed ₹2,145.10 · projected carry ₹245.56</span>
+            <a href="Tradesheet.dc.html" style="font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; text-decoration: none;">Tradesheet</a>
+          </div>
+        </section>
+
+        <section style="flex-grow: 1; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+          <div style="height: 42px; flex-shrink: 0; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">ALERTS</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: {{a}};">1 needs attention</span>
+          </div>
+          <div style="flex-grow: 1; overflow-y: auto; min-height: 0;">
+            <sc-for list="{{alerts}}" as="al" hint-placeholder-count="5">
+              <div style="display: flex; gap: 11px; padding: 11px 16px; border-bottom: 1px solid #191C21; box-shadow: {{al.bar}};">
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: {{al.color}}; margin-top: 5px; flex-shrink: 0;"></span>
+                <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+                  <div style="display: flex; align-items: baseline; gap: 9px;">
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: {{al.color}};">{{al.level}}</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{al.time}}</span>
+                  </div>
+                  <span style="font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; color: #B4B0A8; line-height: 1.45;">{{al.text}}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+
+      <div style="flex-grow: 1; display: flex; gap: 16px; min-height: 0;">
+
+        <section style="width: 396px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 14px 16px; display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 12px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">PORTFOLIO</span>
+            <a href="Holdings.dc.html" style="font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; text-decoration: none;">Holdings</a>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 11px;">
+            <sc-for list="{{snapshot}}" as="s" hint-placeholder-count="5">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-variant-numeric: tabular-nums;">
+                <span style="color: #8F8C85;">{{s.label}}</span>
+                <span style="color: {{s.color}}; font-size: 14px;">{{s.value}}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top: auto; display: flex; flex-direction: column; gap: 9px;">
+            <button type="button" style="height: 44px; border: 1px solid #3A2F1A; border-radius: 6px; background: #1C1810; color: {{a}}; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer;">Add lumpsum</button>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A; line-height: 1.6;">a lumpsum is credited to carry and spent as prices allow, from the next tradesheet</span>
+          </div>
+        </section>
+
+        <section style="width: 452px; flex-shrink: 0; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+          <div style="height: 42px; flex-shrink: 0; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">RECENT DAYS</span>
+            <a href="DayDetail.dc.html" style="font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; text-decoration: none;">All days</a>
+          </div>
+          <div style="display: grid; grid-template-columns: 78px 108px 44px 48px 1fr 88px; height: 24px; align-items: center; padding: 0 16px; border-bottom: 1px solid #1E2127; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; color: #8F8C85;">
+            <span>DATE</span><span>SYMBOL</span><span style="text-align: right;">QTY</span><span style="text-align: right;">FILL</span><span style="text-align: center;">STATE</span><span style="text-align: right;">CARRY OUT</span>
+          </div>
+          <sc-for list="{{recent}}" as="d" hint-placeholder-count="5">
+            <a href="DayDetail.dc.html" style="display: grid; grid-template-columns: 78px 108px 44px 48px 1fr 88px; height: 30px; align-items: center; padding: 0 16px; text-decoration: none; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-variant-numeric: tabular-nums; background: {{d.bg}};">
+              <span style="color: #B4B0A8;">{{d.date}}</span>
+              <span style="font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: #E9E7E2;">{{d.sym}}</span>
+              <span style="text-align: right; color: #B4B0A8;">{{d.qty}}</span>
+              <span style="text-align: right; color: #46C88A;">{{d.fill}}</span>
+              <span style="text-align: center; color: {{d.color}}; font-size: 10px; letter-spacing: 0.06em;">{{d.state}}</span>
+              <span style="text-align: right; color: #B4B0A8;">{{d.carry}}</span>
+            </a>
+          </sc-for>
+        </section>
+
+        <section style="flex-grow: 1; background: #131518; border: 1px solid #1E2127; border-radius: 8px; box-sizing: border-box; padding: 14px 16px; display: flex; flex-direction: column;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85; padding-bottom: 12px;">SYSTEM CHECKS</div>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <sc-for list="{{checks}}" as="c" hint-placeholder-count="6">
+              <div style="display: flex; align-items: center; gap: 9px;">
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: {{c.color}}; flex-shrink: 0;"></span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #B4B0A8; flex-grow: 1;">{{c.label}}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: {{c.color}};">{{c.value}}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A; line-height: 1.6;">the health endpoint returns this same set for external monitoring</div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0A640","options":["#F0A640","#46C88A","#6FA8DC","#D97757"]},"$preview":{"width":1512,"height":1010}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var a = this.props.accent || '#F0A640';
+    var GR = '#46C88A', RD = '#F06A52', T1 = '#E9E7E2', T2 = '#B4B0A8', T3 = '#8F8C85', T4 = '#83807A';
+
+    var nav = [
+      ['Today.dc.html', 'Today', true],
+      ['Tradesheet.dc.html', 'Tradesheet', false],
+      ['Main.dc.html', 'Trading', false],
+      ['Holdings.dc.html', 'Holdings', false],
+      ['Performance.dc.html', 'Performance', false],
+      ['Ledger.dc.html', 'Cash ledger', false],
+      ['DayDetail.dc.html', 'Day detail', false],
+      ['Rebalance.dc.html', 'Rebalance sell', false],
+      ['Model.dc.html', 'Model portfolio', false],
+      ['Config.dc.html', 'Configuration', false]
+    ].map(function (n) {
+      return { href: n[0], label: n[1], bg: n[2] ? '#1A1D22' : 'transparent', fg: n[2] ? T1 : T3, bar: n[2] ? 'inset 2px 0 0 ' + a : 'none' };
+    });
+
+    var health = [
+      { label: 'TICK FEED', value: '0.8s', color: GR, sub: 'websocket subscribed to 10 names' },
+      { label: 'TRADESHEET', value: '09:45:02', color: GR, sub: 'generated, ITC 7 shares' },
+      { label: 'DATABASE', value: 'reachable', color: GR, sub: 'last pg_dump 02:00 to S3' },
+      { label: 'POSTBACKS', value: '12 today', color: GR, sub: 'checksum verified, none rejected' }
+    ];
+
+    var cycle = [
+      { time: '09:00', label: 'Session check', sub: 'valid, no alert raised', dot: GR, timeColor: T1, labelColor: T2, ml: '0' },
+      { time: '09:45', label: 'Tradesheet', sub: 'ITC selected, 7 shares', dot: GR, timeColor: T1, labelColor: T2, ml: '0' },
+      { time: '09:45', label: 'Slicing', sub: '7 orders placed by 10:15', dot: GR, timeColor: T1, labelColor: T2, ml: '0' },
+      { time: '11:35', label: 'Next tick', sub: 'reprice, 42 ticks remain', dot: a, timeColor: a, labelColor: a, ml: '0' },
+      { time: '15:00', label: 'Market fallback', sub: 'cancel 2 open, buy at market', dot: '#3A3E45', timeColor: T4, labelColor: T4, ml: '0' },
+      { time: '15:45', label: 'End of day', sub: 'reconcile, settle carry', dot: '#3A3E45', timeColor: T4, labelColor: T4, ml: '0' }
+    ];
+
+    var running = [
+      { sym: 'ITC', side: 'BUY', filled: '5 / 7', open: '2', value: '₹2,145.10', state: 'WORKING', w: 75 },
+      { sym: 'ASIANPAINT', side: 'SELL', filled: '12 / 12', open: '0', value: '₹29,656.20', state: 'COMPLETE', w: 106 },
+      { sym: 'TCS', side: 'SELL', filled: '3 / 4', open: '1', value: '₹10,805.10', state: 'WORKING', w: 80 },
+      { sym: 'RELIANCE', side: 'SELL', filled: '0 / 8', open: '2', value: '—', state: 'NO FILLS', w: 0 }
+    ].map(function (r, i) {
+      return {
+        sym: r.sym, side: r.side, sideColor: r.side === 'BUY' ? GR : RD,
+        filled: r.filled, open: r.open, openColor: r.open === '0' ? T4 : a,
+        value: r.value, w: String(r.w),
+        state: r.state,
+        stateColor: r.state === 'COMPLETE' ? GR : (r.state === 'NO FILLS' ? RD : a),
+        bg: i % 2 === 0 ? 'transparent' : '#16181C'
+      };
+    });
+
+    var alerts = [
+      { level: 'NOTICE', time: '11:28:06', color: a, text: '₹50,000 lumpsum credited to the cash ledger by operator. It joins carry and is first available to the 23 Sep tradesheet.', bar: 'inset 3px 0 0 ' + a },
+      { level: 'WARNING', time: '11:18:04', color: RD, text: 'RELIANCE rebalance sell has taken no fills in 21 ticks — its limits sit above the market and the batch expires at close.', bar: 'inset 3px 0 0 ' + RD },
+      { level: 'NOTICE', time: '09:12:36', color: a, text: 'Corporate action detected: TITAN ex-dividend 25 Sep. Weights and cost basis need a manual adjustment.', bar: 'inset 3px 0 0 ' + a },
+      { level: 'INFO', time: '08:41:22', color: GR, text: 'Kite session established for the day, access token stored encrypted.', bar: 'none' },
+      { level: 'INFO', time: '02:00:11', color: GR, text: 'Nightly pg_dump uploaded to S3, 41.2 MB, retention 90 days.', bar: 'none' },
+      { level: 'RESOLVED', time: 'Mon 15:46', color: T4, text: 'Holdings reconciliation divergence on ITC cleared after the postback arrived late.', bar: 'none' }
+    ];
+
+    var snapshot = [
+      { label: 'market value', value: '₹9,72,594', color: T1 },
+      { label: 'contributed', value: '₹9,36,000', color: T2 },
+      { label: 'unrealised', value: '+₹37,245', color: GR },
+      { label: 'XIRR', value: '5.42%', color: GR },
+      { label: 'drift Σ|gap|', value: '8.78%', color: a },
+      { label: 'cash to deploy', value: '₹50,245.56', color: a }
+    ];
+
+    var recent = [
+      ['21 Sep', 'ITC', '5', '5', 'FILLED', '₹650.90', GR],
+      ['18 Sep', 'HDFCBANK', '2', '2', 'FILLED', '₹312.45', GR],
+      ['17 Sep', 'ITC', '2', '1', 'PARTIAL', '₹1,846.20', a],
+      ['16 Sep', 'RELIANCE', '2', '2', 'FILLED', '₹98.60', GR],
+      ['15 Sep', 'ITC', '3', '2', 'PARTIAL', '₹1,502.35', a]
+    ].map(function (d, i) {
+      return { date: d[0], sym: d[1], qty: d[2], fill: d[3], state: d[4], carry: d[5], color: d[6], bg: i % 2 === 0 ? 'transparent' : '#16181C' };
+    });
+
+    var checks = [
+      { label: 'systemd timers', value: '4 armed', color: GR },
+      { label: 'ticker service', value: 'up 6d 04h', color: GR },
+      { label: 'flock guard', value: 'no double fire', color: GR },
+      { label: 'holiday calendar', value: 'to 31 Mar 2027', color: GR },
+      { label: 'static IP mapped', value: 'not set', color: RD },
+      { label: 'dry run mode', value: 'off', color: T2 }
+    ];
+
+    return { a: a, nav: nav, health: health, cycle: cycle, running: running, alerts: alerts, snapshot: snapshot, recent: recent, checks: checks };
+  }
+}
+</script>
+</body>
+</html>

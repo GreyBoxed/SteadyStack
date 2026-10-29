@@ -1,0 +1,47 @@
+{% extends "app.html" %}
+{% block title %}Corporate actions — steadystack{% endblock %}
+{% block page_title %}Corporate actions{% endblock %}
+{% block content %}
+
+  <p class="text-ink-2 max-w-[48rem]">
+    A ratio applied to every open lot of one instrument. Entered by a person on
+    purpose: a split detected automatically and applied without anybody looking is
+    a silent rewrite of every cost basis in the name. The total cost is preserved
+    exactly and the acquisition date is carried forward.
+  </p>
+
+  <h2>Apply a ratio</h2>
+  <div class="card card-bad">
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}
+          <div class="text-[11.5px] text-ink-4 mt-1">{{ field.help_text }}</div>
+        {% endif %}
+        {% for error in field.errors %}<div class="errors text-[12px] mt-1">{{ error }}</div>{% endfor %}
+      {% endfor %}
+      <button type="submit">Supersede the lots</button>
+    </form>
+  </div>
+
+  <h2>Corrections recorded</h2>
+  {% if corrections %}
+    <table>
+      <thead><tr><th>When</th><th>Target</th><th>Actor</th><th>Reason</th></tr></thead>
+      <tbody>
+        {% for row in corrections %}
+          <tr>
+            <td class="font-mono text-[12px]">{{ row.created_at|date:"j M Y, H:i" }}</td>
+            <td class="font-mono text-[11px] text-ink-4">{{ row.target_table }}</td>
+            <td class="text-ink-3">{{ row.actor }}</td>
+            <td class="muted text-[12px]">{{ row.reason }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="muted">Nothing has been restructured.</p>
+  {% endif %}
+{% endblock %}

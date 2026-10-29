@@ -1,0 +1,63 @@
+{% extends "app.html" %}
+{% block title %}{{ account.code }} {{ account.name }} — steadystack{% endblock %}
+{% block page_title %}{{ account.code }} · {{ account.name }} · {{ book|title }} book{% endblock %}
+{% block content %}
+
+  <p class="text-ink-2 max-w-[48rem]">
+    Every line posted to {{ account.code }} in the range below, running from the
+    balance brought forward. An {{ account.type }} account's normal side is
+    {% if account.debit_normal %}debit{% else %}credit{% endif %}.
+  </p>
+
+  <div class="flex items-center gap-2 my-4 flex-wrap">
+    <span class="font-mono text-[10px] tracking-[0.14em] text-ink-3">BOOK</span>
+    <a href="?book=live" class="tag no-underline {% if book == 'live' %}tag-accent{% endif %}">Live</a>
+    <a href="?book=paper" class="tag no-underline {% if book == 'paper' %}tag-accent{% endif %}">Paper</a>
+    <a href="{% url 'journal:index' %}?book={{ book }}" class="ml-auto font-mono text-[12px]">
+      ← Trial balance
+    </a>
+  </div>
+
+  <form method="get" class="flex items-end gap-3 flex-wrap my-4">
+    <input type="hidden" name="book" value="{{ book }}">
+    <div>
+      <label for="from" class="mt-0">From</label>
+      <input type="date" id="from" name="from" value="{{ start|date:'Y-m-d' }}" class="w-44">
+    </div>
+    <div>
+      <label for="to" class="mt-0">To</label>
+      <input type="date" id="to" name="to" value="{{ end|date:'Y-m-d' }}" class="w-44">
+    </div>
+    <button type="submit" class="mt-0">Show</button>
+    <a class="ml-auto font-mono text-[12px]"
+       href="?{{ request.GET.urlencode }}&format=csv" download>Export CSV</a>
+  </form>
+
+  <table class="text-[13.5px]">
+    <thead>
+      <tr><th>Date</th><th>Entry</th><th>Kind</th><th>Description</th><th>Instrument</th>
+          <th>Component</th><th>Debit</th><th>Credit</th><th>Running</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td colspan="8" class="text-ink-3">Opening balance</td>
+        <td>₹{{ opening|floatformat:2 }}</td>
+      </tr>
+      {% for row in rows %}
+        <tr>
+          <td class="font-mono text-[12px] whitespace-nowrap">{{ row.entry.occurred_on|date:"j M Y" }}</td>
+          <td class="font-mono text-[12px]"><a href="{% url 'journal:entry' row.entry.pk %}">#{{ row.entry.number }}</a></td>
+          <td class="text-ink-3">{{ row.entry.get_kind_display }}</td>
+          <td>{{ row.entry.description }}</td>
+          <td class="font-mono text-[12px]">{{ row.instrument_id|default:"—" }}</td>
+          <td class="text-ink-3">{{ row.component|default:"—" }}</td>
+          <td>{% if row.amount > 0 %}₹{{ row.amount|floatformat:2 }}{% endif %}</td>
+          <td>{% if row.amount < 0 %}₹{{ row.amount|floatformat:2|cut:"-" }}{% endif %}</td>
+          <td>₹{{ row.running|floatformat:2 }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="9" class="muted">Nothing posted to this account in this range.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

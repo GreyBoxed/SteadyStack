@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% comment %}
+Sign-in stands outside the shell deliberately: no sidebar, no session chip, no
+trading day. Nothing about the portfolio appears before you are signed in --
+not even whether the day has traded. The left panel says how the door is
+built and nothing about what is behind it.
+{% endcomment %}
+{% block title %}Sign in — steadystack{% endblock %}
+{% block body %}
+  <div class="min-h-screen grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <aside class="hidden lg:flex flex-col justify-between bg-panel border-r border-line p-12">
+      <div>
+        <div class="text-[26px] font-bold tracking-[-0.03em]">SteadyStack</div>
+        <div class="font-mono text-[10px] tracking-[0.16em] text-ink-3 mt-2">DAILY EQUITY ACCUMULATION</div>
+      </div>
+      <div class="max-w-[30rem]">
+        <div class="font-mono text-[10px] tracking-[0.14em] text-ink-3 mb-3">HOW THIS DOOR IS BUILT</div>
+        <ul class="flex flex-col gap-3 text-[13.5px] text-ink-2">
+          <li class="flex gap-3"><span class="dot dot-good mt-2"></span><span>Two factors, both required: a password and a code from an authenticator app.</span></li>
+          <li class="flex gap-3"><span class="dot dot-good mt-2"></span><span>{{ max_failures }} failures from one address lock the account there for {{ lockout_minutes }} minutes; an address that keeps guessing is locked out whatever name it tries.</span></li>
+          <li class="flex gap-3"><span class="dot dot-good mt-2"></span><span>Every sign-in, failure and lockout is written to the audit trail.</span></li>
+          <li class="flex gap-3"><span class="dot dot-good mt-2"></span><span>Nothing behind this page is shown before both factors pass — not even whether today has traded.</span></li>
+          <li class="flex gap-3"><span class="dot dot-good mt-2"></span><span>The broker's credentials are never typed here. Kite has its own sign-in, on Zerodha's site.</span></li>
+        </ul>
+      </div>
+      <div class="font-mono text-[10.5px] text-ink-4">one operator · served over HTTPS in production</div>
+    </aside>
+
+    <div class="flex items-center justify-center p-6">
+      <div class="w-full max-w-[420px]">
+        <div class="mb-6 lg:hidden">
+          <div class="text-[26px] font-bold tracking-[-0.03em]">SteadyStack</div>
+          <div class="font-mono text-[10px] tracking-[0.16em] text-ink-3 mt-2">DAILY EQUITY ACCUMULATION</div>
+        </div>
+
+        <div class="card">
+          <h1>Sign in</h1>
+          <p class="text-[13.5px] text-ink-3 leading-snug mt-2">
+            One operator, two factors. Password and authenticator code are submitted
+            together — there is no second page.
+          </p>
+
+          {% if form.non_field_errors %}
+            <div class="errors text-[12.5px] mt-4">
+              {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+              {% if attempts_left is not None %}
+                <p class="font-mono text-[11px] mt-1">{{ attempts_left }} attempt{{ attempts_left|pluralize }} left before a {{ lockout_minutes }}-minute lockout.</p>
+              {% endif %}
+            </div>
+          {% endif %}
+
+          <form method="post" class="mt-2">
+            {% csrf_token %}
+            <label for="{{ form.username.id_for_label }}">Username</label>
+            {{ form.username }}
+            <label for="{{ form.password.id_for_label }}">Password</label>
+            {{ form.password }}
+            <label for="{{ form.otp_token.id_for_label }}">Authenticator code</label>
+            {{ form.otp_token }}
+            <div class="text-[11.5px] text-ink-4 mt-1.5">
+              A recovery code works here too, and then dies.
+            </div>
+            <button type="submit" class="w-full max-w-none">Sign in</button>
+          </form>
+        </div>
+
+        <p class="font-mono text-[10.5px] text-ink-4 leading-relaxed text-center mt-4">
+          {{ max_failures }} failures from one address lock it out for {{ lockout_minutes }} minutes<br>
+          every sign-in, failure and lockout is written to the audit trail
+        </p>
+      </div>
+    </div>
+  </div>
+{% endblock %}

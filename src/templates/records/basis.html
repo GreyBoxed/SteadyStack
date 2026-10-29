@@ -1,0 +1,43 @@
+{% extends "app.html" %}
+{% block title %}Estimated basis — steadystack{% endblock %}
+{% block page_title %}Lots waiting for a contract note{% endblock %}
+{% block content %}
+
+  <p class="text-ink-2 max-w-[48rem]">
+    A lot written from the rate card is an estimate. The contract note is what
+    settles it: the difference between estimated and actual charges posts to the
+    cash ledger, and the lot is superseded by one carrying the true cost. The
+    original row stays exactly as it was written.
+  </p>
+
+  {% if lots %}
+    <table>
+      <thead><tr><th>Acquired</th><th>Symbol</th><th>Qty</th><th>Cost each</th>
+                 <th>Estimated charges</th><th>Settle it</th></tr></thead>
+      <tbody>
+        {% for lot in lots %}
+          <tr>
+            <td class="font-mono text-[12px]">{{ lot.acquired_on|date:"j M Y" }}</td>
+            <td><a href="{% url 'portfolio:detail' lot.instrument_id %}">{{ lot.instrument_id }}</a></td>
+            <td>{{ lot.quantity }}</td>
+            <td>₹{{ lot.cost_per_unit|floatformat:2 }}</td>
+            <td class="text-ink-3">included in the cost above</td>
+            <td>
+              <form method="post" class="flex items-end gap-2 flex-wrap">
+                {% csrf_token %}
+                <input type="hidden" name="lot" value="{{ lot.pk }}">
+                <input type="number" step="0.0001" min="0" name="actual_charges"
+                       placeholder="actual charges" required class="w-40 h-9">
+                <input type="text" name="note_reference" placeholder="note ref"
+                       maxlength="64" class="w-32 h-9">
+                <button type="submit" class="mt-0 h-9 px-3 text-[13px]">Finalise</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Every lot carries a final basis. Nothing is waiting on a note.</p>
+  {% endif %}
+{% endblock %}

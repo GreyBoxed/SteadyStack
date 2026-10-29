@@ -1,0 +1,93 @@
+{% comment %}
+The hero and what is running: the parts of Today a round can change. Swapped
+in by live-refresh.js while the market is open.
+{% endcomment %}
+{% with kind=hero.kind %}
+<section class="bg-card border rounded-xl p-[18px]
+                {% if kind == 'running' or kind == 'ended' and sheet.state == 'FILLED' %}border-good-edge shadow-[inset_3px_0_0_var(--color-good)]
+                {% elif kind == 'paused' or kind == 'connect' or kind == 'parked' %}border-bad-edge shadow-[inset_3px_0_0_var(--color-bad)]
+                {% elif kind == 'authorize' or kind == 'generate' %}border-accent-edge shadow-[inset_3px_0_0_var(--color-accent)]
+                {% else %}border-line{% endif %}">
+
+  {% if kind == 'paused' %}
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">TRADING IS STOPPED</div>
+    <div class="text-[25px] font-semibold tracking-[-0.025em] text-bad mt-2">Paused</div>
+    <div class="text-[12.5px] text-ink-3 leading-[1.55] mt-2">
+      Stopped {{ hero.pause.paused_at|date:"j M, H:i" }} by {{ hero.pause.paused_by }}: {{ hero.pause.reason }}.
+      No tradesheet, no round, no fallback until somebody resumes — and resuming is a desk decision.
+    </div>
+    <a href="{% url 'configuration:index' %}" class="mt-4 h-[52px] flex items-center justify-center rounded-lg border border-edge text-ink-2 no-underline text-[15px] font-semibold">Open configuration</a>
+
+  {% elif kind == 'quiet' %}
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">NOTHING TO DO</div>
+    <div class="text-[25px] font-semibold tracking-[-0.025em] text-ink mt-2">No trading today</div>
+    <div class="text-[12.5px] text-ink-3 leading-[1.55] mt-2">{{ hero.why }}</div>
+
+  {% elif kind == 'connect' or kind == 'parked' %}
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">TODAY NEEDS YOU</div>
+    <div class="text-[25px] font-semibold tracking-[-0.025em] text-bad mt-2">Connect to Kite</div>
+    <div class="text-[12.5px] text-ink-3 leading-[1.55] mt-2">
+      {% if kind == 'parked' %}Today's plan is parked until there is a session.{% else %}There is no Kite session, so nothing can be planned or placed.{% endif %}
+      {% if clock.left %}Connect before {{ clock.cutoff|time:"H:i" }} — {{ clock.left }} left — and the day resumes where the clock has it.{% else %}It is past {{ clock.cutoff|time:"H:i" }}; the day carries whole.{% endif %}
+    </div>
+    <a href="{% url 'phone:kite' %}" class="mt-4 h-[52px] flex items-center justify-center rounded-lg bg-accent text-accent-ink hover:text-accent-ink no-underline text-[15px] font-semibold">Connect to Kite</a>
+
+  {% elif kind == 'generate' %}
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">TODAY NEEDS YOU</div>
+    <div class="text-[25px] font-semibold tracking-[-0.025em] text-accent mt-2">No plan yet</div>
+    <div class="text-[12.5px] text-ink-3 leading-[1.55] mt-2">
+      Today has no tradesheet. Generate builds it the way the 09:45 timer would, from fresh holdings and quotes. Nothing is placed until you authorise it.
+    </div>
+    <form method="post" action="{% url 'engine:generate' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'phone:trade' %}">
+      <button type="submit" class="w-full h-[52px] mt-4 rounded-lg text-[15px]">Generate today's plan</button>
+    </form>
+
+  {% elif kind == 'authorize' %}
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">TODAY NEEDS YOU</div>
+    <div class="text-[25px] font-semibold tracking-[-0.025em] text-accent mt-2">Waiting to be authorised</div>
+    <div class="font-mono text-[15px] text-ink mt-3 tabular-nums">{{ sheet.names_label|default:"nothing" }} · {{ sheet.quantity }} share{{ sheet.quantity|pluralize }} · ₹{{ sheet.planned_cost|floatformat:2 }}</div>
+    <div class="text-[12.5px] text-ink-3 leading-[1.55] mt-2">
+      {% if hero.why_not %}{{ hero.why_not }}{% else %}Nothing is placed until you say so. Expires {{ clock.cutoff|time:"H:i" }}{% if clock.left %} — {{ clock.left }} left{% endif %}, after which the full amount carries to tomorrow.{% endif %}
+    </div>
+    <a href="{% url 'phone:trade' %}" class="mt-4 h-[52px] flex items-center justify-center rounded-lg bg-accent text-accent-ink hover:text-accent-ink no-underline text-[15px] font-semibold">Review and authorise</a>
+
+  {% elif kind == 'running' %}
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">TODAY IS RUNNING</div>
+    <div class="text-[25px] font-semibold tracking-[-0.025em] text-good mt-2">Buying {{ sheet.names_label }}</div>
+    <div class="font-mono text-[15px] text-ink mt-3 tabular-nums">{{ filled }} of {{ sheet.quantity }} filled · ₹{{ spent|floatformat:2 }}</div>
+    <div class="text-[12.5px] text-ink-3 leading-[1.55] mt-2">
+      Authorised {{ sheet.authorized_at|date:"H:i" }} by {{ sheet.authorized_by }}{{ hero.position }}. Market fallback at {{ clock.cutoff|time:"H:i" }}.
+    </div>
+    <a href="{% url 'phone:trade' %}" class="mt-4 h-[52px] flex items-center justify-center rounded-lg border border-edge text-ink-2 no-underline text-[15px] font-semibold">Open the tradesheet</a>
+
+  {% else %}{# ended #}
+    <div class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">TODAY IS DONE</div>
+    <div class="text-[25px] font-semibold tracking-[-0.025em] {% if sheet.state == 'FILLED' %}text-good{% else %}text-ink{% endif %} mt-2">{{ sheet.get_state_display }}</div>
+    <div class="font-mono text-[15px] text-ink mt-3 tabular-nums">{{ filled }} of {{ sheet.quantity }} filled · ₹{{ spent|floatformat:2 }}</div>
+    {% if sheet.skip_reason %}<div class="text-[12.5px] text-ink-3 leading-[1.55] mt-2">{{ sheet.get_skip_reason_display }}. What was not spent carries to tomorrow.</div>{% endif %}
+    <a href="{% url 'phone:trade' %}" class="mt-4 h-[52px] flex items-center justify-center rounded-lg border border-edge text-ink-2 no-underline text-[15px] font-semibold">Open the tradesheet</a>
+  {% endif %}
+</section>
+{% endwith %}
+
+{% if rows %}
+<section class="bg-card border border-line rounded-xl overflow-hidden">
+  <div class="h-[38px] border-b border-line flex items-center justify-between px-3.5">
+    <span class="font-mono text-[9.5px] tracking-[0.14em] text-ink-3">{% if sheet.is_authorized %}WHAT IS RUNNING{% else %}WHAT IT WANTS TO BUY{% endif %}</span>
+    <span class="font-mono text-[10.5px] text-ink-4">v{{ sheet.version }} · built {{ sheet.generated_at|date:"H:i" }}</span>
+  </div>
+  {% for row in rows %}
+    <div class="grid grid-cols-[1fr_72px_84px] items-center h-[42px] px-3.5 border-b border-line-soft">
+      <span class="text-[14px] text-ink truncate">{{ row.symbol }}</span>
+      <span class="text-right font-mono text-[12.5px] tabular-nums {% if row.tone == 'good' %}text-good{% elif row.tone %}text-ink{% else %}text-ink-4{% endif %}">{{ row.qty }}</span>
+      <span class="text-right font-mono text-[10px] tracking-[0.06em] {% if row.tone == 'good' %}text-good{% elif row.tone == 'accent' %}text-accent{% else %}text-ink-4{% endif %}">{{ row.tag }}</span>
+    </div>
+  {% endfor %}
+  <div class="flex items-center justify-between h-10 px-3.5 font-mono text-[11px] text-ink-3">
+    <span>to spend today</span>
+    <span class="text-accent tabular-nums">₹{{ sheet.spendable_cash|floatformat:2 }}</span>
+  </div>
+</section>
+{% endif %}

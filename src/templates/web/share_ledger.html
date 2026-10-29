@@ -1,0 +1,123 @@
+{% extends "app.html" %}
+{% block title %}Share ledger — steadystack{% endblock %}
+{% block page_title %}Share ledger{% endblock %}
+{% block content %}
+
+  {% if view.compared_with == "paper lots" %}
+    <p>Paper mode: the paper book's movements, against what the paper lots hold.
+      The broker's real holdings are compared once the mode is live.</p>
+  {% endif %}
+  {% if view.divergences %}
+    {% if view.compared_with == "paper lots" %}
+      <p class="errors">Our arithmetic and the paper lots disagree:</p>
+    {% else %}
+      <p class="errors">Our arithmetic and the broker's holding disagree:</p>
+    {% endif %}
+    <ul class="errors">
+      {% for problem in view.divergences %}
+        <li>
+          {{ problem.instrument_id }} — these movements make it {{ problem.ours }},
+          {% if view.compared_with == "paper lots" %}the paper lots hold{% else %}the broker says{% endif %} {{ problem.broker }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% elif view.compared_with == "paper lots" %}
+    <p>Every instrument's movements net to the quantity the paper lots hold.</p>
+  {% else %}
+    <p>Every instrument's movements net to the quantity the broker holds.</p>
+  {% endif %}
+  {% if view.compared_with == "broker" %}
+    <p class="text-ink-3">The broker may be short by shares bought and not yet
+      delivered, and holdings that are not the portfolio's are left out, as on Records.</p>
+  {% endif %}
+
+  <div class="flex items-center gap-2 my-4 flex-wrap">
+    <span class="font-mono text-[10px] tracking-[0.14em] text-ink-3">RANGE</span>
+    {% for key, label, _ in ranges %}
+      <a href="?range={{ key }}{% if instrument %}&instrument={{ instrument }}{% endif %}"
+         class="tag no-underline {% if chosen == key %}tag-accent{% endif %}">{{ label }}</a>
+    {% endfor %}
+  </div>
+  <form method="get" class="flex items-end gap-3 flex-wrap my-4">
+    <input type="hidden" name="range" value="{{ chosen }}">
+    <div>
+      <label for="instrument" class="mt-0">Instrument</label>
+      <select id="instrument" name="instrument" class="w-52">
+        <option value="">All instruments</option>
+        {% for symbol in instruments %}
+          <option value="{{ symbol }}" {% if symbol == instrument %}selected{% endif %}>{{ symbol }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="mt-0">Show</button>
+    <a class="ml-auto font-mono text-[12px]" href="?{{ query }}{% if query %}&{% endif %}format=csv" download>Export CSV</a>
+  </form>
+
+  <div class="overflow-x-auto">
+  <table class="text-[13.5px]">
+    <thead>
+      <tr><th>Date</th><th>Symbol</th><th>In</th><th>Out</th><th>Balance</th><th>Price</th><th>Value</th><th>Source</th><th>Reference</th></tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td class="font-mono text-[12px] whitespace-nowrap">{{ row.movement.on|date:"j M Y" }}</td>
+          <td><a href="?instrument={{ row.movement.instrument_id }}&range={{ chosen }}">{{ row.movement.instrument_id }}</a></td>
+          <td class="text-good">{% if row.movement.quantity > 0 %}{{ row.movement.quantity }}{% endif %}</td>
+          <td class="text-bad">{% if row.movement.quantity < 0 %}{{ row.movement.quantity }}{% endif %}</td>
+          <td>{{ row.balance }}</td>
+          <td>{% if row.movement.price is not None %}₹{{ row.movement.price|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td>{% if row.movement.value is not None %}₹{{ row.movement.value|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td>{{ row.movement.label }}</td>
+          <td class="muted font-mono text-[11.5px]">{{ row.movement.reference }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="9" class="muted">No shares moved in this range.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% if by_source %}
+    <div class="flex gap-3 flex-wrap">
+      {% for label, moved in by_source %}
+        <div class="card py-2.5">
+          <div class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3">{{ label|upper }}</div>
+          <div class="font-mono text-[13px] mt-1"><span class="text-good">+{{ moved.in }}</span> · <span class="text-bad">−{{ moved.out }}</span></div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  <p class="muted text-[12px]">Balance is the running total for the instrument since the first share, not since the start of the range.</p>
+  <p class="muted">{{ view.movements|length }} movement{{ view.movements|length|pluralize }} in this range.</p>
+
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(330px,1fr))] gap-4 mt-6">
+    <div>
+      <h2>Days that need a second look</h2>
+      <div class="card">
+        {% for row in exceptions %}
+          <div class="py-2.5 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+            <div class="flex items-baseline gap-3">
+              <span class="font-mono text-[12px] text-ink-2">{{ row.date|date:"j M Y" }}</span>
+              <span class="tag {% if row.tone == 'bad' %}tag-bad{% else %}tag-accent{% endif %}">{{ row.kind }}</span>
+            </div>
+            <div class="text-[12.5px] text-ink-3 mt-1.5 leading-snug">{{ row.text }}</div>
+          </div>
+        {% empty %}
+          <p class="muted">Nothing here needs explaining.</p>
+        {% endfor %}
+      </div>
+    </div>
+    <div>
+      <h2>Integrity</h2>
+      <div class="card">
+        {% for stat in integrity %}
+          <div class="flex items-baseline gap-3 py-2 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+            <span class="font-mono text-[9.5px] tracking-[0.12em] text-ink-3 w-56 shrink-0">{{ stat.label }}</span>
+            <span class="font-mono text-[13px] {% if stat.tone == 'good' %}text-good{% elif stat.tone == 'bad' %}text-bad{% endif %}">{{ stat.value }}</span>
+            <span class="font-mono text-[10.5px] text-ink-4 ml-auto text-right">{{ stat.sub }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

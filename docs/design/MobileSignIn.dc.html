@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Phone — sign in</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #0B0C0E; font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: #F0A640; } a:hover { color: #FFC470; }
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: #0B0C0E; color: #E9E7E2; overflow: hidden; padding: 0 20px;">
+
+  <div style="height: 92px; flex-shrink: 0; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 8px;">
+    <div style="font-size: 27px; font-weight: 700; letter-spacing: -0.03em;">SteadyStack</div>
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.16em; color: #8F8C85; margin-top: 6px;">DAILY EQUITY ACCUMULATION</div>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0;">
+
+    <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 18px;">
+      <sc-for list="{{steps}}" as="s" hint-placeholder-count="2">
+        <div style="display: flex; align-items: center; gap: 7px;">
+          <span style="width: 20px; height: 20px; border-radius: 50%; box-sizing: border-box; border: 1px solid {{s.ring}}; background: {{s.bg}}; color: {{s.fg}}; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; display: flex; align-items: center; justify-content: center;">{{s.n}}</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: {{s.labelFg}};">{{s.label}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <h1 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em;">{{title}}</h1>
+    <div style="font-size: 13.5px; color: #8F8C85; line-height: 1.55; margin-top: 9px;">{{subtitle}}</div>
+
+    <sc-if value="{{isPassword}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 22px;">
+        <div style="display: flex; flex-direction: column; gap: 7px;">
+          <label for="mu" style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8F8C85;">USERNAME</label>
+          <input id="mu" type="text" value="operator" readonly style="box-sizing: border-box; width: 100%; height: 52px; border: 1px solid #2B2F36; border-radius: 8px; background: #0F1114; color: #E9E7E2; padding: 0 14px; font-family: 'IBM Plex Mono', monospace; font-size: 15px;">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 7px;">
+          <label for="mp" style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: #8F8C85;">PASSWORD</label>
+          <input id="mp" type="password" value="............" readonly style="box-sizing: border-box; width: 100%; height: 52px; border: 1px solid {{a}}; border-radius: 8px; background: #0F1114; color: #E9E7E2; padding: 0 14px; font-family: 'IBM Plex Mono', monospace; font-size: 15px; letter-spacing: 0.2em;">
+        </div>
+        <button type="button" onClick="{{next}}" style="height: 54px; margin-top: 4px; border: 0; border-radius: 8px; background: {{a}}; color: #14100A; font-family: 'Space Grotesk', sans-serif; font-size: 15.5px; font-weight: 600; cursor: pointer;">Continue</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isTotp}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 22px;">
+        <div style="display: flex; gap: 8px;">
+          <sc-for list="{{digits}}" as="d" hint-placeholder-count="6">
+            <span style="flex-grow: 1; height: 62px; box-sizing: border-box; border: 1px solid {{d.border}}; border-radius: 8px; background: #0F1114; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 23px; color: {{d.fg}};">{{d.ch}}</span>
+          </sc-for>
+        </div>
+
+        <div style="display: flex; gap: 10px; padding: 13px 14px; background: #131518; border: 1px solid #1E2127; border-radius: 8px;">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: {{a}}; margin-top: 6px; flex-shrink: 0;"></span>
+          <span style="font-size: 12.5px; color: #B4B0A8; line-height: 1.55;">Your authenticator is on this phone, so you will leave the app to fetch the code. Everything typed here is held until you come back — switching apps never costs you the form.</span>
+        </div>
+
+        <button type="button" style="height: 54px; border: 0; border-radius: 8px; background: {{a}}; color: #14100A; font-family: 'Space Grotesk', sans-serif; font-size: 15.5px; font-weight: 600; cursor: pointer;">Verify and sign in</button>
+        <button type="button" onClick="{{back}}" style="height: 48px; border: 1px solid #2B2F36; border-radius: 8px; background: transparent; color: #B4B0A8; font-family: 'Space Grotesk', sans-serif; font-size: 14px; cursor: pointer;">Back</button>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="flex-shrink: 0; padding: 18px 0 26px 0; display: flex; flex-direction: column; gap: 9px;">
+    <sc-for list="{{facts}}" as="f" hint-placeholder-count="3">
+      <div style="display: flex; align-items: flex-start; gap: 9px;">
+        <span style="width: 5px; height: 5px; border-radius: 50%; background: #46C88A; margin-top: 6px; flex-shrink: 0;"></span>
+        <span style="font-size: 11.5px; color: #83807A; line-height: 1.5;">{{f}}</span>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0A640","options":["#F0A640","#46C88A","#6FA8DC","#D97757"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 'password' };
+  }
+
+  renderVals() {
+    var self = this;
+    var a = this.props.accent || '#F0A640';
+    var GR = '#46C88A', T1 = '#E9E7E2', T2 = '#B4B0A8', T3 = '#8F8C85', T4 = '#83807A';
+    var step = (this.state && this.state.step) || 'password';
+    var isPassword = step === 'password';
+    var isTotp = step === 'totp';
+
+    var steps = [
+      { n: '1', label: 'PASSWORD', done: isTotp, active: isPassword },
+      { n: '2', label: 'CODE', done: false, active: isTotp }
+    ].map(function (s) {
+      return {
+        n: s.done ? '✓' : s.n, label: s.label,
+        ring: s.done ? '#22392F' : (s.active ? a : '#2B2F36'),
+        bg: s.done ? '#16251E' : (s.active ? '#1C1810' : 'transparent'),
+        fg: s.done ? GR : (s.active ? a : T4),
+        labelFg: s.active ? T2 : T4
+      };
+    });
+
+    var digits = ['4', '0', '7', '', '', ''].map(function (ch, i) {
+      var caret = i === 3;
+      return {
+        ch: ch === '' ? (caret ? '|' : '') : ch,
+        fg: caret ? a : T1,
+        border: caret ? a : '#2B2F36'
+      };
+    });
+
+    var facts = [
+      'Nothing about the portfolio shows before you sign in.',
+      'Five wrong codes lock the account for fifteen minutes.',
+      'The day trades on its own once authorised — signing in is not what starts it.'
+    ];
+
+    return {
+      a: a, steps: steps, digits: digits, facts: facts,
+      isPassword: isPassword, isTotp: isTotp,
+      title: isPassword ? 'Sign in' : 'Enter your code',
+      subtitle: isPassword
+        ? 'Two factors, and neither one alone will do.'
+        : 'Six digits from your authenticator, for SteadyStack.',
+      next: function () { self.setState({ step: 'totp' }); },
+      back: function () { self.setState({ step: 'password' }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

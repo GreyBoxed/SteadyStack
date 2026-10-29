@@ -1,0 +1,15 @@
+[Unit]
+Description=steadystack: the close, a round every thirty seconds from 15:00
+
+[Timer]
+# M22: from the fallback time to the close window's end, every thirty
+# seconds. The first round cancels what the ladder left resting; each buys a
+# share of every name's remainder at market, within the rate limit. No jitter:
+# this runs against the clock rather than spread across it.
+OnCalendar=Mon..Fri *-*-* 15:00..25:00,30 Asia/Kolkata
+Persistent=false
+RandomizedDelaySec=0
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

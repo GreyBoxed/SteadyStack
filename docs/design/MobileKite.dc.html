@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Phone — Kite session</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #0B0C0E; font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: #F0A640; } a:hover { color: #FFC470; }
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: #0B0C0E; color: #E9E7E2; overflow: hidden;">
+
+  <header style="height: 56px; flex-shrink: 0; box-sizing: border-box; border-bottom: 1px solid #1E2127; background: #0E1013; display: flex; align-items: center; padding: 0 12px 0 6px; gap: 4px;">
+    <a href="MobileToday.dc.html" aria-label="Back to today" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #B4B0A8; font-size: 19px;">&#8592;</a>
+    <span style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Kite session</span>
+    <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #F0A640; background: #1C1810; border: 1px solid #3A2F1A; border-radius: 4px; padding: 4px 8px; letter-spacing: 0.06em;">PAPER</span>
+  </header>
+
+  <div style="flex-grow: 1; box-sizing: border-box; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-height: 0;">
+
+    <section style="flex-shrink: 0; box-sizing: border-box; background: #131518; border: 1px solid {{border}}; border-radius: 12px; padding: 18px; box-shadow: inset 3px 0 0 {{bar}};">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">ACCESS TOKEN</div>
+      <div style="font-size: 27px; font-weight: 600; letter-spacing: -0.025em; color: {{color}}; margin-top: 8px;">{{label}}</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #B4B0A8; margin-top: 8px; line-height: 1.6;">{{detail}}</div>
+      <button type="button" onClick="{{toggle}}" style="width: 100%; height: 54px; margin-top: 16px; border: 1px solid {{btnBorder}}; border-radius: 8px; background: {{btnBg}}; color: {{btnFg}}; font-family: 'Space Grotesk', sans-serif; font-size: 15.5px; font-weight: 600; cursor: pointer;">{{btnLabel}}</button>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A; text-align: center; margin-top: 10px;">opens Zerodha in your browser</div>
+    </section>
+
+    <section style="flex-shrink: 0; box-sizing: border-box; background: #131518; border: 1px solid #1E2127; border-radius: 12px; padding: 14px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">WHAT YOU ARE ABOUT TO DO</div>
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 13px;">
+        <sc-for list="{{steps}}" as="s" hint-placeholder-count="3">
+          <div style="display: flex; gap: 11px;">
+            <span style="width: 20px; height: 20px; flex-shrink: 0; border-radius: 50%; box-sizing: border-box; border: 1px solid {{s.ring}}; color: {{s.num}}; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; display: flex; align-items: center; justify-content: center;">{{s.n}}</span>
+            <div style="min-width: 0;">
+              <div style="font-size: 13px; color: #E9E7E2; font-weight: 500;">{{s.title}}</div>
+              <div style="font-size: 11.5px; color: #8F8C85; line-height: 1.5; margin-top: 3px;">{{s.text}}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="flex-grow: 1; box-sizing: border-box; background: #131518; border: 1px solid #1E2127; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-height: 0;">
+      <div style="height: 38px; flex-shrink: 0; box-sizing: border-box; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 14px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">WITHOUT A SESSION</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: {{impactColor}};">{{impact}}</span>
+      </div>
+      <div style="flex-grow: 1; overflow-y: auto; min-height: 0;">
+        <sc-for list="{{needs}}" as="n" hint-placeholder-count="5">
+          <div style="display: flex; align-items: center; justify-content: space-between; height: 44px; padding: 0 14px; border-bottom: 1px solid #191C21; background: {{n.bg}};">
+            <span style="font-size: 13px; color: #B4B0A8;">{{n.label}}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.06em; color: {{n.color}};">{{n.status}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="flex-shrink: 0; box-sizing: border-box; padding: 11px 14px; border-top: 1px solid #1E2127; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A; line-height: 1.6;">tokens expire at 06:00 daily, whatever you do — this is a morning ritual, not a fault</div>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0A640","options":["#F0A640","#46C88A","#6FA8DC","#D97757"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { live: false };
+  }
+
+  renderVals() {
+    var self = this;
+    var a = this.props.accent || '#F0A640';
+    var GR = '#46C88A', RD = '#F06A52', T1 = '#E9E7E2', T2 = '#B4B0A8', T3 = '#8F8C85', T4 = '#83807A';
+    var ok = !!(this.state && this.state.live);
+
+    var steps = [
+      { n: '1', title: 'Zerodha takes over', text: 'Their page, not this one. Your client ID, password and TOTP are typed there and this app never sees them.' },
+      { n: '2', title: 'You come back with a token', text: 'A short-lived request_token, worthless by itself and useless to anyone who intercepts it.' },
+      { n: '3', title: 'It becomes an access token', text: 'Exchanged server-side with the API secret, encrypted, and never shown on any screen — including this one.' }
+    ].map(function (s) { return { n: s.n, title: s.title, text: s.text, ring: '#2B2F36', num: T3 }; });
+
+    var needs = [
+      { label: 'Placing and cancelling orders', need: true },
+      { label: 'Building the tradesheet', need: true },
+      { label: 'Live prices and depth', need: true },
+      { label: 'Ledger and past days', need: false },
+      { label: 'Overrides and settings', need: false }
+    ].map(function (n, i) {
+      var blocked = n.need && !ok;
+      return {
+        label: n.label,
+        status: n.need ? (ok ? 'RUNNING' : 'BLOCKED') : 'UNAFFECTED',
+        color: n.need ? (ok ? GR : RD) : T4,
+        bg: blocked ? '#16110F' : (i % 2 === 1 ? '#16181C' : 'transparent')
+      };
+    });
+
+    return {
+      a: a, steps: steps, needs: needs,
+      label: ok ? 'Valid' : 'None',
+      color: ok ? GR : RD,
+      border: ok ? '#22392F' : '#45211C',
+      bar: ok ? GR : RD,
+      detail: ok
+        ? 'issued 11:34 · expires 06:00 tomorrow\n18h 26m of session left'
+        : 'expired 06:00 today, never renewed\ntoday is parked until you connect',
+      btnLabel: ok ? 'Re-connect' : 'Connect to Kite',
+      btnBg: ok ? 'transparent' : a,
+      btnFg: ok ? T2 : '#14100A',
+      btnBorder: ok ? '#2B2F36' : a,
+      impact: ok ? 'all available' : '3 of 5 blocked',
+      impactColor: ok ? T4 : RD,
+      toggle: function () { self.setState({ live: !ok }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

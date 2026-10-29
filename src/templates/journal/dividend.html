@@ -1,0 +1,33 @@
+{% extends "app.html" %}
+{% block title %}Record a dividend — steadystack{% endblock %}
+{% block page_title %}Record a dividend{% endblock %}
+{% block content %}
+
+  <p class="text-ink-2 max-w-[46rem]">
+    A dividend is the portfolio's income, paid to the owner's bank rather than into
+    Zerodha's funds -- it never touches what the engine may spend.
+  </p>
+
+  <form method="post" class="mt-4">
+    {% csrf_token %}
+    {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+    {% if form.non_field_errors %}
+      <div class="errors mb-3">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>
+    {% endif %}
+    <div class="card">
+      {% for field in form.visible_fields %}
+        <div class="py-2.5 {% if not forloop.last %}border-b border-line-soft{% endif %}">
+          <label for="{{ field.id_for_label }}" class="mt-0">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}
+            <div class="text-[11.5px] text-ink-4 mt-1">{{ field.help_text }}</div>
+          {% endif %}
+          {% for error in field.errors %}
+            <div class="errors text-[12px] mt-1">{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      <button type="submit">Record</button>
+    </div>
+  </form>
+{% endblock %}

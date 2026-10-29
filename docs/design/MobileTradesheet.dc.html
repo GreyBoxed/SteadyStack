@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Phone — authorise the day</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #0B0C0E; font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: #F0A640; } a:hover { color: #FFC470; }
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: #0B0C0E; color: #E9E7E2; overflow: hidden;">
+
+  <header style="height: 56px; flex-shrink: 0; box-sizing: border-box; border-bottom: 1px solid #1E2127; background: #0E1013; display: flex; align-items: center; padding: 0 10px 0 6px; gap: 4px;">
+    <a href="MobileToday.dc.html" aria-label="Back to today" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #B4B0A8; font-size: 19px;">&#8592;</a>
+    <span style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Today's trade</span>
+    <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: {{stateFg}}; background: {{stateBg}}; border: 1px solid {{stateBorder}}; border-radius: 4px; padding: 4px 8px; letter-spacing: 0.06em;">{{stateLabel}}</span>
+  </header>
+
+  <div style="flex-grow: 1; box-sizing: border-box; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow-y: auto;">
+
+    <div style="display: flex; align-items: baseline; justify-content: space-between; flex-shrink: 0;">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8F8C85;">ts-2026-09-23</span>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: {{clockColor}};">{{clockNote}}</span>
+    </div>
+
+    <section style="flex-shrink: 0; box-sizing: border-box; background: #131518; border: 1px solid #1E2127; border-radius: 12px; padding: 18px;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">IT WANTS TO BUY</div>
+      <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 9px;">
+        <span style="font-size: 29px; font-weight: 600; letter-spacing: -0.03em;">ITC</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #8F8C85;">NSE · ₹428.60 ask</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px; margin-top: 18px;">
+        <button type="button" onClick="{{dec}}" aria-label="One share fewer" style="width: 52px; height: 52px; border: 1px solid #2B2F36; border-radius: 8px; background: transparent; color: #B4B0A8; font-family: 'IBM Plex Mono', monospace; font-size: 20px; cursor: pointer; padding: 0;">−</button>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 34px; color: {{qtyColor}}; font-variant-numeric: tabular-nums; line-height: 1;">{{qty}}</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">shares</span>
+        </div>
+        <button type="button" onClick="{{inc}}" aria-label="One share more" style="width: 52px; height: 52px; border: 1px solid #2B2F36; border-radius: 8px; background: transparent; color: #B4B0A8; font-family: 'IBM Plex Mono', monospace; font-size: 20px; cursor: pointer; padding: 0;">+</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 9px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #1E2127;">
+        <sc-for list="{{sums}}" as="s" hint-placeholder-count="4">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; font-variant-numeric: tabular-nums;">
+            <span style="color: #8F8C85;">{{s.k}}</span>
+            <span style="color: {{s.color}};">{{s.v}}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="margin-top: 14px; font-size: 12px; color: {{warnColor}}; line-height: 1.55;">{{warn}}</div>
+    </section>
+
+    <section style="flex-shrink: 0; box-sizing: border-box; background: #131518; border: 1px solid #1E2127; border-radius: 12px; overflow: hidden;">
+      <div style="height: 38px; box-sizing: border-box; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 14px;">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">WHY ITC</span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">largest gap to target</span>
+      </div>
+      <sc-for list="{{ranking}}" as="r" hint-placeholder-count="4">
+        <div style="display: grid; grid-template-columns: 20px 1fr 66px 62px; align-items: center; height: 40px; padding: 0 14px; border-bottom: 1px solid #191C21; background: {{r.bg}};">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #83807A;">{{r.n}}</span>
+          <span style="font-size: 13.5px; color: {{r.fg}};">{{r.sym}}</span>
+          <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: {{r.gapColor}}; font-variant-numeric: tabular-nums;">{{r.gap}}</span>
+          <span style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: {{r.noteColor}};">{{r.note}}</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="flex-shrink: 0; box-sizing: border-box; background: #131518; border: 1px solid #1E2127; border-radius: 12px; padding: 14px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="flex-grow: 1; min-width: 0;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8;">built 09:45 · {{age}} ago</div>
+          <div style="font-size: 11.5px; color: #83807A; line-height: 1.5; margin-top: 4px;">{{driftNote}}</div>
+        </div>
+        <button type="button" onClick="{{regen}}" style="height: 46px; padding: 0 16px; flex-shrink: 0; border: 1px solid #2B2F36; border-radius: 8px; background: transparent; color: #B4B0A8; font-family: 'Space Grotesk', sans-serif; font-size: 13.5px; font-weight: 500; cursor: pointer;">Regenerate</button>
+      </div>
+    </section>
+  </div>
+
+  <div style="flex-shrink: 0; box-sizing: border-box; border-top: 1px solid #1E2127; background: #0E1013; padding: 12px 16px 16px 16px; display: flex; flex-direction: column; gap: 9px;">
+    <div style="display: flex; gap: 10px;">
+      <button type="button" style="width: 116px; flex-shrink: 0; height: 54px; border: 1px solid #2B2F36; border-radius: 8px; background: transparent; color: #B4B0A8; font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer;">Skip today</button>
+      <a href="MobileToday.dc.html" style="flex-grow: 1; display: flex; align-items: center; justify-content: center; height: 54px; border-radius: 8px; background: {{a}}; color: #14100A; text-decoration: none; font-size: 15.5px; font-weight: 600;">Authorise {{qty}} shares</a>
+    </div>
+    <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #83807A; text-align: center; line-height: 1.6;">{{footer}}</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0A640","options":["#F0A640","#46C88A","#6FA8DC","#D97757"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { qty: 7, fresh: false };
+  }
+
+  renderVals() {
+    var self = this;
+    var a = this.props.accent || '#F0A640';
+    var GR = '#46C88A', RD = '#F06A52', T1 = '#E9E7E2', T2 = '#B4B0A8', T3 = '#8F8C85', T4 = '#83807A';
+    var qty = (this.state && this.state.qty) || 7;
+    var fresh = !!(this.state && this.state.fresh);
+
+    var ASK = 428.60, AVAILABLE = 3250.90;
+    var cost = qty * ASK;
+    var charges = Math.max(2.5, cost * 0.0012);
+    var total = cost + charges;
+    var carry = AVAILABLE - total;
+    var over = carry < 0;
+
+    var money = function (v) {
+      var s = Math.abs(v).toFixed(2).split('.');
+      var x = s[0], l3 = x.length > 3 ? x.slice(-3) : x, rest = x.length > 3 ? x.slice(0, -3) : '';
+      if (rest) { l3 = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + ',' + l3; }
+      return (v < 0 ? '−₹' : '₹') + l3 + '.' + s[1];
+    };
+
+    var sums = [
+      { k: qty + ' × ₹428.60', v: money(cost), color: T2 },
+      { k: 'charges, estimated', v: money(charges), color: T2 },
+      { k: 'total', v: money(total), color: over ? RD : T1 },
+      { k: 'carries to tomorrow', v: money(carry), color: over ? RD : a }
+    ];
+
+    var ranking = [
+      { n: '1', sym: 'ITC', gap: '−2.14%', note: 'chosen', pick: true },
+      { n: '2', sym: 'HDFCBANK', gap: '−1.86%', note: '', pick: false },
+      { n: '3', sym: 'RELIANCE', gap: '−1.42%', note: '', pick: false },
+      { n: '4', sym: 'LT', gap: '−3.90%', note: 'priced out', pick: false, out: true }
+    ].map(function (r, i) {
+      return {
+        n: r.n, sym: r.sym, gap: r.gap, note: r.note,
+        fg: r.pick ? T1 : (r.out ? T4 : T2),
+        gapColor: r.pick ? a : (r.out ? T4 : T2),
+        noteColor: r.pick ? a : T4,
+        bg: r.pick ? '#1A1710' : (i % 2 === 1 ? '#16181C' : 'transparent')
+      };
+    });
+
+    return {
+      a: a, qty: String(qty), sums: sums, ranking: ranking,
+      qtyColor: over ? RD : T1,
+      stateLabel: 'AWAITING APPROVAL',
+      stateFg: a, stateBg: '#1C1810', stateBorder: '#3A2F1A',
+      clockNote: 'expires 15:00 · 3h 28m left',
+      clockColor: a,
+      warn: over
+        ? 'That is more than today has to spend. Reduce the quantity, or add a lumpsum first.'
+        : (qty === 7
+          ? 'Sized against the best ask, not the last trade — an order the budget cannot reach never fills.'
+          : 'Changed from the 7 shares the system chose. The override is recorded with your name against it.'),
+      warnColor: over ? RD : (qty === 7 ? T4 : a),
+      age: fresh ? 'just now' : '1h 47m',
+      driftNote: fresh
+        ? 'Ranking recomputed against current prices. Any earlier override was cleared.'
+        : 'ITC has moved 0.8% since. Regenerating reprices the ranking and clears your overrides.',
+      footer: 'authorising records your name, the time and this exact ranking',
+      inc: function () { self.setState({ qty: Math.min(12, qty + 1), fresh: fresh }); },
+      dec: function () { self.setState({ qty: Math.max(1, qty - 1), fresh: fresh }); },
+      regen: function () { self.setState({ qty: 7, fresh: !fresh }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

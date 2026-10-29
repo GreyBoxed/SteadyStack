@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Today — awaiting session</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body { margin: 0; background: #0B0C0E; font-family: 'Space Grotesk', 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: #F0A640; } a:hover { color: #FFC470; }
+</style>
+</helmet>
+<div style="width: 1512px; height: 1010px; box-sizing: border-box; display: flex; background: #0B0C0E; color: #E9E7E2; overflow: hidden;">
+
+  <nav style="width: 208px; flex-shrink: 0; background: #0E1013; border-right: 1px solid #1E2127; display: flex; flex-direction: column;">
+    <div style="padding: 18px 16px 16px 16px; border-bottom: 1px solid #1E2127;">
+      <div style="font-size: 19px; font-weight: 700; letter-spacing: -0.02em; color: #E9E7E2;">SteadyStack</div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85; margin-top: 5px;">DAILY EQUITY ACCUMULATION</div>
+    </div>
+    <div style="padding: 12px 10px 0 10px; display: flex; flex-direction: column; gap: 2px;">
+      <sc-for list="{{nav}}" as="item" hint-placeholder-count="11">
+        <a href="{{item.href}}" style="display: flex; align-items: center; height: 40px; padding: 0 12px; border-radius: 6px; text-decoration: none; font-size: 13.5px; font-weight: 500; background: {{item.bg}}; color: {{item.fg}}; box-shadow: {{item.bar}};">{{item.label}}</a>
+      </sc-for>
+    </div>
+    <div style="margin-top: auto; padding: 14px 16px 16px 16px; border-top: 1px solid #1E2127; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: #F06A52; flex-shrink: 0;"></span>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8; letter-spacing: 0.04em;">NO KITE SESSION</span>
+      </div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #8F8C85; line-height: 1.6;">expired 06:00 today<br>never renewed</div>
+    </div>
+  </nav>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 56px; flex-shrink: 0; box-sizing: border-box; border-bottom: 1px solid #1E2127; background: #0E1013; display: flex; align-items: center; padding: 0 20px; gap: 14px;">
+      <h1 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Today</h1>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #F06A52; background: #1C1210; border: 1px solid #45211C; border-radius: 4px; padding: 3px 8px;">ts-2026-09-22 · AWAITING_SESSION</span>
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8F8C85;">Tue 22 Sep 2026 · trading day 361</span>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 22px;">
+        <div style="display: flex; align-items: center; gap: 7px;">
+          <span style="width: 6px; height: 6px; border-radius: 50%; background: #46C88A;"></span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #B4B0A8;">NSE OPEN · closes 15:30</span>
+        </div>
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: #E9E7E2; font-variant-numeric: tabular-nums;">11:32:18 IST</span>
+      </div>
+    </header>
+
+    <div style="flex-grow: 1; box-sizing: border-box; padding: 20px; display: flex; flex-direction: column; gap: 16px; min-height: 0;">
+
+      <section style="height: 208px; flex-shrink: 0; box-sizing: border-box; background: #131518; border: 1px solid #45211C; border-radius: 8px; box-shadow: inset 3px 0 0 #F06A52; display: flex; overflow: hidden;">
+        <div style="width: 468px; flex-shrink: 0; box-sizing: border-box; padding: 20px 22px; border-right: 1px solid #1E2127; display: flex; flex-direction: column;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; color: #8F8C85;">TODAY IS WAITING FOR YOU</div>
+          <div style="font-size: 30px; font-weight: 600; letter-spacing: -0.025em; color: #F06A52; margin-top: 11px;">Parked 1h 47m</div>
+          <div style="font-size: 13.5px; color: #B4B0A8; line-height: 1.55; margin-top: 10px;">The tradesheet was built at 09:45 and is holding. Nothing has been bought, nothing has been lost, and no order exists at the broker.</div>
+          <button type="button" style="margin-top: auto; height: 52px; border: 0; border-radius: 6px; background: {{a}}; color: #14100A; font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer;">Connect to Kite</button>
+        </div>
+
+        <div style="flex-grow: 1; box-sizing: border-box; padding: 20px 24px; display: flex; flex-direction: column; min-width: 0;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">TIME LEFT TO SAVE THE DAY</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: {{a}};">3h 28m until the cutoff</span>
+          </div>
+
+          <div style="position: relative; height: 6px; background: #23262B; border-radius: 3px; margin: 26px 4px 0 4px;">
+            <span style="position: absolute; left: 0; top: 0; height: 6px; width: 34%; background: #2E3239; border-radius: 3px;"></span>
+            <span style="position: absolute; left: 34%; top: -5px; width: 3px; height: 16px; background: {{a}}; border-radius: 2px;"></span>
+            <span style="position: absolute; left: 100%; top: -5px; width: 3px; height: 16px; background: #F06A52; border-radius: 2px; margin-left: -3px;"></span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; margin-top: 14px;">
+            <sc-for list="{{marks}}" as="m" hint-placeholder-count="4">
+              <div style="display: flex; flex-direction: column; gap: 5px; width: 168px;">
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: {{m.color}}; font-variant-numeric: tabular-nums;">{{m.time}}</span>
+                <span style="font-size: 12.5px; color: {{m.labelColor}};">{{m.label}}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A; line-height: 1.5;">{{m.sub}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </section>
+
+      <section style="height: 196px; flex-shrink: 0; display: flex; gap: 16px;">
+        <sc-for list="{{outcomes}}" as="o" hint-placeholder-count="2">
+          <div style="flex-grow: 1; box-sizing: border-box; background: #131518; border: 1px solid {{o.border}}; border-radius: 8px; padding: 18px 20px; display: flex; flex-direction: column; box-shadow: inset 3px 0 0 {{o.bar}}; min-width: 0;">
+            <div style="display: flex; align-items: baseline; gap: 11px;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.12em; color: {{o.bar}};">{{o.tag}}</span>
+              <span style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em; color: #E9E7E2;">{{o.title}}</span>
+            </div>
+            <div style="font-size: 13px; color: #B4B0A8; line-height: 1.6; margin-top: 11px;">{{o.text}}</div>
+            <div style="margin-top: auto; display: flex; gap: 26px;">
+              <sc-for list="{{o.stats}}" as="s" hint-placeholder-count="3">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.12em; color: #8F8C85;">{{s.k}}</span>
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; color: {{s.color}}; font-variant-numeric: tabular-nums;">{{s.v}}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </section>
+
+      <div style="flex-grow: 1; display: flex; gap: 16px; min-height: 0;">
+
+        <section style="width: 452px; flex-shrink: 0; box-sizing: border-box; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;">
+          <div style="height: 42px; flex-shrink: 0; box-sizing: border-box; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">WHAT IS BEING HELD</span>
+            <a href="Tradesheet.dc.html" style="font-size: 12.5px; text-decoration: none;">Tradesheet</a>
+          </div>
+          <div style="flex-grow: 1; box-sizing: border-box; padding: 14px 16px; display: flex; flex-direction: column; gap: 11px;">
+            <sc-for list="{{held}}" as="h" hint-placeholder-count="7">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-variant-numeric: tabular-nums;">
+                <span style="color: #8F8C85;">{{h.k}}</span>
+                <span style="color: {{h.color}}; font-size: 13.5px;">{{h.v}}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="box-sizing: border-box; padding: 12px 16px; border-top: 1px solid #1E2127; font-size: 11.5px; color: #83807A; line-height: 1.6;">The ranking was frozen at 09:45 and will not be recomputed on resume. You get the day the system decided on, not a fresher one.</div>
+        </section>
+
+        <section style="flex-grow: 1; box-sizing: border-box; background: #131518; border: 1px solid #1E2127; border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; min-width: 0;">
+          <div style="height: 42px; flex-shrink: 0; box-sizing: border-box; border-bottom: 1px solid #1E2127; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">HOW TODAY GOT HERE</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">one trace id · ts-2026-09-22</span>
+          </div>
+          <div style="flex-grow: 1; overflow-y: auto; min-height: 0;">
+            <sc-for list="{{trail}}" as="t" hint-placeholder-count="6">
+              <div style="display: flex; gap: 11px; padding: 12px 16px; border-bottom: 1px solid #191C21; box-shadow: {{t.bar}};">
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: {{t.color}}; margin-top: 5px; flex-shrink: 0;"></span>
+                <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+                  <div style="display: flex; align-items: baseline; gap: 9px;">
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.1em; color: {{t.color}};">{{t.level}}</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A;">{{t.time}}</span>
+                  </div>
+                  <span style="font-size: 12.5px; color: #B4B0A8; line-height: 1.45;">{{t.text}}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <section style="width: 300px; flex-shrink: 0; box-sizing: border-box; background: #131518; border: 1px solid #1E2127; border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; color: #8F8C85;">NOTHING IS AT RISK</div>
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 14px;">
+            <sc-for list="{{safe}}" as="s" hint-placeholder-count="4">
+              <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #46C88A; margin-top: 6px; flex-shrink: 0;"></span>
+                <span style="font-size: 12.5px; color: #B4B0A8; line-height: 1.5;">{{s}}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top: auto; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #83807A; line-height: 1.7;">a skipped day costs nothing but a day. Over eighteen years the system expects a handful of them.</div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F0A640","options":["#F0A640","#46C88A","#6FA8DC","#D97757"]},"$preview":{"width":1512,"height":1010}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var a = this.props.accent || '#F0A640';
+    var GR = '#46C88A', RD = '#F06A52', T1 = '#E9E7E2', T2 = '#B4B0A8', T3 = '#8F8C85', T4 = '#83807A';
+
+    var nav = [
+      ['AwaitingSession.dc.html', 'Today', true],
+      ['Tradesheet.dc.html', 'Tradesheet', false],
+      ['Main.dc.html', 'Trading', false],
+      ['Holdings.dc.html', 'Holdings', false],
+      ['Performance.dc.html', 'Performance', false],
+      ['Ledger.dc.html', 'Cash ledger', false],
+      ['DayDetail.dc.html', 'Day detail', false],
+      ['Rebalance.dc.html', 'Rebalance sell', false],
+      ['Model.dc.html', 'Model portfolio', false],
+      ['KiteSession.dc.html', 'Kite session', false],
+      ['Config.dc.html', 'Configuration', false]
+    ].map(function (n) {
+      return { href: n[0], label: n[1], bg: n[2] ? '#1A1D22' : 'transparent', fg: n[2] ? T1 : T3, bar: n[2] ? 'inset 2px 0 0 ' + a : 'none' };
+    });
+
+    var marks = [
+      { time: '09:45', label: 'Tradesheet built', sub: 'ranking frozen, then parked', color: T2, labelColor: T2 },
+      { time: '11:32', label: 'Now', sub: 'tick 21 of 63 has already passed', color: a, labelColor: a },
+      { time: '14:00', label: 'Window closes', sub: 'last tick that places a slice', color: T2, labelColor: T2 },
+      { time: '15:00', label: 'Cutoff', sub: 'after this the day is gone', color: RD, labelColor: RD }
+    ];
+
+    var outcomes = [
+      {
+        tag: 'BEFORE 15:00', title: 'The day resumes where the clock is',
+        border: '#22392F', bar: GR,
+        text: 'The ladder starts immediately at the tick the time of day implies — not at tick 0. Connect at 11:35 and the first order goes out at tick 22, priced where a day that had been running since 09:45 would be priced. It still gets its 15:00 market fallback.',
+        stats: [
+          { k: 'RESUMES AT', v: 'tick 22', color: GR },
+          { k: 'TICKS LEFT', v: '29 to 14:00', color: T2 },
+          { k: 'SLICE', v: '1 share', color: T2 }
+        ]
+      },
+      {
+        tag: 'AFTER 15:00', title: 'The day is skipped and the money carries',
+        border: '#45211C', bar: RD,
+        text: 'No orders are placed at all. The tradesheet terminates as SKIPPED, the full amount moves to carry, and tomorrow’s tradesheet has more to spend. Nothing is lost — it is deferred, and the ranking is recomputed fresh in the morning.',
+        stats: [
+          { k: 'STATE', v: 'SKIPPED', color: RD },
+          { k: 'CARRIED', v: '₹2,600.00', color: a },
+          { k: 'SHARES BOUGHT', v: '0', color: T4 }
+        ]
+      }
+    ];
+
+    var held = [
+      { k: 'instrument', v: 'ITC', color: T1 },
+      { k: 'quantity', v: '7 shares', color: T1 },
+      { k: 'reference ask at 09:45', v: '₹428.60', color: T2 },
+      { k: 'daily amount', v: '₹2,600.00', color: T2 },
+      { k: 'carry in', v: '₹650.90', color: T2 },
+      { k: 'available to spend', v: '₹3,250.90', color: a },
+      { k: 'gap being closed', v: '−2.14%', color: a }
+    ];
+
+    var trail = [
+      { level: 'ALERT', time: '09:00:04', color: RD, text: 'Session check found no valid Kite access token. Alert delivered.', bar: 'inset 3px 0 0 ' + RD },
+      { level: 'PARKED', time: '09:45:02', color: RD, text: 'Tradesheet ts-2026-09-22 generated and immediately parked as AWAITING_SESSION. ITC, 7 shares, ranking stored.', bar: 'inset 3px 0 0 ' + RD },
+      { level: 'INFO', time: '09:45:02', color: T4, text: 'Tick numbering started on the clock as usual. Ticks 0 through 21 have elapsed with no order placed.', bar: 'none' },
+      { level: 'INFO', time: '10:00:00', color: T4, text: 'Reminder raised: 5h 00m remain before the cutoff.', bar: 'none' },
+      { level: 'INFO', time: '11:00:00', color: T4, text: 'Reminder raised: 4h 00m remain before the cutoff.', bar: 'none' },
+      { level: 'NOTICE', time: '06:00:00', color: T4, text: 'Yesterday’s access token expired on Kite’s daily schedule. This is normal and happens every day.', bar: 'none' }
+    ];
+
+    var safe = [
+      'No order was placed, so no money has moved.',
+      'Nothing is resting at the broker — orders are DAY validity and yesterday’s expired at close.',
+      'The ledger, holdings and every past day are readable without a session.',
+      'If you connect late, the amount carries whole rather than being spent in a hurry.'
+    ];
+
+    return { a: a, nav: nav, marks: marks, outcomes: outcomes, held: held, trail: trail, safe: safe };
+  }
+}
+</script>
+</body>
+</html>

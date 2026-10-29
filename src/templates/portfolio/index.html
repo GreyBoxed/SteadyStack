@@ -1,0 +1,64 @@
+{% extends "app.html" %}
+{% block title %}Instruments — steadystack{% endblock %}
+{% block page_title %}Instruments{% endblock %}
+{% block content %}
+  <p class="text-ink-2 max-w-[48rem]">
+    The names this system touches: the {{ in_universe }} carrying a target weight, anything
+    held or ever ordered, and the benchmark. The rest of the NSE master is a search away.
+  </p>
+
+  <form method="get" class="flex items-end gap-3 flex-wrap my-4">
+    <div>
+      <label for="q" class="mt-0">Search symbol or name</label>
+      <input type="search" id="q" name="q" value="{{ query }}" placeholder="e.g. ITC or Infosys" class="w-72">
+    </div>
+    <button type="submit" class="mt-0">Search</button>
+    {% if query %}<a class="font-mono text-[12px]" href="?view={{ view }}">clear</a>{% endif %}
+  </form>
+
+  {% if not query %}
+    <nav class="flex items-center gap-1 flex-wrap mb-2" aria-label="Which instruments" data-keep-scroll>
+      {% for key, label, count in views %}
+        <a href="?view={{ key }}"
+           class="px-3 h-7 flex items-center rounded no-underline text-[12.5px] {% if view == key %}bg-[#22262C] text-ink{% else %}text-ink-3 hover:text-ink-2{% endif %}"
+           {% if view == key %}aria-current="true"{% endif %}>{{ label }} · {{ count }}</a>
+      {% endfor %}
+    </nav>
+  {% else %}
+    <p class="muted text-[13px]">{{ page.paginator.count }} match{{ page.paginator.count|pluralize:"es" }} for “{{ query }}” across the whole master.</p>
+  {% endif %}
+
+  <table class="text-[13.5px]">
+    <thead><tr><th>Symbol</th><th>Name</th><th>Token</th><th>Held</th><th>Target</th><th></th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td>{% if row.is_index %}{{ row.symbol }}{% else %}<a href="{% url 'portfolio:detail' row.symbol %}">{{ row.symbol }}</a>{% endif %}</td>
+          <td class="text-ink-3">{{ row.name }}</td>
+          <td class="font-mono text-[11px] text-ink-4">{{ row.token }}</td>
+          <td>{% if row.held %}{{ row.held }}{% else %}<span class="text-ink-4">—</span>{% endif %}</td>
+          <td>{% if row.target %}{{ row.target|floatformat:2 }}%{% else %}<span class="text-ink-4">—</span>{% endif %}</td>
+          <td class="whitespace-nowrap">
+            {% if row.is_benchmark %}<span class="tag tag-accent">benchmark</span>{% endif %}
+            {% if row.is_index and not row.is_benchmark %}<span class="tag">index</span>{% endif %}
+            {% if not row.active %}<span class="tag tag-bad">retired</span>{% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="muted">{% if query %}Nothing in the master matches that.{% else %}Nothing here.{% endif %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page.paginator.num_pages > 1 %}
+    <nav class="flex items-center gap-3 font-mono text-[12px]" aria-label="Pages">
+      {% if page.has_previous %}<a href="?view={{ view }}&q={{ query|urlencode }}&page={{ page.previous_page_number }}">← previous</a>{% endif %}
+      <span class="text-ink-3">page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+      {% if page.has_next %}<a href="?view={{ view }}&q={{ query|urlencode }}&page={{ page.next_page_number }}">next →</a>{% endif %}
+    </nav>
+  {% endif %}
+  <p class="muted text-[12px]">
+    Retired rows are kept, never deleted: a lot bought years ago still points at its instrument.
+    Indices are kept so the benchmark can be priced, and cannot be given a target weight.
+  </p>
+{% endblock %}
