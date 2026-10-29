@@ -1,6 +1,6 @@
 [project]
 name = "steadystack"
-version = "0.1.0"
+version = "0.0.1"
 description = "Daily equity accumulation against a model portfolio"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
